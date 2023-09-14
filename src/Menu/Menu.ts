@@ -1,7 +1,7 @@
-const customMenu1 = (): void => {
+const customMenu = (): void => {
   const html = HtmlService.createHtmlOutputFromFile('menu.html')
     .setWidth(800)
     .setHeight(800);
-  SpreadsheetApp.getUi().showModalDialog(html, 'CUSTOM MENU 1');
+  SpreadsheetApp.getUi().showModalDialog(html, 'カスタムメニュ〜');
 };
-export { customMenu1 };
+export { customMenu };

@@ -1,9 +1,9 @@
-// import { ss } from './Const';
-import { customMenu1 } from './Menu/Menu';
+import { ss } from './Const';
+import { customMenu } from './Menu/Menu';
 
 const onOpen = (): void => {
   const menu = SpreadsheetApp.getUi().createMenu('Custom menu');
-  menu.addItem('custom menu from html', 'customMenu1_');
+  menu.addItem('custom menu', 'customMenu_');
   menu.addToUi();
 };
 
@@ -14,11 +14,17 @@ const getId = (): string => {
   return userid;
 };
 
+const getSpreadSheetName = (): string => {
+  const sheetname = ss.getName();
+
+  return sheetname;
+};
+
 // Exposed to GAS global function
 global.onOpen = onOpen;
-global.customMenu1_ = customMenu1;
+global.customMenu_ = customMenu;
 global.getId = getId;
+global.getSpreadSheetName = getSpreadSheetName;
 
 // Exposed to Frontend API
-// export { affectCountToA1, getSpreadSheetName, getSpreadSheetUrl };
-export { getId };
+export { getId, getSpreadSheetName };

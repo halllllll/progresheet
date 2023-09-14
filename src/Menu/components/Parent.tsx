@@ -9,6 +9,7 @@ const Parent: FC = () => {
   return (
     <Box>
       <Text>yo! {_yo?.userID} !!!</Text>
+      <Text>sheetname: {_yo?.sheetName} !!!!!</Text>
     </Box>
   );
 };
