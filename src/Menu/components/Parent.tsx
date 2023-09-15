@@ -1,9 +1,8 @@
 import { type FC, useContext } from 'react';
 import { Box, Text } from '@chakra-ui/react';
-import { MyCtx } from '../App';
-
+import { MenuCtx } from '../providers';
 const Parent: FC = () => {
-  const _yo = useContext(MyCtx);
+  const _yo = useContext(MenuCtx);
   console.log(`yo! ${_yo === null ? 'omg..' : _yo.userID + '!!!!'}`);
 
   return (
