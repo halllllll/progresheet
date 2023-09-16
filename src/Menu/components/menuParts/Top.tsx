@@ -1,6 +1,6 @@
 import { type FC, useContext } from 'react';
 import { Box, Text } from '@chakra-ui/react';
-import { MenuCtx } from '../App';
+import { MenuCtx } from '../../App';
 
 const Parent: FC = () => {
   const _yo = useContext(MenuCtx);

@@ -1,8 +1,8 @@
 import { Navigate, createBrowserRouter } from 'react-router-dom';
 import Home from '../components/Home';
-import Parent from '../components/Parent';
 import ErrorPage from '../components/error-page';
 import Info from '../components/menuParts/Info';
+import Parent from '../components/menuParts/Top';
 
 const router = createBrowserRouter([
   {

@@ -1,7 +1,7 @@
 import { type FC } from 'react';
 import { Icon, Stack, StackDivider, VStack } from '@chakra-ui/react';
 import { type IconType } from 'react-icons';
-import { Link } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 
 type MenuItem = {
   link: string;
@@ -25,10 +25,15 @@ const MenuItems: FC<MenuItemProps> = (props) => {
       {items.map((item) => {
         return (
           <VStack key={item.link}>
-            <Link to={item.link}>
+            <NavLink
+              to={item.link}
+              className={({ isActive, isPending }) => {
+                return isActive ? 'active' : isPending ? 'pending' : '';
+              }}
+            >
               <Icon as={item.icon} mr={3} />
               {item.name}
-            </Link>
+            </NavLink>
           </VStack>
         );
       })}
