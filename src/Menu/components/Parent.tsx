@@ -1,6 +1,6 @@
 import { type FC, useContext } from 'react';
 import { Box, Text } from '@chakra-ui/react';
-import { MyCtx } from '../App';
+import { MyCtx } from '../providers';
 
 const Parent: FC = () => {
   const _yo = useContext(MyCtx);
