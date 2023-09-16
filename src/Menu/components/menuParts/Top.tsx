@@ -2,7 +2,7 @@ import { type FC, useContext } from 'react';
 import { Box, Text } from '@chakra-ui/react';
 import { MenuCtx } from '../../App';
 
-const Parent: FC = () => {
+const Top: FC = () => {
   const _yo = useContext(MenuCtx);
   console.log(`yo! ${_yo === null ? 'omg..' : _yo.userID + '!!!!'}`);
 
@@ -14,4 +14,4 @@ const Parent: FC = () => {
   );
 };
 
-export default Parent;
+export default Top;

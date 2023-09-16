@@ -9,7 +9,7 @@ const getUserIdAPI = async (): Promise<string> => {
     return await new Promise((resolve) => {
       setTimeout(() => {
         resolve('dummy id');
-      }, 300);
+      }, 1200);
     });
   }
 };
@@ -22,7 +22,7 @@ const getSpreadSheetNameAPI = async (): Promise<string> => {
   } else {
     return await new Promise((resolve) => {
       setTimeout(() => {
-        resolve('dummy id');
+        resolve('pseudo sheet name');
       }, 300);
     });
   }
