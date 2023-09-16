@@ -1,7 +1,7 @@
 import { useEffect, useState, type FC, type ReactNode } from 'react';
 import { ClimbingBoxLoader } from 'react-spinners';
 import { serverFunctions } from '../API/serverFnctions';
-import { MenuCtx } from '../providers';
+import { MenuCtx } from '../App';
 
 export type CtxType = {
   userID: string;
