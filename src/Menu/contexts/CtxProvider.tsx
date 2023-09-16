@@ -1,6 +1,6 @@
 import { useEffect, useState, type FC, type ReactNode } from 'react';
 import { ClimbingBoxLoader } from 'react-spinners';
-import { serverFunctions } from '../API/serverFnctions';
+import { getSpreadSheetNameAPI, getUserIdAPI } from '../API/MenuDataAPI';
 import { MenuCtx } from '../App';
 
 export type CtxType = {
@@ -19,8 +19,8 @@ const CtxProvider: FC<Props> = ({ children }) => {
   useEffect(() => {
     const f = async () => {
       const [userid, sheetname] = await Promise.all([
-        serverFunctions.getId(),
-        serverFunctions.getSpreadSheetName(),
+        getUserIdAPI(),
+        getSpreadSheetNameAPI(),
       ]);
       console.log(`from server! userid = ${userid}`);
       setRes({ userID: userid, sheetName: sheetname });

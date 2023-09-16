@@ -27,8 +27,11 @@ const MenuItems: FC<MenuItemProps> = (props) => {
           <VStack key={item.link}>
             <NavLink
               to={item.link}
-              className={({ isActive, isPending }) => {
-                return isActive ? 'active' : isPending ? 'pending' : '';
+              style={({ isActive, isPending }) => {
+                return {
+                  fontWeight: isActive ? 'bold' : '',
+                  color: isPending ? 'grey' : 'black',
+                };
               }}
             >
               <Icon as={item.icon} mr={3} />
