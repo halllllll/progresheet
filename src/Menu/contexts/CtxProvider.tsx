@@ -1,7 +1,7 @@
 import { useEffect, useState, type FC, type ReactNode } from 'react';
 import { Box, Center } from '@chakra-ui/react';
 import { ClimbingBoxLoader } from 'react-spinners';
-import { getSpreadSheetNameAPI, getUserIdAPI } from '../API/MenuDataAPI';
+import { getSpreadSheetNameAPI, getUserIdAPI } from '../API/userAndSheetAPI';
 import { MenuCtx } from '../App';
 
 export type CtxType = {

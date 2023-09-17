@@ -1,17 +1,21 @@
 import { type FC } from 'react';
 import { Box, Button, Center } from '@chakra-ui/react';
 import { useFormContext } from 'react-hook-form';
+import toast from 'react-hot-toast';
 import { PropagateLoader } from 'react-spinners';
+import initAPI from '@/Menu/API/initAPI';
 
 const InitForm: FC = () => {
   const methods = useFormContext();
   const onPost = async () => {
-    const ret = await new Promise((resolve) => {
-      setTimeout(() => {
-        resolve('a');
-      }, 1000);
-    });
-    console.log(ret);
+    await initAPI()
+      .then((res) => {
+        console.log(JSON.stringify(res));
+        toast.success('初期化成功！');
+      })
+      .catch((err: Error) => {
+        toast.error(`エラーが発生したよ\n${err.message}`);
+      });
   };
 
   return (
