@@ -13,24 +13,24 @@ const InitSheet: FC = () => {
   return (
     <Box>
       <Heading variant="h2" size="lg">
-        初期化だよ！
+        初期化
       </Heading>
       <Box py={5}>
         <Text>
-          シートを初期状態に戻します。シートの数や設定を最初からやり直したいときなどに気軽に使ってください
+          シートを初期状態に戻します。設定シートを消してしまったときや、シートの数や設定を最初からやり直したいときなどに使ってください
         </Text>
         <List spacing={3} py={5}>
           <ListItem>
             <ListIcon as={FiCheckCircle} color="green.500" />
-            Lorem ipsum dolor sit amet, consectetur adipisicing elit
+            設定シート以外のシートが全て削除されます。
           </ListItem>
           <ListItem>
             <ListIcon as={FiCheckCircle} color="green.500" />
-            Assumenda, quia temporibus eveniet a libero incidunt suscipit
+            設定シートはデフォルト値になります。書式・値がリセットされますが、セルの大きさなど一部の設定はそのままになることがあります。
           </ListItem>
           <ListItem>
             <ListIcon as={FiCheckCircle} color="green.500" />
-            Quidem, ipsam illum quis sed voluptatum quae eum fugit earum
+            初期化後は、基本的に「ラベル設定」「クラス設定」を済ませてから使用する想定です。
           </ListItem>
         </List>
       </Box>

@@ -64,7 +64,7 @@ const initConfig = (): InitResponse => {
     const CONFIG_DEFAULT_VALUES = [
       ['Labels', 'colors'],
       ['All Right!', '#61a7e9'],
-      ['Hmm...', '#f4ff5e'],
+      ['Hmm...', '#ee786e'],
     ];
     configSheet.setFrozenRows(1);
 
