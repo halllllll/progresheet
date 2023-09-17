@@ -3,13 +3,12 @@ import { Box, Text } from '@chakra-ui/react';
 import { MenuCtx } from '../../App';
 
 const Top: FC = () => {
-  const _yo = useContext(MenuCtx);
-  console.log(`yo! ${_yo === null ? 'omg..' : _yo.userID + '!!!!'}`);
+  const user = useContext(MenuCtx);
 
   return (
     <Box>
-      <Text>yo! {_yo?.userID} !!!</Text>
-      <Text>sheetname: {_yo?.sheetName} !!!!!</Text>
+      <Text>hello! {user?.userID} !!!</Text>
+      <Text>sheetname: {user?.sheetName} !!!!!</Text>
     </Box>
   );
 };

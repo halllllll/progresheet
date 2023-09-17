@@ -1,4 +1,4 @@
-import { ss } from './Const';
+import { ss, INIT_CONFIG_DEFAULT } from './Const';
 import { customMenu } from './Menu/Menu';
 
 const onOpen = (): void => {
@@ -25,6 +25,7 @@ global.onOpen = onOpen;
 global.customMenu_ = customMenu;
 global.getId = getId;
 global.getSpreadSheetName = getSpreadSheetName;
+global.initConfigSheet_ = INIT_CONFIG_DEFAULT;
 
 // Exposed to Frontend API
-export { getId, getSpreadSheetName };
+export { getId, getSpreadSheetName, INIT_CONFIG_DEFAULT };

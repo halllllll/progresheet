@@ -18,16 +18,11 @@ const CtxProvider: FC<Props> = ({ children }) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    // TODO: タイムアウト処理を実装したい
-    const abortController = new AbortController();
     const f = async () => {
+      // TODO: タイムアウト要検証
       const [userid, sheetname] = await Promise.all([
         getUserIdAPI(),
         getSpreadSheetNameAPI(),
-        // TODO: タイムアウト要検証
-        setTimeout(() => {
-          abortController.abort();
-        }, 1000),
       ]);
 
       setRes({ userID: userid, sheetName: sheetname });
