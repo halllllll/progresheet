@@ -2,7 +2,7 @@ import { Navigate, createBrowserRouter } from 'react-router-dom';
 import Home from '../components/Home';
 import ErrorPage from '../components/error-page';
 import Info from '../components/menuParts/Info';
-import Init from '../components/menuParts/Init/init';
+import InitSheet from '../components/menuParts/Init/init';
 import Top from '../components/menuParts/Top';
 
 const router = createBrowserRouter([
@@ -13,12 +13,16 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <Top /> },
       {
-        path: 'info',
+        path: 'init',
+        element: <InitSheet />,
+      },
+      {
+        path: 'labels',
         element: <Info />,
       },
       {
-        path: 'init',
-        element: <Init />,
+        path: 'info',
+        element: <Info />,
       },
     ],
   },

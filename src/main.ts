@@ -10,6 +10,7 @@ const onOpen = (): void => {
 const getId = Service.getId;
 const getSpreadSheetName = Service.getSpreadSheetName;
 const initConfig = Service.initConfig;
+const getLabelConfig = Service.getLabelConfig;
 
 // Exposed to GAS global function
 global.onOpen = onOpen;
@@ -17,6 +18,7 @@ global.customMenu_ = customMenu;
 global.getId = getId;
 global.getSpreadSheetName = getSpreadSheetName;
 global.initConfig = initConfig;
+global.getLabelConfig = getLabelConfig;
 
 // Exposed to Frontend API
-export { getId, getSpreadSheetName, initConfig };
+export { getId, getSpreadSheetName, initConfig, getLabelConfig };

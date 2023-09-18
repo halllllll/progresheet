@@ -4,6 +4,7 @@ import { useFormContext } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { PropagateLoader } from 'react-spinners';
 import initAPI from '@/Menu/API/initAPI';
+import { InitError } from '@/Menu/errors';
 
 const InitForm: FC = () => {
   const methods = useFormContext();
@@ -13,8 +14,14 @@ const InitForm: FC = () => {
         console.log(JSON.stringify(res));
         toast.success('初期化成功！');
       })
-      .catch((err: Error) => {
-        toast.error(`エラーが発生したよ\n${err.message}`);
+      .catch((err: unknown) => {
+        // TODO: 下手くそ
+        if (err instanceof InitError) {
+          toast.error(`エラーが発生したよ！\n${err.name}\n${err.message}`);
+        } else {
+          const e = err as Error;
+          toast.error(`エラーが発生したよ！\n${e.name}`);
+        }
       });
   };
 

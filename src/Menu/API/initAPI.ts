@@ -8,7 +8,7 @@ const initAPI = async (): Promise<InitResponse> => {
     if (ret.success) {
       return ret;
     } else {
-      throw new InitError(ret.error.name + ' ' + ret.error.message);
+      throw new InitError(ret.error.name + ' ' + ret.errMsg);
     }
   } else {
     return await new Promise<InitResponse>((resolve) => {

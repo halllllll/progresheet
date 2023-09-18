@@ -1,13 +1,27 @@
 import { useEffect, useState, type FC, type ReactNode } from 'react';
 import { Box, Center } from '@chakra-ui/react';
 import { ClimbingBoxLoader } from 'react-spinners';
+import { getLabelDataAPI } from '../API/configDataAPI';
 import { getSpreadSheetNameAPI, getUserIdAPI } from '../API/userAndSheetAPI';
 import { MenuCtx } from '../App';
+import { ConfigSheetError } from '../errors';
+import { type Labels } from '../types';
+
+type hasError =
+  | {
+      status: 'success';
+    }
+  | {
+      status: 'failed';
+      errMessage: string;
+      error: Error;
+    };
 
 export type CtxType = {
   userID: string;
   sheetName: string;
-};
+  labels?: Labels;
+} & hasError;
 
 type Props = {
   children?: ReactNode;
@@ -20,12 +34,41 @@ const CtxProvider: FC<Props> = ({ children }) => {
   useEffect(() => {
     const f = async () => {
       // TODO: タイムアウト要検証
-      const [userid, sheetname] = await Promise.all([
+      const [userid, sheetname, labelResp] = await Promise.all([
         getUserIdAPI(),
         getSpreadSheetNameAPI(),
+        getLabelDataAPI(),
       ]);
-
-      setRes({ userID: userid, sheetName: sheetname });
+      if (!labelResp.success) {
+        console.table(labelResp);
+        if (labelResp.error instanceof ConfigSheetError) {
+          setRes({
+            userID: userid,
+            sheetName: sheetname,
+            status: 'failed',
+            errMessage:
+              '設定シートが不正です。確認してください（よくわからなければ初期化してください）',
+            error: labelResp.error,
+          });
+        } else {
+          setRes({
+            userID: userid,
+            sheetName: sheetname,
+            status: 'failed',
+            errMessage: `不明なエラー: ${
+              labelResp.errorMsg ?? labelResp.error.message
+            }`,
+            error: labelResp.error,
+          });
+        }
+      } else {
+        setRes({
+          userID: userid,
+          sheetName: sheetname,
+          labels: labelResp.body,
+          status: 'success',
+        });
+      }
       setIsLoading(false);
     };
     setIsLoading(true);
