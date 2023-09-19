@@ -40,7 +40,6 @@ const CtxProvider: FC<Props> = ({ children }) => {
         getLabelDataAPI(),
       ]);
       if (!labelResp.success) {
-        console.table(labelResp);
         if (labelResp.error instanceof ConfigSheetError) {
           setRes({
             userID: userid,
@@ -62,6 +61,8 @@ const CtxProvider: FC<Props> = ({ children }) => {
           });
         }
       } else {
+        console.log('label!');
+        console.table(labelResp.body);
         setRes({
           userID: userid,
           sheetName: sheetname,

@@ -153,8 +153,8 @@ const getLabelConfig = (): LabelResponse => {
     return {
       success: true,
       body: {
-        labels: values.map((d) => d[labelIdx]),
-        colors: values.map((d) => d[colorIdx]),
+        labels: values.map((d) => d[labelIdx]).slice(1),
+        colors: values.map((d) => d[colorIdx]).slice(1),
       },
     };
   } catch (e: unknown) {

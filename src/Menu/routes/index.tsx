@@ -4,6 +4,7 @@ import ErrorPage from '../components/error-page';
 import Info from '../components/menuParts/Info';
 import InitSheet from '../components/menuParts/Init/init';
 import Top from '../components/menuParts/Top';
+import Labels from '../components/menuParts/labels/labels';
 
 const router = createBrowserRouter([
   {
@@ -18,7 +19,7 @@ const router = createBrowserRouter([
       },
       {
         path: 'labels',
-        element: <Info />,
+        element: <Labels />,
       },
       {
         path: 'info',

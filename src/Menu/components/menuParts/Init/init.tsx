@@ -19,7 +19,14 @@ const InitSheet: FC = () => {
         <Text>
           シートを初期状態に戻します。設定シートを消してしまったときや、シートの数や設定を最初からやり直したいときなどに使ってください
         </Text>
-        <List spacing={3} py={5}>
+        <List
+          spacing={3}
+          m={3}
+          p={5}
+          border="1px"
+          borderRadius="md"
+          borderColor="sienna"
+        >
           <ListItem>
             <ListIcon as={FiCheckCircle} color="green.500" />
             設定シート以外のシートが全て削除されます。

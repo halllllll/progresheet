@@ -60,6 +60,7 @@ const InitForm: FC = () => {
               isLoading={methods.formState.isSubmitting}
               loadingText="初期化中..."
               spinnerPlacement="start"
+              colorScheme="red"
             >
               初期化する
             </Button>
