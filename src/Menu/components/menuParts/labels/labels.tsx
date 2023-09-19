@@ -4,8 +4,16 @@ import { useForm, FormProvider } from 'react-hook-form';
 import LabelForm from './labelForm';
 
 // ひとまず全部今のやつを取得してみよう
+export type FieldValue = {
+  labels: Array<{
+    value: string;
+    colro: string;
+    order: number;
+  }>;
+};
+
 const Labels: FC = () => {
-  const methods = useForm({
+  const methods = useForm<FieldValue>({
     mode: 'all',
     criteriaMode: 'all',
     shouldUnregister: false,

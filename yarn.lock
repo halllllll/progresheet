@@ -8311,6 +8311,11 @@ react-clientside-effect@^1.2.6:
   dependencies:
     "@babel/runtime" "^7.12.13"
 
+react-color-palette@^7.1.0:
+  version "7.1.0"
+  resolved "https://registry.yarnpkg.com/react-color-palette/-/react-color-palette-7.1.0.tgz#dff94e86b90626777df82f5c78e60d376347db2e"
+  integrity sha512-F5jMWOWh7FMkgm7aJfwNr5+TatvGKvQatuaDtw8trSU4yKk0bzcxOC7HFYVRs/9qEJ8kvatjWaUUrcQATYSXhw==
+
 react-colorful@^5.1.2:
   version "5.6.1"
   resolved "https://registry.yarnpkg.com/react-colorful/-/react-colorful-5.6.1.tgz#7dc2aed2d7c72fac89694e834d179e32f3da563b"

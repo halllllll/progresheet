@@ -8,9 +8,12 @@ import {
   Input,
   Stack,
   VStack,
+  useDisclosure,
 } from '@chakra-ui/react';
+import { ColorPicker, useColor } from 'react-color-palette';
 import { useFormContext, useFieldArray } from 'react-hook-form';
 import { PropagateLoader } from 'react-spinners';
+import 'react-color-palette/css';
 
 const LabelForm: FC = () => {
   const methods = useFormContext();
@@ -18,8 +21,25 @@ const LabelForm: FC = () => {
   // FieldArrayとやらをやってみる
 
   const { fields, append, remove } = useFieldArray({
-    name: 'values',
+    name: 'labels',
   });
+  const [color, setColor] = useColor('#561ecb');
+
+  // ピッカーをポップアップするためのスタイル
+  const popover: {} = {
+    position: 'absolute',
+    zIndex: '2',
+  };
+
+  // ピッカー以外の領域を所をクリックした時に閉じるためのカバー
+  const cover: {} = {
+    position: 'fixed',
+    top: '0px',
+    right: '0px',
+    bottom: '0px',
+    left: '0px',
+  };
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
   const onSubmit = async () => {
     await new Promise((resolve) => {
@@ -62,11 +82,20 @@ const LabelForm: FC = () => {
               {fields.map((field, idx) => {
                 return (
                   <Stack key={field.id}>
-                    <Grid templateColumns="repeat(5, 1fr)" gap={5}>
-                      <GridItem colSpan={4}>
+                    <Grid templateColumns="repeat(8, 1fr)" gap={5}>
+                      <GridItem colSpan={5}>
                         <Input placeholder={`hoa~~ ${idx}`} />
                       </GridItem>
                       <GridItem colSpan={1}>
+                        <Button onClick={onOpen} background={color.hex} />
+                        {isOpen && (
+                          <Box style={popover}>
+                            <Box style={cover} onClick={onClose} />
+                            <ColorPicker color={color} onChange={setColor} />
+                          </Box>
+                        )}
+                      </GridItem>
+                      <GridItem colSpan={2}>
                         <Button
                           type="button"
                           onClick={() => {
