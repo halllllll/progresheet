@@ -7,7 +7,7 @@ import LabelForm from './labelForm';
 export type FieldValue = {
   labels: Array<{
     value: string;
-    colro: string;
+    color: string;
     order: number;
   }>;
 };

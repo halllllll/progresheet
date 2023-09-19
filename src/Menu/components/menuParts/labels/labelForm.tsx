@@ -1,4 +1,4 @@
-import { type FC } from 'react';
+import { type CSSProperties, type FC } from 'react';
 import {
   Box,
   Button,
@@ -8,38 +8,36 @@ import {
   Input,
   Stack,
   VStack,
-  useDisclosure,
 } from '@chakra-ui/react';
-import { ColorPicker, useColor } from 'react-color-palette';
 import { useFormContext, useFieldArray } from 'react-hook-form';
 import { PropagateLoader } from 'react-spinners';
-import 'react-color-palette/css';
+import LabelColor from './color';
+import { type FieldValue } from './labels';
 
 const LabelForm: FC = () => {
   const methods = useFormContext();
 
   // FieldArrayとやらをやってみる
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove } = useFieldArray<FieldValue>({
     name: 'labels',
+    shouldUnregister: false,
   });
-  const [color, setColor] = useColor('#561ecb');
 
   // ピッカーをポップアップするためのスタイル
-  const popover: {} = {
+  const popover: CSSProperties = {
     position: 'absolute',
     zIndex: '2',
   };
 
   // ピッカー以外の領域を所をクリックした時に閉じるためのカバー
-  const cover: {} = {
+  const cover: CSSProperties = {
     position: 'fixed',
     top: '0px',
     right: '0px',
     bottom: '0px',
     left: '0px',
   };
-  const { isOpen, onOpen, onClose } = useDisclosure();
 
   const onSubmit = async () => {
     await new Promise((resolve) => {
@@ -82,18 +80,12 @@ const LabelForm: FC = () => {
               {fields.map((field, idx) => {
                 return (
                   <Stack key={field.id}>
-                    <Grid templateColumns="repeat(8, 1fr)" gap={5}>
+                    <Grid templateColumns="repeat(8, 1fr)" gap={3}>
                       <GridItem colSpan={5}>
-                        <Input placeholder={`hoa~~ ${idx}`} />
+                        <Input placeholder={`ラベルだよ ${idx}`} />
                       </GridItem>
                       <GridItem colSpan={1}>
-                        <Button onClick={onOpen} background={color.hex} />
-                        {isOpen && (
-                          <Box style={popover}>
-                            <Box style={cover} onClick={onClose} />
-                            <ColorPicker color={color} onChange={setColor} />
-                          </Box>
-                        )}
+                        <LabelColor popover={popover} cover={cover} />
                       </GridItem>
                       <GridItem colSpan={2}>
                         <Button
@@ -102,7 +94,7 @@ const LabelForm: FC = () => {
                             remove(idx);
                           }}
                         >
-                          remove
+                          削除
                         </Button>
                       </GridItem>
                     </Grid>
@@ -115,7 +107,11 @@ const LabelForm: FC = () => {
             <Button
               type="button"
               onClick={() => {
-                append({});
+                append({
+                  value: 'a',
+                  color: '#ffffff',
+                  order: fields.length + 1,
+                });
               }}
             >
               追加
