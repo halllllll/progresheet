@@ -16,7 +16,7 @@ import {
 } from 'react-hook-form';
 import { PropagateLoader } from 'react-spinners';
 import LabelColor from './color';
-import { type FieldValue } from './labels';
+import { type LabelData } from './labels';
 import { setLabelDataAPI } from '@/Menu/API/configDataAPI';
 
 const LabelForm: FC = () => {
@@ -24,7 +24,7 @@ const LabelForm: FC = () => {
 
   // FieldArrayとやらをやってみる
 
-  const { fields, append, remove } = useFieldArray<FieldValue>({
+  const { fields, append, remove } = useFieldArray<LabelData>({
     name: 'labels',
     shouldUnregister: false,
     rules: { minLength: 2 },
@@ -45,19 +45,13 @@ const LabelForm: FC = () => {
     bottom: '0px',
     left: '0px',
   };
-
-  // const onSubmit: SubmitHandler<FieldValue> = async (data) => {
+  // TODO: typed, MUST AVOID any
+  // const onSubmit: SubmitHandler<LabelData> = async (data) => {
   const onSubmit = async (data: any) => {
-    const ret = await setLabelDataAPI(data as FieldValue);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    const ret = await setLabelDataAPI(data);
     console.log('done!');
     console.log(ret);
-    // await new Promise((resolve) => {
-    //   setTimeout(() => {
-    //     console.log('push~');
-    //     console.table(data);
-    //     resolve('done');
-    //   }, 1000);
-    // });
   };
 
   // type LabelList
@@ -96,7 +90,7 @@ const LabelForm: FC = () => {
                       <GridItem colSpan={5}>
                         <Input
                           placeholder={field.value}
-                          name={`field.value[${idx}]`}
+                          name={`labels.value[${idx}]`}
                         />
                       </GridItem>
                       <GridItem colSpan={1}>

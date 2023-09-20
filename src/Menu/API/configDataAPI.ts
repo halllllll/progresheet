@@ -1,5 +1,5 @@
 import { type LabelResponse } from '../AppsScript/service';
-import { type FieldValue } from '../components/menuParts/labels/labels';
+import { type LabelData } from '../components/menuParts/labels/labels';
 import { isGASEnvironment, serverFunctions } from './serverFunctions';
 
 const getLabelDataAPI = async (): Promise<LabelResponse> => {
@@ -25,7 +25,7 @@ const getLabelDataAPI = async (): Promise<LabelResponse> => {
 export type LabelDataRequest = string;
 
 // TODO: not boolean(only for test)
-const setLabelDataAPI = async (data: FieldValue): Promise<boolean> => {
+const setLabelDataAPI = async (data: LabelData): Promise<boolean> => {
   if (isGASEnvironment()) {
     console.log('go to endpoint... content here:');
     console.table(data);

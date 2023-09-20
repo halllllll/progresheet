@@ -17,7 +17,7 @@ const InitSheet: FC = () => {
       </Heading>
       <Box py={5}>
         <Text>
-          シートを初期状態に戻します。設定シートを消してしまったときや、シートの数や設定を最初からやり直したいときなどに使ってください
+          シートを初期状態に戻します。シートの数や設定を最初からやり直したいときなどに使ってください。
         </Text>
         <List
           spacing={3}
@@ -34,6 +34,10 @@ const InitSheet: FC = () => {
           <ListItem>
             <ListIcon as={FiCheckCircle} color="green.500" />
             設定シートはデフォルト値になります。書式・値がリセットされますが、セルの大きさなど一部の設定はそのままになることがあります。
+          </ListItem>
+          <ListItem>
+            <ListIcon as={FiCheckCircle} color="green.500" />
+            共同編集者はすべて削除されます。必要に応じて追加してください。
           </ListItem>
           <ListItem>
             <ListIcon as={FiCheckCircle} color="green.500" />

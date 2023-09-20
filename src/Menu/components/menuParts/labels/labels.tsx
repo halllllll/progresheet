@@ -6,8 +6,7 @@ import { MenuCtx } from '@/Menu/App';
 import LabelForm from './labelForm';
 import { LabelSchema } from './schema';
 
-// ひとまず全部今のやつを取得してみよう
-export type FieldValue = {
+export type LabelData = {
   labels: Array<{
     value: string;
     color: string;
@@ -32,7 +31,7 @@ const Labels: FC = () => {
           },
         ];
 
-  const methods = useForm<FieldValue>({
+  const methods = useForm<LabelData>({
     mode: 'all',
     criteriaMode: 'all',
     shouldUnregister: false,

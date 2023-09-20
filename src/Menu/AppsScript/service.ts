@@ -8,7 +8,7 @@ import {
   CONFIG_LABEL,
   CONFIG_COLOR,
 } from '@/Const';
-import { type FieldValue } from '../components/menuParts/labels/labels';
+import { type LabelData } from '../components/menuParts/labels/labels';
 import { ConfigSheetError } from '../errors';
 import { type Labels } from '../types';
 
@@ -112,8 +112,6 @@ const initConfig = (): InitResponse => {
     prot.addEditor(getId());
     // configSheet.hideSheet();
 
-    lock.releaseLock();
-
     return { success: true };
   } catch (e: unknown) {
     Logger.log(e);
@@ -168,11 +166,16 @@ const getLabelConfig = (): LabelResponse => {
   }
 };
 
-type LabelData = FieldValue;
-
 // TODO: alias string
+/**
+ *
+ * @param {string} data - comming as stringified object data, by "JSON.stringify"
+ * @returns
+ */
 const setLabelConfig = (data: string): boolean => {
+  const lock = LockService.getScriptLock();
   try {
+    lock.waitLock(1 * 3000);
     console.log('aaa');
     const d = JSON.parse(data) as LabelData;
     console.log(`data from front:`);
@@ -183,6 +186,7 @@ const setLabelConfig = (data: string): boolean => {
   } catch (e: unknown) {
     return false;
   } finally {
+    lock.releaseLock();
     console.log('ooo');
   }
 };
