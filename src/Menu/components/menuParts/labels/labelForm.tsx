@@ -22,6 +22,7 @@ const LabelForm: FC = () => {
   const { fields, append, remove } = useFieldArray<FieldValue>({
     name: 'labels',
     shouldUnregister: false,
+    rules: { minLength: 2 },
   });
 
   // ピッカーをポップアップするためのスタイル
@@ -110,7 +111,6 @@ const LabelForm: FC = () => {
                 append({
                   value: 'a',
                   color: '#ffffff',
-                  order: fields.length + 1,
                 });
               }}
             >

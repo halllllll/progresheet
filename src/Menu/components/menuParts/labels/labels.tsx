@@ -1,14 +1,15 @@
 import { type FC } from 'react';
 import { Box, Heading, Text } from '@chakra-ui/react';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { useForm, FormProvider } from 'react-hook-form';
 import LabelForm from './labelForm';
+import { LabelSchema } from './schema';
 
 // ひとまず全部今のやつを取得してみよう
 export type FieldValue = {
   labels: Array<{
     value: string;
     color: string;
-    order: number;
   }>;
 };
 
@@ -17,6 +18,7 @@ const Labels: FC = () => {
     mode: 'all',
     criteriaMode: 'all',
     shouldUnregister: false,
+    resolver: yupResolver(LabelSchema),
   });
 
   return (
