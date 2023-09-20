@@ -176,7 +176,8 @@ const setLabelConfig = (data: string): boolean => {
     console.log('aaa');
     const d = JSON.parse(data) as LabelData;
     console.log(`data from front:`);
-    console.table(d);
+    console.log(`row string: ${data}`);
+    console.log(d);
 
     return true;
   } catch (e: unknown) {

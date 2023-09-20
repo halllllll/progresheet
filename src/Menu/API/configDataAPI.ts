@@ -27,6 +27,8 @@ export type LabelDataRequest = string;
 // TODO: not boolean(only for test)
 const setLabelDataAPI = async (data: FieldValue): Promise<boolean> => {
   if (isGASEnvironment()) {
+    console.log('go to endpoint... content here:');
+    console.table(data);
     const ret = await serverFunctions.setLabelConfig(JSON.stringify(data));
 
     return ret;
