@@ -8,6 +8,7 @@ import {
   CONFIG_LABEL,
   CONFIG_COLOR,
 } from '@/Const';
+import { type FieldValue } from '../components/menuParts/labels/labels';
 import { ConfigSheetError } from '../errors';
 import { type Labels } from '../types';
 
@@ -167,4 +168,28 @@ const getLabelConfig = (): LabelResponse => {
   }
 };
 
-export { getId, getSpreadSheetName, initConfig, getLabelConfig };
+type LabelData = FieldValue;
+
+// TODO: alias string
+const setLabelConfig = (data: string): boolean => {
+  try {
+    console.log('aaa');
+    const d = JSON.parse(data) as LabelData;
+    console.log(`data from front:`);
+    console.table(d);
+
+    return true;
+  } catch (e: unknown) {
+    return false;
+  } finally {
+    console.log('ooo');
+  }
+};
+
+export {
+  getId,
+  getSpreadSheetName,
+  initConfig,
+  getLabelConfig,
+  setLabelConfig,
+};

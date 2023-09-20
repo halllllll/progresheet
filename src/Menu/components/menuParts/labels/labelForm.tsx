@@ -17,6 +17,7 @@ import {
 import { PropagateLoader } from 'react-spinners';
 import LabelColor from './color';
 import { type FieldValue } from './labels';
+import { setLabelDataAPI } from '@/Menu/API/configDataAPI';
 
 const LabelForm: FC = () => {
   const methods = useFormContext();
@@ -32,6 +33,7 @@ const LabelForm: FC = () => {
   // ピッカーをポップアップするためのスタイル
   const popover: CSSProperties = {
     position: 'absolute',
+    marginTop: '5px',
     zIndex: '2',
   };
 
@@ -46,13 +48,16 @@ const LabelForm: FC = () => {
 
   // const onSubmit: SubmitHandler<FieldValue> = async (data) => {
   const onSubmit = async (data: any) => {
-    await new Promise((resolve) => {
-      setTimeout(() => {
-        console.log('push~');
-        console.table(data);
-        resolve('done');
-      }, 1000);
-    });
+    const ret = await setLabelDataAPI(data as FieldValue);
+    console.log('done!');
+    console.log(ret);
+    // await new Promise((resolve) => {
+    //   setTimeout(() => {
+    //     console.log('push~');
+    //     console.table(data);
+    //     resolve('done');
+    //   }, 1000);
+    // });
   };
 
   // type LabelList

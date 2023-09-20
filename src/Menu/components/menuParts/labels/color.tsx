@@ -20,7 +20,13 @@ const LabelColor: FC<LabelColorProps> = ({ popover, cover, curColor }) => {
       {isOpen && (
         <Box style={popover}>
           <Box style={cover} onClick={onClose} />
-          <ColorPicker color={color} onChange={setColor} />
+          <ColorPicker
+            color={color}
+            onChange={setColor}
+            hideAlpha={true}
+            hideInput={['hsv']}
+            height={160}
+          />
         </Box>
       )}
     </>
