@@ -80,7 +80,7 @@ const CtxProvider: FC<Props> = ({ children }) => {
     <MenuCtx.Provider value={res}>
       {' '}
       {isLoading ? (
-        // 全画面縦横中央ローディング
+        // 全画面縦横中央ローディング(Fullで救えない)
         <Box
           left="0"
           top="0"

@@ -18,6 +18,7 @@ import { PropagateLoader } from 'react-spinners';
 import LabelColor from './color';
 import { type LabelData } from './labels';
 import { setLabelDataAPI } from '@/Menu/API/configDataAPI';
+import Full from '@/Menu/components/loader';
 
 const LabelForm: FC = () => {
   const methods = useFormContext();
@@ -59,25 +60,14 @@ const LabelForm: FC = () => {
   return (
     <>
       {methods.formState.isSubmitting && (
-        <Box
-          position="fixed"
-          zIndex="1000"
-          left="0"
-          top="0"
-          w="100vw"
-          h="100vh"
-          bg="rgba(0, 0, 0, 0.1)"
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-        >
+        <Full>
           <PropagateLoader
             color="#36d7b7"
             size={20}
             aria-label="Loading Spinner"
             loading={methods.formState.isSubmitting}
           />
-        </Box>
+        </Full>
       )}
       <form onSubmit={methods.handleSubmit(onSubmit)}>
         <Box>

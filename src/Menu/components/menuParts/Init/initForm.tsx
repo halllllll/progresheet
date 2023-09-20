@@ -4,6 +4,7 @@ import { useFormContext } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { PropagateLoader } from 'react-spinners';
 import initAPI from '@/Menu/API/initAPI';
+import Full from '@/Menu/components/loader';
 import { InitError } from '@/Menu/errors';
 
 const InitForm: FC = () => {
@@ -28,25 +29,14 @@ const InitForm: FC = () => {
   return (
     <>
       {methods.formState.isSubmitting && (
-        <Box
-          position="fixed"
-          zIndex="1000"
-          left="0"
-          top="0"
-          w="100vw"
-          h="100vh"
-          bg="rgba(0, 0, 0, 0.1)"
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-        >
+        <Full>
           <PropagateLoader
             color="#36d7b7"
             size={20}
             aria-label="Loading Spinner"
             loading={methods.formState.isSubmitting}
           />
-        </Box>
+        </Full>
       )}
       <form onSubmit={methods.handleSubmit(onPost)}>
         <Box>
