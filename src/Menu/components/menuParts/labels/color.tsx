@@ -6,10 +6,11 @@ import 'react-color-palette/css';
 type LabelColorProps = {
   popover: CSSProperties;
   cover: CSSProperties;
+  curColor: string;
 };
 
-const LabelColor: FC<LabelColorProps> = ({ popover, cover }) => {
-  const [color, setColor] = useColor('#fd8bb9');
+const LabelColor: FC<LabelColorProps> = ({ popover, cover, curColor }) => {
+  const [color, setColor] = useColor(curColor);
 
   const { isOpen, onOpen, onClose } = useDisclosure();
 

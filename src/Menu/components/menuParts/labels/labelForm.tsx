@@ -9,7 +9,11 @@ import {
   Stack,
   VStack,
 } from '@chakra-ui/react';
-import { useFormContext, useFieldArray } from 'react-hook-form';
+import {
+  useFormContext,
+  useFieldArray,
+  // type SubmitHandler,
+} from 'react-hook-form';
 import { PropagateLoader } from 'react-spinners';
 import LabelColor from './color';
 import { type FieldValue } from './labels';
@@ -40,10 +44,12 @@ const LabelForm: FC = () => {
     left: '0px',
   };
 
-  const onSubmit = async () => {
+  // const onSubmit: SubmitHandler<FieldValue> = async (data) => {
+  const onSubmit = async (data: any) => {
     await new Promise((resolve) => {
       setTimeout(() => {
         console.log('push~');
+        console.table(data);
         resolve('done');
       }, 1000);
     });
@@ -83,10 +89,17 @@ const LabelForm: FC = () => {
                   <Stack key={field.id}>
                     <Grid templateColumns="repeat(8, 1fr)" gap={3}>
                       <GridItem colSpan={5}>
-                        <Input placeholder={`ラベルだよ ${idx}`} />
+                        <Input
+                          placeholder={field.value}
+                          name={`field.value[${idx}]`}
+                        />
                       </GridItem>
                       <GridItem colSpan={1}>
-                        <LabelColor popover={popover} cover={cover} />
+                        <LabelColor
+                          popover={popover}
+                          cover={cover}
+                          curColor={field.color}
+                        />
                       </GridItem>
                       <GridItem colSpan={2}>
                         <Button
@@ -109,8 +122,8 @@ const LabelForm: FC = () => {
               type="button"
               onClick={() => {
                 append({
-                  value: 'a',
-                  color: '#ffffff',
+                  value: 'ラベルだよ！',
+                  color: '#eeeeee',
                 });
               }}
             >

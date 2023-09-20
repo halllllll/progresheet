@@ -1,7 +1,8 @@
-import { type FC } from 'react';
+import { useContext, type FC } from 'react';
 import { Box, Heading, Text } from '@chakra-ui/react';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useForm, FormProvider } from 'react-hook-form';
+import { MenuCtx } from '@/Menu/App';
 import LabelForm from './labelForm';
 import { LabelSchema } from './schema';
 
@@ -14,10 +15,30 @@ export type FieldValue = {
 };
 
 const Labels: FC = () => {
+  const ctx = useContext(MenuCtx);
+
+  const defaultValues =
+    ctx?.labels !== undefined && ctx.labels.colors.length > 0
+      ? ctx.labels.colors.map((_, idx) => {
+          return {
+            value: ctx.labels?.labels[idx] ?? 'empty',
+            color: ctx.labels?.colors[idx] ?? '#eeeeee',
+          };
+        })
+      : [
+          {
+            value: 'empty',
+            color: '#eeeeee',
+          },
+        ];
+
   const methods = useForm<FieldValue>({
     mode: 'all',
     criteriaMode: 'all',
     shouldUnregister: false,
+    defaultValues: {
+      labels: defaultValues,
+    },
     resolver: yupResolver(LabelSchema),
   });
 

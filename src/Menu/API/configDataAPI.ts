@@ -13,7 +13,7 @@ const getLabelDataAPI = async (): Promise<LabelResponse> => {
           success: true,
           body: {
             labels: ['label1', 'label2'],
-            colors: ['#555555', '#88aafc'],
+            colors: ['#d95858', '#88aafc'],
           },
         });
       }, 1000);
