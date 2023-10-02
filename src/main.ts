@@ -1,9 +1,10 @@
 import * as Service from './Menu/AppsScript/service';
-import { customMenu } from './Menu/AppsScript/utils';
+import { customMenu, initMenu } from './Menu/AppsScript/utils';
 
 const onOpen = (): void => {
   const menu = SpreadsheetApp.getUi().createMenu('Custom menu');
   menu.addItem('Progresheet管理', 'customMenu_');
+  menu.addItem('初期化', 'initMenu_');
   menu.addToUi();
 };
 
@@ -16,6 +17,7 @@ const setLabelConfig = Service.setLabelConfig;
 // Exposed to GAS global function
 global.onOpen = onOpen;
 global.customMenu_ = customMenu;
+global.initMenu_ = initMenu;
 global.getId = getId;
 global.getSpreadSheetName = getSpreadSheetName;
 global.initConfig = initConfig;

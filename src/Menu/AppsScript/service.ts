@@ -9,7 +9,7 @@ import {
   CONFIG_COLOR,
 } from '@/Const';
 import { type LabelData } from '../components/menuParts/labels/labels';
-import { ConfigSheetError } from '../errors';
+import { type ErrorName } from '../errors';
 import { type Labels } from '../types';
 
 const getId = (): string => {
@@ -68,6 +68,39 @@ const setBG = (range: GoogleAppsScript.Spreadsheet.Range): void => {
 };
 
 /**
+ * setValues
+ * @param {GoogleAppsScript.Spreadsheet.Range} range
+ * @param {string[][]} values
+ * @return {void}
+ */
+const setValue = (
+  range: GoogleAppsScript.Spreadsheet.Range,
+  values: string[][]
+): void => {
+  if (
+    range.getHeight() !== values.length ||
+    range.getWidth() !== values[0].length
+  ) {
+    throw new Error('range and values should be same length');
+  }
+  range.setValues(values);
+};
+
+/**
+ * find a sheet named sheetName
+ * @param {string} sheetName
+ * @returns {GoogleAppsScript.Spreadsheet.Sheet}
+ */
+const getTargetSheet = (
+  sheetName: string
+): GoogleAppsScript.Spreadsheet.Sheet | null => {
+  const sheets = ss.getSheets();
+  const targets = sheets.filter((s) => s.getSheetName() === sheetName);
+
+  return targets.length === 0 ? null : targets[0];
+};
+
+/**
  * initialize sheet. set default values for `CONFIG_SHEET`
  * @returns {InitResponse}
  */
@@ -75,14 +108,13 @@ const initConfig = (): InitResponse => {
   const lock = LockService.getScriptLock();
   try {
     lock.waitLock(10 * 1000);
-    const sheets = ss.getSheets();
-    const target = sheets.filter((s) => s.getSheetName() === CONFIG_SHEET);
+    const target = getTargetSheet(CONFIG_SHEET);
     let configSheet: GoogleAppsScript.Spreadsheet.Sheet | null = null;
-    if (target.length === 0) {
+    if (target === null) {
       configSheet = ss.insertSheet(0);
       configSheet.setName(CONFIG_SHEET);
     } else {
-      configSheet = target[0];
+      configSheet = target;
       configSheet.clear().clearNotes();
     }
 
@@ -94,6 +126,7 @@ const initConfig = (): InitResponse => {
       CONFIG_DEFAULT.length,
       CONFIG_DEFAULT[0].length
     );
+    // setValue(range, CONFIG_DEFAULT);
     range.setValues(CONFIG_DEFAULT);
 
     // BG Color (based column B)
@@ -102,9 +135,10 @@ const initConfig = (): InitResponse => {
     console.log('values:\n', colorRange.getValues());
     setBG(colorRange);
 
-    // 設定シート以外全部削除
+    // （取得した時点での）設定シート以外全部削除
+    const sheets = ss.getSheets();
     for (const sheet of sheets) {
-      if (sheet !== configSheet) ss.deleteSheet(sheet);
+      if (sheet.getName() !== configSheet.getName()) ss.deleteSheet(sheet);
     }
     const prot = configSheet.protect();
     prot.setDescription('設定シート');
@@ -128,7 +162,7 @@ const initConfig = (): InitResponse => {
  */
 export type LabelResponse =
   | { success: true; body: Labels }
-  | { success: false; error: Error; errorMsg?: string };
+  | { success: false; errorMsg: string; errorName?: ErrorName };
 
 const getLabelConfig = (): LabelResponse => {
   try {
@@ -136,18 +170,46 @@ const getLabelConfig = (): LabelResponse => {
       .getSheetByName(CONFIG_SHEET)
       ?.getDataRange()
       .getDisplayValues();
-    if (values === undefined)
-      throw new ConfigSheetError('config sheet not found');
+    if (values === undefined) {
+      Logger.log('config sheet not found');
+
+      return {
+        success: false,
+        errorMsg: 'config sheet not found',
+        errorName: 'ConfigSheetError',
+      };
+    }
     for (let i = 0; i < values[0].length; i++) {
-      if (values[0][i] !== CONFIG_HEADER[i])
-        throw new ConfigSheetError('invalid header config sheet');
+      if (values[0][i] !== CONFIG_HEADER[i]) {
+        Logger.log('invalid header config sheet');
+
+        return {
+          success: false,
+          errorMsg: 'invalid header config sheet',
+          errorName: 'ConfigSheetError',
+        };
+      }
     }
     const labelIdx = values[0].indexOf(CONFIG_LABEL);
-    if (labelIdx === -1)
-      throw new ConfigSheetError(`not found '${CONFIG_LABEL}' on header`);
+    if (labelIdx === -1) {
+      Logger.log(`not found '${CONFIG_LABEL}' on header`);
+
+      return {
+        success: false,
+        errorMsg: `not found '${CONFIG_LABEL}' on header`,
+        errorName: 'ConfigSheetError',
+      };
+    }
     const colorIdx = values[0].indexOf(CONFIG_COLOR);
-    if (colorIdx === -1)
-      throw new ConfigSheetError(`not found '${CONFIG_COLOR}' on header`);
+    if (colorIdx === -1) {
+      Logger.log(`not found '${CONFIG_COLOR}' on header`);
+
+      return {
+        success: false,
+        errorMsg: `not found '${CONFIG_COLOR}' on header`,
+        errorName: 'ConfigSheetError',
+      };
+    }
 
     return {
       success: true,
@@ -158,11 +220,12 @@ const getLabelConfig = (): LabelResponse => {
     };
   } catch (e: unknown) {
     Logger.log(e);
-    if (e instanceof ConfigSheetError) {
-      return { success: false, error: e, errorMsg: e.message };
-    } else {
-      return { success: false, error: e as Error };
-    }
+
+    return {
+      success: false,
+      errorMsg: 'undefined server error',
+      errorName: 'UndefinedServerError',
+    };
   }
 };
 
@@ -176,18 +239,34 @@ const setLabelConfig = (data: string): boolean => {
   const lock = LockService.getScriptLock();
   try {
     lock.waitLock(1 * 3000);
-    console.log('aaa');
+    const targetSheet = getTargetSheet(CONFIG_SHEET);
+    if (targetSheet === null)
+      throw new Error(`sheet ${CONFIG_SHEET} is not found`);
     const d = JSON.parse(data) as LabelData;
     console.log(`data from front:`);
     console.log(`row string: ${data}`);
     console.log(d);
+    const values = [CONFIG_HEADER, ...d.labels.map((v) => [v.value, v.color])];
+    // 今の設定を削除
+    let range = targetSheet.getDataRange();
+    range.clear();
+
+    range = targetSheet.getRange(
+      CONFIG_DEFAULT_ROW_OFFSET,
+      CONFIG_DEFAULT_COLUMN_OFFSET,
+      values.length,
+      values[0].length
+    );
+    setValue(range, values);
+    const colorRange = range.offset(1, 1, values.length - 1, 1);
+    setBG(colorRange);
 
     return true;
   } catch (e: unknown) {
+    // TODO: error handling
     return false;
   } finally {
     lock.releaseLock();
-    console.log('ooo');
   }
 };
 

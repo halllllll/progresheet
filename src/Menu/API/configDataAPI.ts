@@ -1,12 +1,47 @@
 import { type LabelResponse } from '../AppsScript/service';
 import { type LabelData } from '../components/menuParts/labels/labels';
+import { ConfigSheetError, UndefinedError } from '../errors';
 import { isGASEnvironment, serverFunctions } from './serverFunctions';
 
 const getLabelDataAPI = async (): Promise<LabelResponse> => {
   if (isGASEnvironment()) {
-    const ret = await serverFunctions.getLabelConfig();
+    try {
+      const ret = await serverFunctions.getLabelConfig();
+      if (!ret.success) {
+        switch (ret.errorName) {
+          case 'ConfigSheetError':
+            throw new ConfigSheetError(ret.errorMsg);
+          case 'UndefinedServerError':
+            throw new UndefinedError(ret.errorMsg);
+          default:
+            throw new Error('undefied error');
+        }
+      }
 
-    return ret;
+      return ret;
+    } catch (e: unknown) {
+      if (e instanceof ConfigSheetError) {
+        return {
+          success: false,
+          errorMsg: e.message,
+          errorName: 'ConfigSheetError',
+        };
+      } else if (e instanceof UndefinedError) {
+        return {
+          success: false,
+          errorMsg: e.message,
+          errorName: 'UndefinedServerError',
+        };
+      } else {
+        // TODO: more better...
+        console.error(e);
+
+        return {
+          success: false,
+          errorMsg: 'undefined error',
+        };
+      }
+    }
   } else {
     return await new Promise<LabelResponse>((resolve) => {
       setTimeout(() => {

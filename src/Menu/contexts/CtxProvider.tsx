@@ -4,7 +4,7 @@ import { ClimbingBoxLoader } from 'react-spinners';
 import { getLabelDataAPI } from '../API/configDataAPI';
 import { getSpreadSheetNameAPI, getUserIdAPI } from '../API/userAndSheetAPI';
 import { MenuCtx, SetMenuCtx } from '../App';
-import { ConfigSheetError } from '../errors';
+import { ConfigSheetError, UndefinedError } from '../errors';
 import { type Labels } from '../types';
 
 export type hasError =
@@ -14,7 +14,7 @@ export type hasError =
   | {
       status: 'failed';
       errMessage: string;
-      error: Error;
+      error?: Error;
     };
 
 export type CtxType = {
@@ -42,29 +42,33 @@ const CtxProvider: FC<Props> = ({ children }) => {
         getLabelDataAPI(),
       ]);
       if (!labelResp.success) {
-        if (labelResp.error instanceof ConfigSheetError) {
-          setRes({
-            userID: userid,
-            sheetName: sheetname,
-          });
-          setIsError({
-            status: 'failed',
-            errMessage:
-              '設定シートが不正です。確認してください（よくわからなければ初期化してください）',
-            error: labelResp.error,
-          });
-        } else {
-          setRes({
-            userID: userid,
-            sheetName: sheetname,
-          });
-          setIsError({
-            status: 'failed',
-            errMessage: `不明なエラー: ${
-              labelResp.errorMsg ?? labelResp.error.message
-            }`,
-            error: labelResp.error,
-          });
+        setRes({
+          userID: userid,
+          sheetName: sheetname,
+        });
+        switch (labelResp.errorName) {
+          case 'ConfigSheetError':
+            setIsError({
+              status: 'failed',
+              errMessage:
+                '設定シートが不正です。確認してください（よくわからなければ初期化してください）',
+              error: new ConfigSheetError(labelResp.errorMsg),
+            });
+            break;
+          case 'UndefinedServerError':
+            setIsError({
+              status: 'failed',
+              errMessage: `サーバーエラー: ${
+                labelResp.errorName ?? labelResp.errorMsg
+              }`,
+              error: new UndefinedError(labelResp.errorMsg),
+            });
+            break;
+          default:
+            setIsError({
+              status: 'failed',
+              errMessage: '不明なエラー',
+            });
         }
       } else {
         console.log('label!');
@@ -105,9 +109,8 @@ const CtxProvider: FC<Props> = ({ children }) => {
         ) : isError.status === 'failed' ? (
           <Box>
             <Heading>{`Error occured`}</Heading>
-            <Text>{isError.errMessage}</Text>
-            <Text>{isError.error.name}</Text>
-            <Text>{isError.error.message}</Text>
+            <Text as="p">{isError?.error?.name ?? ''}</Text>
+            <Text as="p">{isError.errMessage}</Text>
           </Box>
         ) : (
           children

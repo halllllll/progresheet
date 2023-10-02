@@ -8,7 +8,7 @@ const Top: FC = () => {
   return (
     <Box>
       <Box my={5}>
-        <Text>こんにちわ {user?.userID} さん。</Text>
+        <Text>こんにちは、 {user?.userID} さん。</Text>
         <Text>sheetname: {user?.sheetName} !!!!!</Text>
       </Box>
       {/* {user?.status === 'failed' && (

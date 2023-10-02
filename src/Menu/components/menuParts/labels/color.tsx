@@ -10,7 +10,6 @@ type LabelColorProps = {
   cover: CSSProperties;
   curColor: string;
   idx: number;
-  // setValue: <T>(name: T, value: string) => void;
 };
 
 const LabelColor: FC<LabelColorProps> = ({ popover, cover, curColor, idx }) => {
