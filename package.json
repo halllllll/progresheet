@@ -26,14 +26,22 @@
     "@chakra-ui/react": "^2.7.1",
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
+    "@hookform/resolvers": "^3.3.1",
     "@typescript-eslint/parser": "^5.60.0",
     "framer-motion": "^10.12.17",
     "gas-client": "^1.1.1",
     "react": "^18.2.0",
+    "react-color-palette": "^7.1.0",
     "react-dom": "^18.2.0",
+    "react-hook-form": "^7.46.1",
+    "react-hot-toast": "^2.4.1",
+    "react-icons": "^4.11.0",
+    "react-router": "^6.16.0",
+    "react-router-dom": "^6.16.0",
     "react-spinners": "^0.13.8",
     "rollup": "^3.25.1",
-    "stylelint-config-recommended": "^12.0.0"
+    "stylelint-config-recommended": "^12.0.0",
+    "yup": "^1.2.0"
   },
   "devDependencies": {
     "@chakra-ui/storybook-addon": "^5.0.1",

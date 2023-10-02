@@ -1,49 +1,18 @@
-import { type FC, createContext, useEffect, useState } from 'react';
-import { ClimbingBoxLoader } from 'react-spinners';
-import { serverFunctions } from './API/serverFnctions';
-import Parent from './components/Parent';
-
-type CtxType = {
-  userID: string;
-  sheetName: string;
-};
-export const MyCtx = createContext<CtxType | null>(null);
+import { type FC } from 'react';
+import { ChakraProvider } from '@chakra-ui/react';
+import { Toaster } from 'react-hot-toast';
+import { RouterProvider } from 'react-router';
+import CtxProvider from './contexts/CtxProvider';
+import router from './routes/index';
 
 const Providers: FC = () => {
-  const [res, setRes] = useState<CtxType | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-
-  useEffect(() => {
-    const isMounted = false;
-    const f = async () => {
-      if (!isMounted) {
-        const [userid, sheetname] = await Promise.all([
-          serverFunctions.getId(),
-          serverFunctions.getSpreadSheetName(),
-        ]);
-        console.log(`from server! userid = ${userid}`);
-        setRes({ userID: userid, sheetName: sheetname });
-        setIsLoading(false);
-      }
-    };
-    setIsLoading(true);
-    void f();
-  }, []);
-
   return (
-    <>
-      <MyCtx.Provider value={res}>
-        {isLoading ? (
-          <ClimbingBoxLoader color="#36d7b7" />
-        ) : (
-          <>
-            <h1>メニューだよ</h1>
-            <div>わ〜い</div>
-            <Parent />
-          </>
-        )}
-      </MyCtx.Provider>
-    </>
+    <CtxProvider>
+      <Toaster />
+      <ChakraProvider>
+        <RouterProvider router={router} />
+      </ChakraProvider>
+    </CtxProvider>
   );
 };
 
