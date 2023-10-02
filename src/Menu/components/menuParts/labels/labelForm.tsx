@@ -113,7 +113,8 @@ const LabelForm: FC = () => {
                           popover={popover}
                           cover={cover}
                           curColor={field.color}
-                          {...methods.register(`labels.${idx}.value`)}
+                          idx={idx}
+                          {...methods.register(`labels.${idx}.color`)}
                         />
                       </GridItem>
                       <GridItem colSpan={2}>
