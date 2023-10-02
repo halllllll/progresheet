@@ -1,4 +1,9 @@
-import { type CSSProperties, type FC } from 'react';
+import {
+  type CSSProperties,
+  type FC,
+  type ChangeEvent,
+  useContext,
+} from 'react';
 import {
   Box,
   Button,
@@ -12,16 +17,23 @@ import {
 import {
   useFormContext,
   useFieldArray,
+  type SubmitHandler,
   // type SubmitHandler,
 } from 'react-hook-form';
 import { PropagateLoader } from 'react-spinners';
+import { MenuCtx, SetMenuCtx } from '@/Menu/App';
 import LabelColor from './color';
 import { type LabelData } from './labels';
 import { setLabelDataAPI } from '@/Menu/API/configDataAPI';
 import Full from '@/Menu/components/loader';
 
 const LabelForm: FC = () => {
-  const methods = useFormContext();
+  const methods = useFormContext<LabelData>();
+  const setMenuCtx = useContext(SetMenuCtx);
+  const menuCtx = useContext(MenuCtx);
+
+  // TODO: error handling
+  if (menuCtx === null) throw new Error('non-context error');
 
   // FieldArrayとやらをやってみる
 
@@ -46,13 +58,19 @@ const LabelForm: FC = () => {
     bottom: '0px',
     left: '0px',
   };
-  // TODO: typed, MUST AVOID any
-  // const onSubmit: SubmitHandler<LabelData> = async (data) => {
-  const onSubmit = async (data: any) => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+
+  const onSubmit: SubmitHandler<LabelData> = async (data) => {
     const ret = await setLabelDataAPI(data);
     console.log('done!');
     console.log(ret);
+    setMenuCtx({
+      userID: menuCtx?.userID,
+      sheetName: menuCtx?.sheetName,
+      labels: {
+        labels: data.labels.map((m) => m.value),
+        colors: data.labels.map((m) => m.color),
+      },
+    });
   };
 
   // type LabelList
@@ -80,7 +98,14 @@ const LabelForm: FC = () => {
                       <GridItem colSpan={5}>
                         <Input
                           placeholder={field.value}
-                          name={`labels.value[${idx}]`}
+                          {...methods.register(`labels.${idx}.value`, {
+                            onChange: (e: ChangeEvent<HTMLInputElement>) => {
+                              methods.setValue(
+                                `labels.${idx}.value`,
+                                e.target.value
+                              );
+                            },
+                          })}
                         />
                       </GridItem>
                       <GridItem colSpan={1}>
@@ -88,6 +113,7 @@ const LabelForm: FC = () => {
                           popover={popover}
                           cover={cover}
                           curColor={field.color}
+                          {...methods.register(`labels.${idx}.value`)}
                         />
                       </GridItem>
                       <GridItem colSpan={2}>

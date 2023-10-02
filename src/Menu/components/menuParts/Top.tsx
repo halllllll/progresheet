@@ -1,5 +1,5 @@
 import { type FC, useContext } from 'react';
-import { Box, HStack, Text, VStack } from '@chakra-ui/react';
+import { Box, Text } from '@chakra-ui/react';
 import { MenuCtx } from '../../App';
 
 const Top: FC = () => {
@@ -11,7 +11,7 @@ const Top: FC = () => {
         <Text>こんにちわ {user?.userID} さん。</Text>
         <Text>sheetname: {user?.sheetName} !!!!!</Text>
       </Box>
-      {user?.status === 'failed' && (
+      {/* {user?.status === 'failed' && (
         <VStack spacing={4}>
           <HStack justify="center">
             <Text variant="h2" as="b" size="3xl" color="tomato">
@@ -24,7 +24,7 @@ const Top: FC = () => {
             <Text>{user.error.message}</Text>
           </Box>
         </VStack>
-      )}
+      )} */}
     </Box>
   );
 };
