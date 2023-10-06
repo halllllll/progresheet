@@ -1,4 +1,5 @@
 import { type FC } from 'react';
+import { Box, Heading, Text } from '@chakra-ui/react';
 import { useRouteError, isRouteErrorResponse } from 'react-router-dom';
 
 const ErrorPage: FC = () => {
@@ -7,21 +8,23 @@ const ErrorPage: FC = () => {
 
   if (isRouteErrorResponse(error)) {
     return (
-      <div id="error-page">
-        <h1>Oops! {error.status}</h1>
-        <p>{error.statusText}</p>
+      <Box id="error-page" m={4}>
+        <Heading size={"lg"}>Oops! {error.status}</Heading>
+        <Text>{error.statusText}</Text>
         {error.data}
-      </div>
+      </Box>
     );
   } else if (error instanceof Error) {
     return (
-      <div id="error-page">
-        <h1>Oops! Unexpected Error</h1>
-        <p>Something went wrong.</p>
-        <p>
-          <i>{error.message}</i>
-        </p>
-      </div>
+      <Box id="error-page" m={4}>
+        <Box p={4}>
+        <Heading size={"lg"}>Oops! Unexpected Error</Heading>
+        <Text>Something went wrong.</Text>
+        <Text as={"i"}>
+          {error.message}
+        </Text>
+        </Box>
+      </Box>
     );
   } else {
     return <></>;
