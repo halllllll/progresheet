@@ -9,7 +9,7 @@ const ErrorPage: FC = () => {
   if (isRouteErrorResponse(error)) {
     return (
       <Box id="error-page" m={4}>
-        <Heading size={"lg"}>Oops! {error.status}</Heading>
+        <Heading size={'lg'}>Oops! {error.status}</Heading>
         <Text>{error.statusText}</Text>
         {error.data}
       </Box>
@@ -18,11 +18,9 @@ const ErrorPage: FC = () => {
     return (
       <Box id="error-page" m={4}>
         <Box p={4}>
-        <Heading size={"lg"}>Oops! Unexpected Error</Heading>
-        <Text>Something went wrong.</Text>
-        <Text as={"i"}>
-          {error.message}
-        </Text>
+          <Heading size={'lg'}>Oops! Unexpected Error</Heading>
+          <Text>Something went wrong.</Text>
+          <Text as={'i'}>{error.message}</Text>
         </Box>
       </Box>
     );

@@ -1,3 +1,4 @@
+import { PROPERTY_DEFAULT } from '@/Const';
 import { initConfig } from './service';
 
 const customMenu = (): void => {
@@ -5,6 +6,18 @@ const customMenu = (): void => {
     .setWidth(800)
     .setHeight(800);
   SpreadsheetApp.getUi().showModalDialog(html, 'menu');
+};
+
+const getPropertyByName = (propertyName: string): string | null => {
+  const properties = PropertiesService.getScriptProperties();
+
+  return properties.getProperty(propertyName);
+};
+
+const setDefaultProperty = (): void => {
+  const properties = PropertiesService.getScriptProperties();
+  properties.deleteAllProperties();
+  properties.setProperties(PROPERTY_DEFAULT);
 };
 
 const initMenu = (): void => {
@@ -24,4 +37,4 @@ const initMenu = (): void => {
   }
 };
 
-export { customMenu, initMenu };
+export { customMenu, initMenu, getPropertyByName, setDefaultProperty };

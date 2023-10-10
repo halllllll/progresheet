@@ -7,10 +7,13 @@ import {
   CONFIG_DEFAULT_ROW_OFFSET,
   CONFIG_LABEL,
   CONFIG_COLOR,
+  PROPERTY_WIDTH,
+  PROPERTY_HEIGHT,
 } from '@/Const';
 import { type LabelData } from '../components/menuParts/labels/labels';
 import { type ErrorName } from '../errors';
-import { type Labels } from '../types';
+import { type ClassRoom, type Labels } from '../types';
+import { getPropertyByName, setDefaultProperty } from './utils';
 
 const getId = (): string => {
   const userid = Session.getActiveUser().getEmail();
@@ -146,6 +149,9 @@ const initConfig = (): InitResponse => {
     prot.addEditor(getId());
     // configSheet.hideSheet();
 
+    // delete and set default all properties
+    setDefaultProperty();
+
     return { success: true };
   } catch (e: unknown) {
     Logger.log(e);
@@ -270,9 +276,50 @@ const setLabelConfig = (data: string): boolean => {
   }
 };
 
+/**
+ * 座席 width, height
+ */
+export type ClassRoomResponse =
+  | { success: true; body: ClassRoom }
+  | { success: false; errorMsg: string; errorName?: ErrorName };
+
+const getClassRoomConfig = (): ClassRoomResponse => {
+  try {
+    const width = getPropertyByName(PROPERTY_WIDTH);
+    const height = getPropertyByName(PROPERTY_HEIGHT);
+
+    if (width === null || height === null) {
+      Logger.log('property not found');
+
+      return {
+        success: false,
+        errorMsg: 'property not found',
+        errorName: 'PropertyError',
+      };
+    }
+
+    return {
+      success: true,
+      body: {
+        column: height,
+        row: width,
+      },
+    };
+  } catch (e: unknown) {
+    Logger.log(e);
+
+    return {
+      success: false,
+      errorMsg: 'undefined server error',
+      errorName: 'UndefinedServerError',
+    };
+  }
+};
+
 export {
   getId,
   getSpreadSheetName,
+  getClassRoomConfig,
   initConfig,
   getLabelConfig,
   setLabelConfig,

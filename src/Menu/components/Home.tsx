@@ -15,7 +15,7 @@ const Home: FC = () => {
           </GridItem>
           <GridItem>
             <Suspense fallback={<Box>Loading...</Box>}>
-            <Outlet />
+              <Outlet />
             </Suspense>
           </GridItem>
         </Grid>
