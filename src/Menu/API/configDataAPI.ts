@@ -1,4 +1,7 @@
-import { type LabelResponse } from '../AppsScript/service';
+import {
+  type SetLabelResponse,
+  type LabelResponse,
+} from '../AppsScript/service';
 import { type LabelData } from '../components/menuParts/labels/labels';
 import { ConfigSheetError, UndefinedError } from '../errors';
 import { isGASEnvironment, serverFunctions } from './serverFunctions';
@@ -60,16 +63,19 @@ const getLabelDataAPI = async (): Promise<LabelResponse> => {
 export type LabelDataRequest = string;
 
 // TODO: not boolean(only for test)
-const setLabelDataAPI = async (data: LabelData): Promise<boolean> => {
+const setLabelDataAPI = async (data: LabelData): Promise<SetLabelResponse> => {
   if (isGASEnvironment()) {
     console.table(data);
     const ret = await serverFunctions.setLabelConfig(JSON.stringify(data));
-
-    return ret;
+    if (ret.success) {
+      return ret;
+    } else {
+      throw new ConfigSheetError(ret.error.name + ' ' + ret.errMsg);
+    }
   } else {
-    return await new Promise<boolean>((resolve) => {
+    return await new Promise<SetLabelResponse>((resolve) => {
       setTimeout(() => {
-        resolve(true);
+        resolve({ success: true });
       }, 1000);
     });
   }

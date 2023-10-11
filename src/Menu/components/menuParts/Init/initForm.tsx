@@ -18,10 +18,12 @@ const InitForm: FC = () => {
       .catch((err: unknown) => {
         // TODO: 下手くそ
         if (err instanceof InitError) {
-          toast.error(`エラーが発生したよ！\n${err.name}\n${err.message}`);
+          toast.error(`エラーが発生したよ！\n${err.name}\n${err.message}`, {
+            duration: 8000,
+          });
         } else {
           const e = err as Error;
-          toast.error(`エラーが発生したよ！\n${e.name}`);
+          toast.error(`エラーが発生したよ！\n${e.name}`, { duration: 8000 });
         }
       });
   };
