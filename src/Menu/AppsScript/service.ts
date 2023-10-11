@@ -11,7 +11,12 @@ import {
   PROPERTY_HEIGHT,
 } from '@/Const';
 import { type LabelData } from '../components/menuParts/labels/labels';
-import { ConfigSheetError, type ErrorName } from '../errors';
+import {
+  ConfigSheetError,
+  PropertyError,
+  type ErrorName,
+  type UndefinedError,
+} from '../errors';
 import { type ClassRoom, type Labels } from '../types';
 import { getPropertyByName, setDefaultProperty } from './utils';
 
@@ -270,7 +275,6 @@ const getLabelConfig = (): LabelResponse => {
   }
 };
 
-// TODO: alias string
 export type SetLabelResponse =
   | {
       success: true;
@@ -329,7 +333,7 @@ const setLabelConfig = (data: string): SetLabelResponse => {
  */
 export type ClassRoomResponse =
   | { success: true; body: ClassRoom }
-  | { success: false; errorMsg: string; errorName?: ErrorName };
+  | { success: false; error: Error; errorMsg: string };
 /**
  * Class room data, include `ClassRoom`
  * When something error occured during taking ClassRoom data,
@@ -346,8 +350,8 @@ const getClassRoomConfig = (): ClassRoomResponse => {
 
       return {
         success: false,
+        error: new PropertyError('property not found'),
         errorMsg: 'property not found',
-        errorName: 'PropertyError',
       };
     }
 
@@ -360,11 +364,12 @@ const getClassRoomConfig = (): ClassRoomResponse => {
     };
   } catch (e: unknown) {
     Logger.log(e);
+    const err = e as UndefinedError;
 
     return {
       success: false,
+      error: err,
       errorMsg: 'undefined server error',
-      errorName: 'UndefinedServerError',
     };
   }
 };

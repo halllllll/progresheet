@@ -4,40 +4,26 @@ import { isGASEnvironment, serverFunctions } from './serverFunctions';
 
 const getClassRoomInfoAPI = async (): Promise<ClassRoomResponse> => {
   if (isGASEnvironment()) {
-    try {
-      const ret = await serverFunctions.getClassRoomConfig();
-      if (!ret.success) {
-        switch (ret.errorName) {
-          case 'PropertyError':
-            throw new PropertyError(ret.errorMsg);
-          default:
-            throw new UndefinedError(ret.errorMsg);
-        }
-      }
-
+    const ret = await serverFunctions.getClassRoomConfig();
+    if (ret.success) {
       return ret;
-    } catch (e: unknown) {
-      if (e instanceof PropertyError) {
-        return {
-          success: false,
-          errorMsg: e.message,
-          errorName: 'PropertyError',
-        };
+    } else {
+      const err = ret.error;
+      if (err instanceof PropertyError) {
+        throw new PropertyError(ret.error.name + ' ' + ret.errorMsg);
       } else {
-        return {
-          success: false,
-          errorMsg: 'no message',
-          errorName: 'UndefinedServerError',
-        };
+        throw new UndefinedError(ret.error.name + ' ' + ret.errorMsg);
       }
     }
   } else {
     return await new Promise((resolve) => {
       setTimeout(() => {
         resolve({
-          success: false,
-          errorMsg: '', // TODO
-          errorName: 'PropertyError',
+          success: true,
+          body: {
+            column: 3,
+            row: 3,
+          },
         });
       }, 1000);
     });
