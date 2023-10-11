@@ -62,7 +62,6 @@ const getLabelDataAPI = async (): Promise<LabelResponse> => {
 
 export type LabelDataRequest = string;
 
-// TODO: not boolean(only for test)
 const setLabelDataAPI = async (data: LabelData): Promise<SetLabelResponse> => {
   if (isGASEnvironment()) {
     console.table(data);
