@@ -1,4 +1,4 @@
-import { type FC } from 'react';
+import { Suspense, type FC } from 'react';
 import { Box, Container, Grid, GridItem } from '@chakra-ui/react';
 import { Outlet } from 'react-router-dom';
 import Header from '@/Menu/components/Header';
@@ -14,7 +14,9 @@ const Home: FC = () => {
             <SideMenu />
           </GridItem>
           <GridItem>
-            <Outlet />
+            <Suspense fallback={<Box>Loading...</Box>}>
+              <Outlet />
+            </Suspense>
           </GridItem>
         </Grid>
       </Container>

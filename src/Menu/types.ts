@@ -14,5 +14,13 @@ export type Labels = {
   colors: string[];
 };
 
+// 教室
+export type HeightValue = string | number;
+export type WidthValue = string | number;
+export type ClassRoom = {
+  column: HeightValue;
+  row: WidthValue;
+};
+
 // エラーつきレスポンス
 export type Resp = { success: boolean };
