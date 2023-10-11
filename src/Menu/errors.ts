@@ -28,3 +28,10 @@ export class UndefinedError extends Error {
     this.name = 'UndefinedError';
   }
 }
+
+export class PropertyError extends Error {
+  constructor(message?: string, options?: ErrorOptions) {
+    super(message, options);
+    this.name = 'PropertyError';
+  }
+}

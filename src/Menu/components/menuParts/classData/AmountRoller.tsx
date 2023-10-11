@@ -16,6 +16,8 @@ type Props = {
   label: string;
 };
 
+// TODO: NOT YET implementation, JUST pseudo data!!!!
+
 const AmountRoller: FC<Props> = ({
   defaultValue = 5,
   minValue = 1,

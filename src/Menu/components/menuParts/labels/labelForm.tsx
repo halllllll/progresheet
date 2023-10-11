@@ -20,6 +20,7 @@ import {
   type SubmitHandler,
   // type SubmitHandler,
 } from 'react-hook-form';
+import toast from 'react-hot-toast';
 import { PropagateLoader } from 'react-spinners';
 import { MenuCtx, SetMenuCtx } from '@/Menu/App';
 import LabelColor from './color';
@@ -60,17 +61,27 @@ const LabelForm: FC = () => {
   };
 
   const onSubmit: SubmitHandler<LabelData> = async (data) => {
-    const ret = await setLabelDataAPI(data);
-    console.log('done!');
-    console.log(ret);
-    setMenuCtx({
-      userID: menuCtx?.userID,
-      sheetName: menuCtx?.sheetName,
-      labels: {
-        labels: data.labels.map((m) => m.value),
-        colors: data.labels.map((m) => m.color),
-      },
-    });
+    await setLabelDataAPI(data)
+      .then((res) => {
+        console.log('done!');
+        console.log(res);
+        // TODO: ほんとは引数のLabelDataではなくレスポンスデータにデータを含ませてそれをここで設定値に使うべきだと思う
+        setMenuCtx({
+          userID: menuCtx?.userID,
+          sheetName: menuCtx?.sheetName,
+          labels: {
+            labels: data.labels.map((m) => m.value),
+            colors: data.labels.map((m) => m.color),
+          },
+        });
+      })
+      .catch((err: unknown) => {
+        const e = err as Error;
+        toast.error(
+          `ラベルデータの編集に失敗しました！\n${e.name}\n${e.message}`,
+          { duration: 8000 }
+        );
+      });
   };
 
   // type LabelList

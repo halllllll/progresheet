@@ -11,10 +11,19 @@ import {
   PROPERTY_HEIGHT,
 } from '@/Const';
 import { type LabelData } from '../components/menuParts/labels/labels';
-import { type ErrorName } from '../errors';
+import {
+  ConfigSheetError,
+  PropertyError,
+  type ErrorName,
+  type UndefinedError,
+} from '../errors';
 import { type ClassRoom, type Labels } from '../types';
 import { getPropertyByName, setDefaultProperty } from './utils';
 
+/**
+ * just return user acount id
+ * @returns {string} userd - accessed user id
+ */
 const getId = (): string => {
   const userid = Session.getActiveUser().getEmail();
   console.log(`get id: ${userid}`);
@@ -22,10 +31,39 @@ const getId = (): string => {
   return userid;
 };
 
+/**
+ * just return spreadsheet name
+ * @returns {string} name of SpreadSheet
+ */
 const getSpreadSheetName = (): string => {
   const sheetname = ss.getName();
 
   return sheetname;
+};
+
+/**
+ * protection check for `CONFIG_SHEET`
+ * @param {string} id - target account id
+ * @returns {boolean}
+ */
+const isAllowedConfigSheet = (id: string): boolean => {
+  try {
+    const configSheet = getTargetSheet(CONFIG_SHEET);
+    if (configSheet === null)
+      throw new ConfigSheetError(`sheet ${CONFIG_SHEET} is not found`);
+    const prot = configSheet.protect();
+    const editors = prot.getEditors();
+
+    // Apps ScriptではES6までしか対応してないので、たぶんincludesは使えない気がする
+    // return editors.map((editor) => editor.getEmail()).includes(id);
+    return editors.map((editor) => editor.getEmail()).includes(id);
+  } catch (e: unknown) {
+    // TODO: error handling
+    console.log(`error occured! at isAllowedConfigSheet`);
+    Logger.log(e);
+
+    return false;
+  }
 };
 
 /**
@@ -129,7 +167,6 @@ const initConfig = (): InitResponse => {
       CONFIG_DEFAULT.length,
       CONFIG_DEFAULT[0].length
     );
-    // setValue(range, CONFIG_DEFAULT);
     range.setValues(CONFIG_DEFAULT);
 
     // BG Color (based column B)
@@ -169,7 +206,10 @@ const initConfig = (): InitResponse => {
 export type LabelResponse =
   | { success: true; body: Labels }
   | { success: false; errorMsg: string; errorName?: ErrorName };
-
+/**
+ *
+ * @returns {LabelResponse}
+ */
 const getLabelConfig = (): LabelResponse => {
   try {
     const values = ss
@@ -235,13 +275,21 @@ const getLabelConfig = (): LabelResponse => {
   }
 };
 
-// TODO: alias string
+export type SetLabelResponse =
+  | {
+      success: true;
+    }
+  | {
+      success: false;
+      error: Error;
+      errMsg: string;
+    };
 /**
  *
  * @param {string} data - comming as stringified object data, by "JSON.stringify"
  * @returns
  */
-const setLabelConfig = (data: string): boolean => {
+const setLabelConfig = (data: string): SetLabelResponse => {
   const lock = LockService.getScriptLock();
   try {
     lock.waitLock(1 * 3000);
@@ -267,22 +315,31 @@ const setLabelConfig = (data: string): boolean => {
     const colorRange = range.offset(1, 1, values.length - 1, 1);
     setBG(colorRange);
 
-    return true;
+    return { success: true };
   } catch (e: unknown) {
-    // TODO: error handling
-    return false;
+    console.log('error occured on "setLabelConfig"');
+    console.log(e);
+    console.log(JSON.stringify(e));
+    const err = e as Error;
+
+    return { success: false, error: err, errMsg: err.message };
   } finally {
     lock.releaseLock();
   }
 };
 
 /**
- * 座席 width, height
+ * 教室データ width, height
  */
 export type ClassRoomResponse =
   | { success: true; body: ClassRoom }
-  | { success: false; errorMsg: string; errorName?: ErrorName };
-
+  | { success: false; error: Error; errorMsg: string };
+/**
+ * Class room data, include `ClassRoom`
+ * When something error occured during taking ClassRoom data,
+ * `false` should be returned.
+ * @returns {ClassRoomResponse}
+ */
 const getClassRoomConfig = (): ClassRoomResponse => {
   try {
     const width = getPropertyByName(PROPERTY_WIDTH);
@@ -293,8 +350,8 @@ const getClassRoomConfig = (): ClassRoomResponse => {
 
       return {
         success: false,
+        error: new PropertyError('property not found'),
         errorMsg: 'property not found',
-        errorName: 'PropertyError',
       };
     }
 
@@ -307,11 +364,12 @@ const getClassRoomConfig = (): ClassRoomResponse => {
     };
   } catch (e: unknown) {
     Logger.log(e);
+    const err = e as UndefinedError;
 
     return {
       success: false,
+      error: err,
       errorMsg: 'undefined server error',
-      errorName: 'UndefinedServerError',
     };
   }
 };
@@ -323,4 +381,5 @@ export {
   initConfig,
   getLabelConfig,
   setLabelConfig,
+  isAllowedConfigSheet,
 };

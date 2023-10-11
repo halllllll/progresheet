@@ -29,11 +29,13 @@ const initMenu = (): void => {
     ui.ButtonSet.OK_CANCEL
   );
   if (btn === ui.Button.CANCEL) return;
-
-  if (initConfig().success) {
+  const res = initConfig();
+  if (res.success) {
     ui.alert('初期化しました');
   } else {
-    ui.alert('初期化に失敗しました。。。');
+    ui.alert(
+      `初期化に失敗しました。。。\n${res.error.name}\n${res.error.message}`
+    );
   }
 };
 

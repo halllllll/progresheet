@@ -2,7 +2,7 @@ import { type FC } from 'react';
 import { Box } from '@chakra-ui/react';
 import { FaSchool } from 'react-icons/fa';
 import { LuCog } from 'react-icons/lu';
-import { PiSealWarningFill } from 'react-icons/pi';
+import { PiSealWarningFill, PiHandshakeFill } from 'react-icons/pi';
 import { RiParentLine } from 'react-icons/ri';
 import { type MenuItem, MenuItems } from './menuParts/menuItems';
 
@@ -12,6 +12,11 @@ export const SideMenu: FC = () => {
       link: `init`,
       icon: PiSealWarningFill,
       name: '初期化',
+    },
+    {
+      link: `editors`,
+      icon: PiHandshakeFill,
+      name: '編集者設定',
     },
     {
       link: `labels`,

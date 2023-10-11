@@ -13,6 +13,7 @@ const getSpreadSheetName = Service.getSpreadSheetName;
 const initConfig = Service.initConfig;
 const getLabelConfig = Service.getLabelConfig;
 const setLabelConfig = Service.setLabelConfig;
+const getClassRoomConfig = Service.getClassRoomConfig;
 
 // Exposed to GAS global function
 global.onOpen = onOpen;
@@ -23,6 +24,7 @@ global.getSpreadSheetName = getSpreadSheetName;
 global.initConfig = initConfig;
 global.getLabelConfig = getLabelConfig;
 global.setLabelConfig = setLabelConfig;
+global.getClassRoomConfig = getClassRoomConfig;
 
 // Exposed to Frontend API
 export {
@@ -31,4 +33,5 @@ export {
   initConfig,
   getLabelConfig,
   setLabelConfig,
+  getClassRoomConfig,
 };
