@@ -1,31 +1,46 @@
 
 interface ErrorOptions {
-  cause?: unknown;
+  cause?: Error;
+  code?: string;
+  details?: unknown;
 }
 
-export class InitError extends Error {
-  constructor(message?: string, options?: ErrorOptions) {
+class CustomError extends Error {
+  cause?: Error;
+  code?: string;
+  details?: unknown
+
+  constructor(message: string, options: ErrorOptions = {}){
+    super(message);
+    this.cause = options.cause;
+    this.code = options.code;
+    this.details = options.details
+  }
+}
+
+export class InitError extends CustomError {
+  constructor(message: string, options?: ErrorOptions) {
     super(message, options);
     this.name = 'InitError';
   }
 }
 
-export class ConfigSheetError extends Error {
-  constructor(message?: string, options?: ErrorOptions) {
+export class ConfigSheetError extends CustomError {
+  constructor(message: string, options?: ErrorOptions) {
     super(message, options);
     this.name = 'ConfigSheetError';
   }
 }
 
-export class UndefinedError extends Error {
-  constructor(message?: string, options?: ErrorOptions) {
+export class UndefinedError extends CustomError {
+  constructor(message: string, options?: ErrorOptions) {
     super(message, options);
     this.name = 'UndefinedError';
   }
 }
 
-export class PropertyError extends Error {
-  constructor(message?: string, options?: ErrorOptions) {
+export class PropertyError extends CustomError {
+  constructor(message: string, options?: ErrorOptions) {
     super(message, options);
     this.name = 'PropertyError';
   }
