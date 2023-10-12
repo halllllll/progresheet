@@ -1,5 +1,12 @@
 import { type FC } from 'react';
-import { Icon, Stack, StackDivider, VStack } from '@chakra-ui/react';
+import {
+  HStack,
+  Icon,
+  Stack,
+  StackDivider,
+  VStack,
+  Text,
+} from '@chakra-ui/react';
 import { type IconType } from 'react-icons';
 import { NavLink } from 'react-router-dom';
 
@@ -34,8 +41,10 @@ const MenuItems: FC<MenuItemProps> = (props) => {
                 };
               }}
             >
-              <Icon as={item.icon} mr={3} />
-              {item.name}
+              <HStack>
+                <Icon as={item.icon} mr={3} />
+                <Text>{item.name}</Text>
+              </HStack>
             </NavLink>
           </VStack>
         );
