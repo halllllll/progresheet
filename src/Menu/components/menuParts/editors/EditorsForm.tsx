@@ -34,7 +34,7 @@ const EditorsForm: FC = () => {
           toast.error(`設定シートのエラー！\n${err.name}\n${err.message}`);
         } else {
           const e = err as Error;
-          toast.error(`謎のエラーが発生したよ！\n${e.name}\n${e.message}`, {
+          toast.error(`謎のエラーが発生したよ！オーナー権限を確認してみてね！あなたには操作権限が無いかも？\n\n${e.name}\n${e.message}`, {
             duration: 8000,
           });
         }

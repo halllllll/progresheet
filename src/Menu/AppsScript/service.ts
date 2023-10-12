@@ -45,7 +45,7 @@ const getSpreadSheetName = (): string => {
  * @param {string} id - target account id
  * @returns {boolean}
  */
-const isAllowedConfigSheet = (id: string): boolean => {
+const _isAllowedConfigSheet = (id: string): boolean => {
   try {
     const configSheet = getTargetSheet(CONFIG_SHEET);
     if (configSheet === null)
@@ -83,7 +83,9 @@ const getConfigProtectData = (): ConfigProtectData => {
       throw new UndefinedError(`${CONFIG_SHEET} not found`);
     const spreadSheetEditors = ss.getEditors().map((user) => user.getEmail());
     console.log(`spreadsheet editors: ${spreadSheetEditors.join(", ")}`)
+
     const protect = configSheet.protect();
+
     const protectorAccounts = protect
       .getEditors()
       .map((user) => user.getEmail());
@@ -101,6 +103,8 @@ const getConfigProtectData = (): ConfigProtectData => {
       editors,
     };
   } catch (e: unknown) {
+    console.log("エラーだぜ！")
+    console.log(e)
     if (e instanceof UndefinedError) {
       return {
         success: false,
@@ -108,10 +112,12 @@ const getConfigProtectData = (): ConfigProtectData => {
         errMsg: 'sheet not found',
       };
     } else {
+      const err = e as Error;
+
       return {
         success: false,
-        error: e as Error,
-        errMsg: 'undefined error occured at "getConfigProtectData"',
+        error: err,
+        errMsg: `${err.name}\n${err.message}\nundefined error occured at "getConfigProtectData"`,
       };
     }
   }
@@ -422,6 +428,6 @@ export {
   initConfig,
   getLabelConfig,
   setLabelConfig,
-  isAllowedConfigSheet, // TODO: 未使用
+  _isAllowedConfigSheet, // TODO: 未使用
   getConfigProtectData,
 };

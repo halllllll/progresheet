@@ -1,5 +1,5 @@
 import { type LabelData } from '../components/menuParts/labels/labels';
-import { ConfigSheetError, UndefinedError } from '../errors';
+import { ConfigSheetError, PropertyError, UndefinedError } from '../errors';
 import { type Labels, type Editor } from '../types';
 import { isGASEnvironment, serverFunctions } from './serverFunctions';
 
@@ -15,6 +15,8 @@ const getLabelDataAPI = async (): Promise<Labels> => {
         }else{
           throw new UndefinedError(err.name + " " + err.message)
         }
+
+        // throw ret.error;
       }
   } else {
     return await new Promise<Labels>((resolve) => {
@@ -40,6 +42,7 @@ const setLabelDataAPI = async (data: LabelData): Promise<Labels> => {
       return ret.body;
     } else {
       throw new ConfigSheetError(ret.error.name + ' ' + ret.errMsg);
+      // throw ret.error;
     }
   } else {
     return await new Promise<Labels>((resolve) => {
@@ -60,8 +63,17 @@ const getConfigProtectionAPI = async (): Promise<Editor[]> => {
     if (ret.success) {
       return ret.editors;
     } else {
-      throw new ConfigSheetError(ret.error.name + ' ' + ret.error.message);
+      if(ret.error instanceof ConfigSheetError){
+        throw new ConfigSheetError(ret.error.name + ' ' + ret.error.message);
+    }else if(ret.error instanceof PropertyError){
+      throw new PropertyError(ret.error.name + ' ' + ret.error.message);
+    }else if(ret.error instanceof UndefinedError){
+      throw new UndefinedError(ret.error.name + ' ' + ret.error.message);
+    }else{
+      throw new Error(ret.error.name + ' ' + ret.error.message);
+
     }
+  }
   } else {
     return await new Promise<Editor[]>((resolve) => {
       setTimeout(() => {

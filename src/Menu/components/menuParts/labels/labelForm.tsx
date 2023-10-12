@@ -63,13 +63,7 @@ const LabelForm: FC = () => {
   const onSubmit: SubmitHandler<LabelData> = async (data) => {
     await setLabelDataAPI(data)
       .then((res) => {
-        console.log(res);
-        // TODO: ほんとは引数のLabelDataではなくレスポンスデータにデータを含ませてそれをここで設定値に使うべきだと思う
         setMenuCtx({
-          // labels: {
-          //   labels: data.labels.map((m) => m.value),
-          //   colors: data.labels.map((m) => m.color),
-          // },
           labels: res,
           ...menuCtx
         });
@@ -77,7 +71,7 @@ const LabelForm: FC = () => {
       .catch((err: unknown) => {
         const e = err as Error;
         toast.error(
-          `ラベルデータの編集に失敗しました！\n${e.name}\n${e.message}`,
+          `ラベルデータの更新・取得に失敗しました！\n${e.name}\n${e.message}`,
           { duration: 8000 }
         );
       });

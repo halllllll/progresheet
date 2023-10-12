@@ -38,8 +38,8 @@ const LabelColor: FC<LabelColorProps> = ({ popover, cover, curColor, idx }) => {
             color={color}
             onChange={setColor}
             hideAlpha={true}
-            hideInput={['hsv']}
-            height={160}
+            hideInput={['hsv', "rgb"]}
+            height={140}
           />
         </Box>
       )}
