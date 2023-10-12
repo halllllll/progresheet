@@ -11,6 +11,8 @@ const Editor: FC = () => {
       <Box py={5}>
         <Text>設定を編集できるアカウントを設定します。</Text>
         <Text color="tomato">{`（SpreadSheetに「編集者として共有」しただけでは編集できません）`}</Text>
+        <Text color="tomato">{`（設定できない場合、このファイルのオーナーに連絡し、設定してもらってください。）`}</Text>
+
       </Box>
       <EditorsForm />
     </Box>

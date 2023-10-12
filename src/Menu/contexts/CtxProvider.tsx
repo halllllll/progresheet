@@ -2,7 +2,7 @@ import { useEffect, useState, type FC, type ReactNode } from 'react';
 import { Box, Center, Heading, Text } from '@chakra-ui/react';
 import { ClimbingBoxLoader } from 'react-spinners';
 import { getLabelDataAPI } from '../API/configDataAPI';
-import { getSpreadSheetNameAPI, getUserIdAPI } from '../API/userAndSheetAPI';
+import { getSpreadSheetInfoAPI, getAccessedUserInfoAPI } from '../API/userAndSheetAPI';
 import { MenuCtx, SetMenuCtx } from '../App';
 import { ConfigSheetError, UndefinedError } from '../errors';
 import { type Editor, type Labels } from '../types';
@@ -38,7 +38,7 @@ const CtxProvider: FC<Props> = ({ children }) => {
     const f = async () => {
       // TODO: タイムアウト要検証
 
-      await Promise.all([getUserIdAPI(), getSpreadSheetNameAPI(), getLabelDataAPI()])
+      await Promise.all([getAccessedUserInfoAPI(), getSpreadSheetInfoAPI(), getLabelDataAPI()])
         .then(([userid, sheetname, labels]) =>{
           console.log('label!');
           setRes({

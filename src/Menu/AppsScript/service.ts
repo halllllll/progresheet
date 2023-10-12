@@ -30,6 +30,10 @@ const getId = (): string => {
   return userid;
 };
 
+const getUserInfo = (): string =>{
+  return getId();
+}
+
 /**
  * just return spreadsheet name
  * @returns {string} name of SpreadSheet
@@ -423,6 +427,7 @@ const getClassRoomConfig = (): ClassRoomResponse => {
 
 export {
   getId,
+  getUserInfo,
   getSpreadSheetName,
   getClassRoomConfig,
   initConfig,

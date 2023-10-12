@@ -1,8 +1,8 @@
 import { serverFunctions, isGASEnvironment } from './serverFunctions';
 
-const getUserIdAPI = async (): Promise<string> => {
+const getAccessedUserInfoAPI = async (): Promise<string> => {
   if (isGASEnvironment()) {
-    const ret = await serverFunctions.getId();
+    const ret = await serverFunctions.getUserInfo();
 
     return ret;
   } else {
@@ -14,7 +14,7 @@ const getUserIdAPI = async (): Promise<string> => {
   }
 };
 
-const getSpreadSheetNameAPI = async (): Promise<string> => {
+const getSpreadSheetInfoAPI = async (): Promise<string> => {
   if (isGASEnvironment()) {
     const ret = await serverFunctions.getSpreadSheetName();
 
@@ -28,4 +28,4 @@ const getSpreadSheetNameAPI = async (): Promise<string> => {
   }
 };
 
-export { getUserIdAPI, getSpreadSheetNameAPI };
+export { getAccessedUserInfoAPI, getSpreadSheetInfoAPI };
