@@ -1,12 +1,12 @@
-import { type ClassRoomResponse } from '../AppsScript/service';
 import { PropertyError, UndefinedError } from '../errors';
+import { type ClassRoom } from '../types';
 import { isGASEnvironment, serverFunctions } from './serverFunctions';
 
-const getClassRoomInfoAPI = async (): Promise<ClassRoomResponse> => {
+const getClassRoomInfoAPI = async (): Promise<ClassRoom> => {
   if (isGASEnvironment()) {
     const ret = await serverFunctions.getClassRoomConfig();
     if (ret.success) {
-      return ret;
+      return ret.body;
     } else {
       const err = ret.error;
       if (err instanceof PropertyError) {
@@ -18,13 +18,12 @@ const getClassRoomInfoAPI = async (): Promise<ClassRoomResponse> => {
   } else {
     return await new Promise((resolve) => {
       setTimeout(() => {
-        resolve({
-          success: true,
-          body: {
+        resolve(
+          {
             column: 3,
             row: 3,
           },
-        });
+        );
       }, 1000);
     });
   }

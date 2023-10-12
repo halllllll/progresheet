@@ -14,7 +14,6 @@ import { type LabelData } from '../components/menuParts/labels/labels';
 import {
   ConfigSheetError,
   PropertyError,
-  type ErrorName,
   UndefinedError,
 } from '../errors';
 import { type Editor, type ClassRoom, type Labels } from '../types';
@@ -238,7 +237,7 @@ const initConfig = (): InitResponse => {
  */
 export type LabelResponse =
   | { success: true; body: Labels }
-  | { success: false; errorMsg: string; errorName?: ErrorName };
+  | { success: false; error: Error, errorMsg: string;};
 /**
  *
  * @returns {LabelResponse}
@@ -254,8 +253,8 @@ const getLabelConfig = (): LabelResponse => {
 
       return {
         success: false,
+        error: new ConfigSheetError('config sheet not found'),
         errorMsg: 'config sheet not found',
-        errorName: 'ConfigSheetError',
       };
     }
     for (let i = 0; i < values[0].length; i++) {
@@ -264,8 +263,8 @@ const getLabelConfig = (): LabelResponse => {
 
         return {
           success: false,
+          error: new ConfigSheetError('invalid header config sheet'),
           errorMsg: 'invalid header config sheet',
-          errorName: 'ConfigSheetError',
         };
       }
     }
@@ -275,8 +274,8 @@ const getLabelConfig = (): LabelResponse => {
 
       return {
         success: false,
+        error: new ConfigSheetError(`not found '${CONFIG_LABEL}' on header`),
         errorMsg: `not found '${CONFIG_LABEL}' on header`,
-        errorName: 'ConfigSheetError',
       };
     }
     const colorIdx = values[0].indexOf(CONFIG_COLOR);
@@ -286,7 +285,7 @@ const getLabelConfig = (): LabelResponse => {
       return {
         success: false,
         errorMsg: `not found '${CONFIG_COLOR}' on header`,
-        errorName: 'ConfigSheetError',
+        error: new ConfigSheetError(`not found '${CONFIG_COLOR}' on header`),
       };
     }
 
@@ -299,11 +298,12 @@ const getLabelConfig = (): LabelResponse => {
     };
   } catch (e: unknown) {
     Logger.log(e);
+    const err = e as Error
 
     return {
       success: false,
+      error: err,
       errorMsg: 'undefined server error',
-      errorName: 'UndefinedServerError',
     };
   }
 };

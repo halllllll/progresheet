@@ -1,8 +1,3 @@
-export type ErrorName =
-  | 'InitError'
-  | 'ConfigSheetError'
-  | 'UndefinedServerError'
-  | 'PropertyError';
 
 interface ErrorOptions {
   cause?: unknown;

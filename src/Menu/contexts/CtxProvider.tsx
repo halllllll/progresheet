@@ -7,14 +7,14 @@ import { MenuCtx, SetMenuCtx } from '../App';
 import { ConfigSheetError, UndefinedError } from '../errors';
 import { type Editor, type Labels } from '../types';
 
-export type hasError =
+type hasError =
   | {
       status: 'success';
     }
   | {
       status: 'failed';
       errMessage: string;
-      error?: Error;
+      error: Error;
     };
 
 export type CtxType = {
@@ -37,51 +37,47 @@ const CtxProvider: FC<Props> = ({ children }) => {
   useEffect(() => {
     const f = async () => {
       // TODO: タイムアウト要検証
-      const [userid, sheetname, labelResp] = await Promise.all([
-        getUserIdAPI(),
-        getSpreadSheetNameAPI(),
-        getLabelDataAPI(),
-      ]);
-      if (!labelResp.success) {
-        setRes({
-          userID: userid,
-          sheetName: sheetname,
-        });
-        switch (labelResp.errorName) {
-          case 'ConfigSheetError':
+
+      await Promise.all([getUserIdAPI(), getSpreadSheetNameAPI(), getLabelDataAPI()])
+        .then(([userid, sheetname, labels]) =>{
+          console.log('label!');
+          setRes({
+            userID: userid,
+            sheetName: sheetname,
+            labels
+          });
+        })
+        .catch((err: unknown)=>{
+          if(err instanceof ConfigSheetError){
             setIsError({
               status: 'failed',
               errMessage:
                 '設定シートが不正です。確認してください（よくわからなければ初期化してください）',
-              error: new ConfigSheetError(labelResp.errorMsg),
+              error: new ConfigSheetError(err.name + " " + err.message),
             });
-            break;
-          case 'UndefinedServerError':
+
+          }else if(err instanceof UndefinedError){
             setIsError({
               status: 'failed',
-              errMessage: `サーバーエラー: ${
-                labelResp.errorName ?? labelResp.errorMsg
-              }`,
-              error: new UndefinedError(labelResp.errorMsg),
+              errMessage:
+                'サーバーエラー',
+              error: new UndefinedError(err.name + " " + err.message),
             });
-            break;
-          default:
+
+          }else{
+            const e = err as Error
             setIsError({
               status: 'failed',
-              errMessage: '不明なエラー',
+              errMessage:
+                '不明なエラー',
+              error: new UndefinedError(e.name + " " + e.message),
             });
-        }
-      } else {
-        console.log('label!');
-        console.table(labelResp.body);
-        setRes({
-          userID: userid,
-          sheetName: sheetname,
-          labels: labelResp.body,
-          // status: 'success',
-        });
-      }
-      setIsLoading(false);
+
+          }
+        }).finally(()=>{
+          setIsLoading(false);
+
+        })
     };
     setIsLoading(true);
     void f();
@@ -110,7 +106,7 @@ const CtxProvider: FC<Props> = ({ children }) => {
         ) : isError.status === 'failed' ? (
           <Box>
             <Heading>{`Error occured`}</Heading>
-            <Text as="p">{isError?.error?.name ?? ''}</Text>
+            <Text as="p">{isError.error.name ?? ''}</Text>
             <Text as="p">{isError.errMessage}</Text>
           </Box>
         ) : (
