@@ -15,9 +15,9 @@ import {
   ConfigSheetError,
   PropertyError,
   type ErrorName,
-  type UndefinedError,
+  UndefinedError,
 } from '../errors';
-import { type ClassRoom, type Labels } from '../types';
+import { type Editor, type ClassRoom, type Labels } from '../types';
 import { getPropertyByName, setDefaultProperty } from './utils';
 
 /**
@@ -66,6 +66,58 @@ const isAllowedConfigSheet = (id: string): boolean => {
   }
 };
 
+export type ConfigProtectData =
+  | {
+      success: true;
+      editors: Editor[];
+    }
+  | {
+      success: false;
+      error: Error;
+      errMsg: string;
+    };
+
+const getConfigProtectData = (): ConfigProtectData => {
+  try {
+    const configSheet = getTargetSheet(CONFIG_SHEET);
+    if (configSheet === null)
+      throw new UndefinedError(`${CONFIG_SHEET} not found`);
+    const spreadSheetEditors = ss.getEditors().map((user) => user.getEmail());
+    console.log(`spreadsheet editors: ${spreadSheetEditors.join(", ")}`)
+    const protect = configSheet.protect();
+    const protectorAccounts = protect
+      .getEditors()
+      .map((user) => user.getEmail());
+    console.log(`accounts: ${protectorAccounts.join(", ")}`)
+    const editors = spreadSheetEditors.map((id): Editor => {
+      return {
+        id,
+        // eslint-disable-next-line no-unneeded-ternary, @typescript-eslint/prefer-includes
+        editable: protectorAccounts.indexOf(id) === -1 ? false : true,
+      };
+    });
+
+    return {
+      success: true,
+      editors,
+    };
+  } catch (e: unknown) {
+    if (e instanceof UndefinedError) {
+      return {
+        success: false,
+        error: e,
+        errMsg: 'sheet not found',
+      };
+    } else {
+      return {
+        success: false,
+        error: e as Error,
+        errMsg: 'undefined error occured at "getConfigProtectData"',
+      };
+    }
+  }
+};
+
 /**
  * 設定シートのデフォルトリスト
  * A列 ラベル名
@@ -106,25 +158,6 @@ const setBG = (range: GoogleAppsScript.Spreadsheet.Range): void => {
     bgs = [...bgs, rowBgs];
   }
   range.setBackgrounds(bgs);
-};
-
-/**
- * setValues
- * @param {GoogleAppsScript.Spreadsheet.Range} range
- * @param {string[][]} values
- * @return {void}
- */
-const setValue = (
-  range: GoogleAppsScript.Spreadsheet.Range,
-  values: string[][]
-): void => {
-  if (
-    range.getHeight() !== values.length ||
-    range.getWidth() !== values[0].length
-  ) {
-    throw new Error('range and values should be same length');
-  }
-  range.setValues(values);
 };
 
 /**
@@ -311,7 +344,7 @@ const setLabelConfig = (data: string): SetLabelResponse => {
       values.length,
       values[0].length
     );
-    setValue(range, values);
+    range.setValues(values);
     const colorRange = range.offset(1, 1, values.length - 1, 1);
     setBG(colorRange);
 
@@ -381,5 +414,6 @@ export {
   initConfig,
   getLabelConfig,
   setLabelConfig,
-  isAllowedConfigSheet,
+  isAllowedConfigSheet, // TODO: 未使用
+  getConfigProtectData,
 };

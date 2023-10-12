@@ -63,16 +63,14 @@ const LabelForm: FC = () => {
   const onSubmit: SubmitHandler<LabelData> = async (data) => {
     await setLabelDataAPI(data)
       .then((res) => {
-        console.log('done!');
         console.log(res);
         // TODO: ほんとは引数のLabelDataではなくレスポンスデータにデータを含ませてそれをここで設定値に使うべきだと思う
         setMenuCtx({
-          userID: menuCtx?.userID,
-          sheetName: menuCtx?.sheetName,
           labels: {
             labels: data.labels.map((m) => m.value),
             colors: data.labels.map((m) => m.color),
           },
+          ...menuCtx
         });
       })
       .catch((err: unknown) => {

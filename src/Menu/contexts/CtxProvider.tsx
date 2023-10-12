@@ -5,7 +5,7 @@ import { getLabelDataAPI } from '../API/configDataAPI';
 import { getSpreadSheetNameAPI, getUserIdAPI } from '../API/userAndSheetAPI';
 import { MenuCtx, SetMenuCtx } from '../App';
 import { ConfigSheetError, UndefinedError } from '../errors';
-import { type Labels } from '../types';
+import { type Editor, type Labels } from '../types';
 
 export type hasError =
   | {
@@ -21,6 +21,7 @@ export type CtxType = {
   userID: string;
   sheetName: string;
   labels?: Labels;
+  editors?: Editor[];
   // } & hasError;
 };
 

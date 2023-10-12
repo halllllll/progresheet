@@ -1,5 +1,6 @@
 import { type FC } from 'react';
 import { Heading, Box, Text } from '@chakra-ui/react';
+import EditorsForm from './EditorsForm';
 
 const Editor: FC = () => {
   return (
@@ -11,6 +12,7 @@ const Editor: FC = () => {
         <Text>設定を編集できるアカウントを設定します。</Text>
         <Text color="tomato">{`（SpreadSheetに「編集者として共有」しただけでは編集できません）`}</Text>
       </Box>
+      <EditorsForm />
     </Box>
   );
 };

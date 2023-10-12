@@ -14,6 +14,7 @@ const initConfig = Service.initConfig;
 const getLabelConfig = Service.getLabelConfig;
 const setLabelConfig = Service.setLabelConfig;
 const getClassRoomConfig = Service.getClassRoomConfig;
+const getConfigProtection = Service.getConfigProtectData;
 
 // Exposed to GAS global function
 global.onOpen = onOpen;
@@ -25,6 +26,7 @@ global.initConfig = initConfig;
 global.getLabelConfig = getLabelConfig;
 global.setLabelConfig = setLabelConfig;
 global.getClassRoomConfig = getClassRoomConfig;
+global.getConfigProtection = getConfigProtection;
 
 // Exposed to Frontend API
 export {
@@ -34,4 +36,5 @@ export {
   getLabelConfig,
   setLabelConfig,
   getClassRoomConfig,
+  getConfigProtection,
 };

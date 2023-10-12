@@ -4,6 +4,7 @@ import {
 } from '../AppsScript/service';
 import { type LabelData } from '../components/menuParts/labels/labels';
 import { ConfigSheetError, UndefinedError } from '../errors';
+import { type Editor } from '../types';
 import { isGASEnvironment, serverFunctions } from './serverFunctions';
 
 const getLabelDataAPI = async (): Promise<LabelResponse> => {
@@ -60,6 +61,7 @@ const getLabelDataAPI = async (): Promise<LabelResponse> => {
   }
 };
 
+// JSON.stringifyにするため（ほかの方法不明）
 export type LabelDataRequest = string;
 
 const setLabelDataAPI = async (data: LabelData): Promise<SetLabelResponse> => {
@@ -80,4 +82,29 @@ const setLabelDataAPI = async (data: LabelData): Promise<SetLabelResponse> => {
   }
 };
 
-export { getLabelDataAPI, setLabelDataAPI };
+const getConfigProtectionAPI = async (): Promise<Editor[]> => {
+  if (isGASEnvironment()) {
+    const ret = await serverFunctions.getConfigProtection();
+    if (ret.success) {
+      return ret.editors;
+    } else {
+      throw new ConfigSheetError(ret.error.name + ' ' + ret.error.message);
+    }
+  } else {
+    return await new Promise<Editor[]>((resolve) => {
+      setTimeout(() => {
+        resolve([
+          {
+            id: 'aaa',
+            editable: false,
+          },
+          { id: 'bbb', editable: true },
+          { id: 'xxx', editable: true },
+          { id: 'ppp', editable: false },
+        ]);
+      }, 1400);
+    });
+  }
+};
+
+export { getLabelDataAPI, setLabelDataAPI, getConfigProtectionAPI };
