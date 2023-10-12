@@ -25,6 +25,9 @@ const EditorsForm: FC = () => {
           ...menuCtx
         })
         setEditors(res);
+        toast.success("編集者を反映したよ！", {
+          duration: 5000
+        })
       })
       .catch((err: unknown) => {
         if (err instanceof ConfigSheetError) {
