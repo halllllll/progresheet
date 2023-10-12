@@ -48,3 +48,10 @@ export class PropertyError extends Error {
     this.name = 'PropertyError';
   }
 }
+
+export class ContextError extends Error{
+  constructor(message?: string, options?: ErrorOptions){
+    super(message, options);
+    this.name = "ContextError"
+  }
+}

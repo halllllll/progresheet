@@ -3,15 +3,14 @@ import { Box, Button, HStack, Text } from '@chakra-ui/react';
 import toast from 'react-hot-toast';
 import { SetMenuCtx, MenuCtx } from '@/Menu/App';
 import { getConfigProtectionAPI } from '@/Menu/API/configDataAPI';
-import { ConfigSheetError } from '@/Menu/errors';
+import { ConfigSheetError, ContextError } from '@/Menu/errors';
 import { type Editor } from '@/Menu/types';
 
 const EditorsForm: FC = () => {
   const setMenuCtx = useContext(SetMenuCtx);
   const menuCtx = useContext(MenuCtx);
 
-  // TODO: error handling
-  if (menuCtx === null) throw new Error('non-context error');
+  if (menuCtx === null) throw new ContextError('non-context error', {details: "on EditorsForm"});
 
   const [editors, setEditors] = useState<Editor[]>(menuCtx.editors ?? []);
   const [isLoading, setIsLoading] = useState<boolean>(false);

@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 import { PropagateLoader } from 'react-spinners';
 import initAPI from '@/Menu/API/initAPI';
 import Full from '@/Menu/components/loader';
-import { InitError } from '@/Menu/errors';
+import { InitError, UndefinedError } from '@/Menu/errors';
 
 const InitForm: FC = () => {
   const methods = useFormContext();
@@ -24,6 +24,14 @@ const InitForm: FC = () => {
               duration: 8000,
             }
           );
+        }else if(err instanceof UndefinedError){
+          toast.error(
+            `未定義エラーが発生したよ！\n${err.name}\n${err.message}`,
+            {
+              duration: 8000,
+            }
+          );
+
         } else {
           const e = err as Error;
           toast.error(`謎のエラーが発生したよ！\n${e.name}\n${e.message}`, {

@@ -27,14 +27,14 @@ import LabelColor from './color';
 import { type LabelData } from './labels';
 import { setLabelDataAPI } from '@/Menu/API/configDataAPI';
 import Full from '@/Menu/components/loader';
+import { ContextError } from '@/Menu/errors';
 
 const LabelForm: FC = () => {
   const methods = useFormContext<LabelData>();
   const setMenuCtx = useContext(SetMenuCtx);
   const menuCtx = useContext(MenuCtx);
 
-  // TODO: error handling
-  if (menuCtx === null) throw new Error('non-context error');
+  if (menuCtx === null) throw new ContextError('non-context error', {details: "on labelForm"});
 
   // FieldArrayとやらをやってみる
 
