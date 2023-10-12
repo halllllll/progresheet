@@ -311,6 +311,7 @@ const getLabelConfig = (): LabelResponse => {
 export type SetLabelResponse =
   | {
       success: true;
+      body: Labels
     }
   | {
       success: false;
@@ -348,7 +349,14 @@ const setLabelConfig = (data: string): SetLabelResponse => {
     const colorRange = range.offset(1, 1, values.length - 1, 1);
     setBG(colorRange);
 
-    return { success: true };
+    // 新たに取得したものを返す
+    const labelData = getLabelConfig()
+    if(labelData.success){
+      return { success: true, body: labelData.body};
+    }else{
+      throw new ConfigSheetError("label data can't get!")
+    }
+
   } catch (e: unknown) {
     console.log('error occured on "setLabelConfig"');
     console.log(e);

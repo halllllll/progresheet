@@ -66,10 +66,11 @@ const LabelForm: FC = () => {
         console.log(res);
         // TODO: ほんとは引数のLabelDataではなくレスポンスデータにデータを含ませてそれをここで設定値に使うべきだと思う
         setMenuCtx({
-          labels: {
-            labels: data.labels.map((m) => m.value),
-            colors: data.labels.map((m) => m.color),
-          },
+          // labels: {
+          //   labels: data.labels.map((m) => m.value),
+          //   colors: data.labels.map((m) => m.color),
+          // },
+          labels: res,
           ...menuCtx
         });
       })

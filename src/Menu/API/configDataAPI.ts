@@ -1,10 +1,9 @@
 import {
-  type SetLabelResponse,
   type LabelResponse,
 } from '../AppsScript/service';
 import { type LabelData } from '../components/menuParts/labels/labels';
 import { ConfigSheetError, UndefinedError } from '../errors';
-import { type Editor } from '../types';
+import { type Labels, type Editor } from '../types';
 import { isGASEnvironment, serverFunctions } from './serverFunctions';
 
 const getLabelDataAPI = async (): Promise<LabelResponse> => {
@@ -64,19 +63,23 @@ const getLabelDataAPI = async (): Promise<LabelResponse> => {
 // JSON.stringifyにするため（ほかの方法不明）
 export type LabelDataRequest = string;
 
-const setLabelDataAPI = async (data: LabelData): Promise<SetLabelResponse> => {
+const setLabelDataAPI = async (data: LabelData): Promise<Labels> => {
   if (isGASEnvironment()) {
     console.table(data);
     const ret = await serverFunctions.setLabelConfig(JSON.stringify(data));
     if (ret.success) {
-      return ret;
+      return ret.body;
     } else {
       throw new ConfigSheetError(ret.error.name + ' ' + ret.errMsg);
     }
   } else {
-    return await new Promise<SetLabelResponse>((resolve) => {
+    return await new Promise<Labels>((resolve) => {
       setTimeout(() => {
-        resolve({ success: true });
+        resolve({
+          labels: ['label1', 'label2', 'labelX'],
+          colors: ['#d95858', '#88aafc', '#b87a69'],
+
+        });
       }, 1000);
     });
   }
