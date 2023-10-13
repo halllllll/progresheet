@@ -14,7 +14,6 @@ import { type LabelData } from '../components/menuParts/labels/labels';
 import {
   ConfigSheetError,
   type GASError,
-  PropertyError,
   UndefinedServerError,
 } from '../errors';
 import { type Editor, type ClassRoom, type Labels } from '../types';
@@ -184,16 +183,23 @@ const getTargetSheet = (
   return targets.length === 0 ? null : targets[0];
 };
 
+interface InitOptions {
+  withEditors?: boolean;
+}
 /**
  * initialize sheet. set default values for `CONFIG_SHEET`
  * @returns {InitResponse}
  */
-const initConfig = (): InitResponse => {
+const initConfig = (options:InitOptions = {}): InitResponse => {
   const lock = LockService.getScriptLock();
   try {
     lock.waitLock(10 * 1000);
     const target = getTargetSheet(CONFIG_SHEET);
     let configSheet: GoogleAppsScript.Spreadsheet.Sheet | null = null;
+
+    /**
+     * reset spreadsheet sequence
+     */
     if (target === null) {
       configSheet = ss.insertSheet(0);
       configSheet.setName(CONFIG_SHEET);
@@ -202,6 +208,9 @@ const initConfig = (): InitResponse => {
       configSheet.clear().clearNotes();
     }
 
+    /**
+     * fixed header and default values
+     */
     configSheet.setFrozenRows(1);
 
     const range = configSheet.getRange(
@@ -212,24 +221,37 @@ const initConfig = (): InitResponse => {
     );
     range.setValues(CONFIG_DEFAULT);
 
-    // BG Color (based column B)
-    // (1, 1) -> (header回避1->2へ移動, A->Bへ移動)
+    /**
+     * BG Color (based column B)
+     * (1, 1) -> (header回避1->2へ移動, A->Bへ移動)
+     */
     const colorRange = range.offset(1, 1, CONFIG_DEFAULT.length - 1, 1);
     console.log('values:\n', colorRange.getValues());
     setBG(colorRange);
 
-    // （取得した時点での）設定シート以外全部削除
+    /**
+     * （取得した時点での）設定シート以外全部削除
+     */
     const sheets = ss.getSheets();
     for (const sheet of sheets) {
       if (sheet.getName() !== configSheet.getName()) ss.deleteSheet(sheet);
     }
+
+    /**
+     * sheets protection sequence
+     */
     const prot = configSheet.protect();
     prot.setDescription('設定シート');
     prot.removeEditors(prot.getEditors());
+    if(options.withEditors === true){
+      prot.addEditors(ss.getEditors().map((user) => user.getEmail()))
+    }
     prot.addEditor(getId());
     // configSheet.hideSheet();
 
-    // delete and set default all properties
+    /**
+     * delete and set default all properties
+     */
     setDefaultProperty();
 
     return { success: true };
@@ -280,7 +302,8 @@ const getLabelConfig = (): LabelResponse => {
           success: false,
           error: {
             code: "ConfigSheet",
-            message: 'invalid header config sheet',
+            message: `invalid header config sheet.\n
+            expected header is [${CONFIG_HEADER.join(", ")}](length: ${CONFIG_HEADER.length}) but current sheet has [${values[0].join(", ")}] (length: ${values[0].length}).`,
           }
         };
       }
@@ -397,7 +420,7 @@ const setLabelConfig = (data: string): SetLabelResponse => {
  */
 export type ClassRoomResponse =
   | { success: true; body: ClassRoom }
-  | { success: false; error: Error; errorMsg: string };
+  | { success: false; error: GASError };
 /**
  * Class room data, include `ClassRoom`
  * When something error occured during taking ClassRoom data,
@@ -414,8 +437,10 @@ const getClassRoomConfig = (): ClassRoomResponse => {
 
       return {
         success: false,
-        error: new PropertyError('property not found'),
-        errorMsg: 'property not found',
+        error: {
+          code: "Property",
+          message: 'property not found',
+        }
       };
     }
 
@@ -430,11 +455,14 @@ const getClassRoomConfig = (): ClassRoomResponse => {
     Logger.log(e);
     const err = e as UndefinedServerError;
 
+
     return {
       success: false,
-      error: err,
-      errorMsg: 'undefined server error',
-    };
+      error: {
+        code: "Undefined",
+        message: `[${err.name}] - ${err.message}`
+      },
+    }
   }
 };
 

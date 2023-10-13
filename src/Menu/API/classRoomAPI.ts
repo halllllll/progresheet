@@ -1,4 +1,4 @@
-import { PropertyError, UndefinedServerError } from '../errors';
+import { errorMapper } from '../errors';
 import { type ClassRoom } from '../types';
 import { isGASEnvironment, serverFunctions } from './serverFunctions';
 
@@ -8,14 +8,15 @@ const getClassRoomInfoAPI = async (): Promise<ClassRoom> => {
     if (ret.success) {
       return ret.body;
     } else {
-      const err = ret.error;
-      // TODO: error mapper
-      if (err instanceof PropertyError) {
+      const err = errorMapper(ret.error)
+      throw err
+      // // TODO: error mapper
+      // if (err instanceof PropertyError) {
 
-        throw new PropertyError(ret.error.name + ' ' + ret.errorMsg);
-      } else {
-        throw new UndefinedServerError(ret.error.name + ' ' + ret.errorMsg);
-      }
+      //   throw new PropertyError(ret.error.name + ' ' + ret.errorMsg);
+      // } else {
+      //   throw new UndefinedServerError(ret.error.name + ' ' + ret.errorMsg);
+      // }
     }
   } else {
     return await new Promise((resolve) => {

@@ -1,5 +1,5 @@
 import { useEffect, useState, type FC, type ReactNode } from 'react';
-import { Box, Center, Heading, Text } from '@chakra-ui/react';
+import { Box, Center,Code, Heading, Text } from '@chakra-ui/react';
 import { ClimbingBoxLoader } from 'react-spinners';
 import { getLabelDataAPI } from '../API/configDataAPI';
 import { getSpreadSheetInfoAPI, getAccessedUserInfoAPI } from '../API/userAndSheetAPI';
@@ -13,8 +13,8 @@ type hasError =
     }
   | {
       status: 'failed';
+      errName: string;
       errMessage: string;
-      error: Error;
     };
 
 export type CtxType = {
@@ -22,7 +22,6 @@ export type CtxType = {
   sheetName: string;
   labels?: Labels;
   editors?: Editor[];
-  // } & hasError;
 };
 
 type Props = {
@@ -51,26 +50,25 @@ const CtxProvider: FC<Props> = ({ children }) => {
           if(err instanceof ConfigSheetError){
             setIsError({
               status: 'failed',
+              errName: err.name,
               errMessage:
-                '設定シートが不正です。確認してください（よくわからなければ初期化してください）',
-              error: new ConfigSheetError(err.name + " " + err.message),
+                `${err.message}\n設定シートが不正です。確認してください（よくわからなければ初期化してください）`,
             });
 
           }else if(err instanceof UndefinedServerError){
             setIsError({
               status: 'failed',
-              errMessage:
-                'サーバーエラー',
-              error: new UndefinedServerError(err.name + " " + err.message),
+              errName: err.name,
+              errMessage: err.message
             });
 
           }else{
-            const e = err as Error
+            // TODO: まじめ
             setIsError({
               status: 'failed',
-              errMessage:
+              errName:
                 '不明なエラー',
-              error: new UndefinedServerError(e.name + " " + e.message),
+              errMessage: "よくわからないエラーです"
             });
 
           }
@@ -106,8 +104,10 @@ const CtxProvider: FC<Props> = ({ children }) => {
         ) : isError.status === 'failed' ? (
           <Box>
             <Heading>{`Error occured`}</Heading>
-            <Text as="p">{isError.error.name ?? ''}</Text>
-            <Text as="p">{isError.errMessage}</Text>
+            <Text as="b" fontSize="18px" color={"tomato"}>{isError.errName}</Text>
+            <Code>
+              {isError.errMessage}
+            </Code>
           </Box>
         ) : (
           children

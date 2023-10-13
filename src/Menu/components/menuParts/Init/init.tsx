@@ -16,7 +16,7 @@ const InitSheet: FC = () => {
         初期化
       </Heading>
       <Box py={5}>
-        <Text>
+        <Text my={2}>
           シートを初期状態に戻します。シートの数や設定を最初からやり直したいときなどに使ってください。
         </Text>
         <List
