@@ -34,7 +34,7 @@ const initMenu = (): void => {
     ui.alert('初期化しました');
   } else {
     ui.alert(
-      `初期化に失敗しました。。。\n${res.error.name}\n${res.error.message}`
+      `初期化に失敗しました。。。\n${res.error.code}\n${res.error.message}`
     );
   }
 };

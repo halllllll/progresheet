@@ -1,5 +1,5 @@
 import { type InitResponse } from '../AppsScript/service';
-import { InitError } from '../errors';
+import { errorMapper } from '../errors';
 import { isGASEnvironment, serverFunctions } from './serverFunctions';
 
 const initAPI = async (): Promise<InitResponse> => {
@@ -8,7 +8,9 @@ const initAPI = async (): Promise<InitResponse> => {
     if (ret.success) {
       return ret;
     } else {
-      throw new InitError(ret.error.name + ' ' + ret.errMsg);
+      const err = errorMapper(ret.error);
+
+      throw err;
     }
   } else {
     return await new Promise<InitResponse>((resolve) => {

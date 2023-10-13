@@ -30,9 +30,9 @@ const getId = (): string => {
   return userid;
 };
 
-const getUserInfo = (): string =>{
+const getUserInfo = (): string => {
   return getId();
-}
+};
 
 /**
  * just return spreadsheet name
@@ -86,14 +86,14 @@ const getConfigProtectData = (): ConfigProtectData => {
     if (configSheet === null)
       throw new UndefinedServerError(`${CONFIG_SHEET} not found`);
     const spreadSheetEditors = ss.getEditors().map((user) => user.getEmail());
-    console.log(`spreadsheet editors: ${spreadSheetEditors.join(", ")}`)
+    console.log(`spreadsheet editors: ${spreadSheetEditors.join(', ')}`);
 
     const protect = configSheet.protect();
 
     const protectorAccounts = protect
       .getEditors()
       .map((user) => user.getEmail());
-    console.log(`accounts: ${protectorAccounts.join(", ")}`)
+    console.log(`accounts: ${protectorAccounts.join(', ')}`);
     const editors = spreadSheetEditors.map((id): Editor => {
       return {
         id,
@@ -107,8 +107,8 @@ const getConfigProtectData = (): ConfigProtectData => {
       editors,
     };
   } catch (e: unknown) {
-    console.log("エラーだぜ！")
-    console.log(e)
+    console.log('エラーだぜ！');
+    console.log(e);
     if (e instanceof UndefinedServerError) {
       return {
         success: false,
@@ -139,8 +139,7 @@ export type InitResponse =
     }
   | {
       success: false;
-      error: Error;
-      errMsg: string;
+      error: GASError;
     };
 
 /**
@@ -190,7 +189,7 @@ interface InitOptions {
  * initialize sheet. set default values for `CONFIG_SHEET`
  * @returns {InitResponse}
  */
-const initConfig = (options:InitOptions = {}): InitResponse => {
+const initConfig = (options: InitOptions = {}): InitResponse => {
   const lock = LockService.getScriptLock();
   try {
     lock.waitLock(10 * 1000);
@@ -243,8 +242,8 @@ const initConfig = (options:InitOptions = {}): InitResponse => {
     const prot = configSheet.protect();
     prot.setDescription('設定シート');
     prot.removeEditors(prot.getEditors());
-    if(options.withEditors === true){
-      prot.addEditors(ss.getEditors().map((user) => user.getEmail()))
+    if (options.withEditors === true) {
+      prot.addEditors(ss.getEditors().map((user) => user.getEmail()));
     }
     prot.addEditor(getId());
     // configSheet.hideSheet();
@@ -259,7 +258,13 @@ const initConfig = (options:InitOptions = {}): InitResponse => {
     Logger.log(e);
     const err = e as Error;
 
-    return { success: false, error: err, errMsg: err.message };
+    return {
+      success: false,
+      error: {
+        code: 'Undefined',
+        message: `[${err.name}] - ${err.message}`,
+      },
+    };
   } finally {
     lock.releaseLock();
   }
@@ -270,7 +275,7 @@ const initConfig = (options:InitOptions = {}): InitResponse => {
  */
 export type LabelResponse =
   | { success: true; body: Labels }
-  | { success: false; error: GASError};
+  | { success: false; error: GASError };
 /**
  *
  * @returns {LabelResponse}
@@ -287,24 +292,28 @@ const getLabelConfig = (): LabelResponse => {
       return {
         success: false,
         error: {
-          code: "ConfigSheet",
+          code: 'ConfigSheet',
           message: 'config sheet not found',
-        }
+        },
       };
     }
     for (let i = 0; i < values[0].length; i++) {
       if (values[0][i] !== CONFIG_HEADER[i]) {
-        console.log(`header: ${CONFIG_HEADER.join(", ")}`)
-        console.log(`value: ${values[0].join(", ")}`)
+        console.log(`header: ${CONFIG_HEADER.join(', ')}`);
+        console.log(`value: ${values[0].join(', ')}`);
         Logger.log('invalid header config sheet');
 
         return {
           success: false,
           error: {
-            code: "ConfigSheet",
+            code: 'ConfigSheet',
             message: `invalid header config sheet.\n
-            expected header is [${CONFIG_HEADER.join(", ")}](length: ${CONFIG_HEADER.length}) but current sheet has [${values[0].join(", ")}] (length: ${values[0].length}).`,
-          }
+            expected header is [${CONFIG_HEADER.join(', ')}](length: ${
+              CONFIG_HEADER.length
+            }) but current sheet has [${values[0].join(', ')}] (length: ${
+              values[0].length
+            }).`,
+          },
         };
       }
     }
@@ -314,10 +323,10 @@ const getLabelConfig = (): LabelResponse => {
 
       return {
         success: false,
-        error:{
-          code: "ConfigSheet",
+        error: {
+          code: 'ConfigSheet',
           message: `not found '${CONFIG_LABEL}' on header`,
-        }
+        },
       };
     }
     const colorIdx = values[0].indexOf(CONFIG_COLOR);
@@ -327,9 +336,9 @@ const getLabelConfig = (): LabelResponse => {
       return {
         success: false,
         error: {
-          code: "ConfigSheet",
+          code: 'ConfigSheet',
           message: `not found '${CONFIG_COLOR}' on header`,
-        }
+        },
       };
     }
 
@@ -342,13 +351,13 @@ const getLabelConfig = (): LabelResponse => {
     };
   } catch (e: unknown) {
     Logger.log(e);
-    const err = e as Error
+    const err = e as Error;
 
     return {
       success: false,
       error: {
-        code: "Undefined",
-        message: `[${err.name}] - ${err.message}`
+        code: 'Undefined',
+        message: `[${err.name}] - ${err.message}`,
       },
     };
   }
@@ -357,7 +366,7 @@ const getLabelConfig = (): LabelResponse => {
 export type SetLabelResponse =
   | {
       success: true;
-      body: Labels
+      body: Labels;
     }
   | {
       success: false;
@@ -396,13 +405,12 @@ const setLabelConfig = (data: string): SetLabelResponse => {
     setBG(colorRange);
 
     // 新たに取得したものを返す
-    const labelData = getLabelConfig()
-    if(labelData.success){
-      return { success: true, body: labelData.body};
-    }else{
-      throw new ConfigSheetError("label data can't get!")
+    const labelData = getLabelConfig();
+    if (labelData.success) {
+      return { success: true, body: labelData.body };
+    } else {
+      throw new ConfigSheetError("label data can't get!");
     }
-
   } catch (e: unknown) {
     console.log('error occured on "setLabelConfig"');
     console.log(e);
@@ -438,9 +446,9 @@ const getClassRoomConfig = (): ClassRoomResponse => {
       return {
         success: false,
         error: {
-          code: "Property",
+          code: 'Property',
           message: 'property not found',
-        }
+        },
       };
     }
 
@@ -455,14 +463,13 @@ const getClassRoomConfig = (): ClassRoomResponse => {
     Logger.log(e);
     const err = e as UndefinedServerError;
 
-
     return {
       success: false,
       error: {
-        code: "Undefined",
-        message: `[${err.name}] - ${err.message}`
+        code: 'Undefined',
+        message: `[${err.name}] - ${err.message}`,
       },
-    }
+    };
   }
 };
 

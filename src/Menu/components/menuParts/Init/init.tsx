@@ -1,5 +1,13 @@
 import { type FC } from 'react';
-import { Box, Heading, List, ListIcon, ListItem, Text } from '@chakra-ui/react';
+import {
+  Box,
+  HStack,
+  Heading,
+  List,
+  ListIcon,
+  ListItem,
+  Text,
+} from '@chakra-ui/react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { FiCheckCircle } from 'react-icons/fi';
 import InitForm from './initForm';
@@ -27,22 +35,32 @@ const InitSheet: FC = () => {
           borderRadius="md"
           borderColor="sienna"
         >
-          <ListItem>
+          <HStack>
             <ListIcon as={FiCheckCircle} color="green.500" />
-            設定シート以外のシートが全て削除されます。
-          </ListItem>
-          <ListItem>
+            <ListItem>{'設定シート以外のシートが全て削除されます。'}</ListItem>
+          </HStack>
+          <HStack>
             <ListIcon as={FiCheckCircle} color="green.500" />
-            設定シートはデフォルト値になります。書式・値がリセットされますが、セルの大きさなど一部の設定はそのままになることがあります。
-          </ListItem>
-          <ListItem>
+            <ListItem>
+              {
+                '設定シートはデフォルト値になります。書式・値がリセットされますが、セルの大きさなど一部の設定はそのままになることがあります。'
+              }
+            </ListItem>
+          </HStack>
+          <HStack>
             <ListIcon as={FiCheckCircle} color="green.500" />
-            共同編集者はすべて削除されます。必要に応じて追加してください。
-          </ListItem>
-          <ListItem>
+            <ListItem>
+              {'共同編集者はすべて削除されます。必要に応じて追加してください。'}
+            </ListItem>
+          </HStack>
+          <HStack>
             <ListIcon as={FiCheckCircle} color="green.500" />
-            初期化後は、基本的に「ラベル設定」「クラス設定」を済ませてから使用する想定です。
-          </ListItem>
+            <ListItem>
+              {
+                '初期化後は、基本的に「ラベル設定」「クラス設定」を済ませてから使用する想定です。'
+              }
+            </ListItem>
+          </HStack>
         </List>
       </Box>
       <FormProvider {...methods}>
