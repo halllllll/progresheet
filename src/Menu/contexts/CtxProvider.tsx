@@ -4,7 +4,7 @@ import { ClimbingBoxLoader } from 'react-spinners';
 import { getLabelDataAPI } from '../API/configDataAPI';
 import { getSpreadSheetInfoAPI, getAccessedUserInfoAPI } from '../API/userAndSheetAPI';
 import { MenuCtx, SetMenuCtx } from '../App';
-import { ConfigSheetError, UndefinedError } from '../errors';
+import { ConfigSheetError, UndefinedServerError } from '../errors';
 import { type Editor, type Labels } from '../types';
 
 type hasError =
@@ -56,12 +56,12 @@ const CtxProvider: FC<Props> = ({ children }) => {
               error: new ConfigSheetError(err.name + " " + err.message),
             });
 
-          }else if(err instanceof UndefinedError){
+          }else if(err instanceof UndefinedServerError){
             setIsError({
               status: 'failed',
               errMessage:
                 'サーバーエラー',
-              error: new UndefinedError(err.name + " " + err.message),
+              error: new UndefinedServerError(err.name + " " + err.message),
             });
 
           }else{
@@ -70,7 +70,7 @@ const CtxProvider: FC<Props> = ({ children }) => {
               status: 'failed',
               errMessage:
                 '不明なエラー',
-              error: new UndefinedError(e.name + " " + e.message),
+              error: new UndefinedServerError(e.name + " " + e.message),
             });
 
           }

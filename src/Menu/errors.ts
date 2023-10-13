@@ -1,8 +1,30 @@
+export type ErrorCode = "Init" | "ConfigSheet" | "Undefined" | "Context" | "Property"
+
+export type GASError = {
+  code: ErrorCode,
+  message: string;
+}
 
 interface ErrorOptions {
   cause?: Error;
-  code?: string;
   details?: unknown;
+}
+
+export const errorMapper = (gasError: GASError):Error =>{
+  switch(gasError.code){
+    case "ConfigSheet":
+      return new ConfigSheetError(gasError.message)
+    case "Context":
+      return new ContextError(gasError.message)
+    case "Init":
+      return new InitError(gasError.message)
+    case "Property":
+      return new PropertyError(gasError.message)
+    case "Undefined":
+      return new UndefinedServerError(gasError.message)
+    default:
+      return new Error("undefined code")
+  }
 }
 
 // なぜかこれを継承すると`clasp push`でエラーになる
@@ -35,7 +57,7 @@ export class ConfigSheetError extends Error {
   }
 }
 
-export class UndefinedError extends Error {
+export class UndefinedServerError extends Error {
   constructor(message?: string, options?: ErrorOptions) {
     super(message, options);
     this.name = 'UndefinedError';

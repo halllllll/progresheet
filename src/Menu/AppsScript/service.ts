@@ -13,8 +13,9 @@ import {
 import { type LabelData } from '../components/menuParts/labels/labels';
 import {
   ConfigSheetError,
+  type GASError,
   PropertyError,
-  UndefinedError,
+  UndefinedServerError,
 } from '../errors';
 import { type Editor, type ClassRoom, type Labels } from '../types';
 import { getPropertyByName, setDefaultProperty } from './utils';
@@ -84,7 +85,7 @@ const getConfigProtectData = (): ConfigProtectData => {
   try {
     const configSheet = getTargetSheet(CONFIG_SHEET);
     if (configSheet === null)
-      throw new UndefinedError(`${CONFIG_SHEET} not found`);
+      throw new UndefinedServerError(`${CONFIG_SHEET} not found`);
     const spreadSheetEditors = ss.getEditors().map((user) => user.getEmail());
     console.log(`spreadsheet editors: ${spreadSheetEditors.join(", ")}`)
 
@@ -109,7 +110,7 @@ const getConfigProtectData = (): ConfigProtectData => {
   } catch (e: unknown) {
     console.log("エラーだぜ！")
     console.log(e)
-    if (e instanceof UndefinedError) {
+    if (e instanceof UndefinedServerError) {
       return {
         success: false,
         error: e,
@@ -247,7 +248,7 @@ const initConfig = (): InitResponse => {
  */
 export type LabelResponse =
   | { success: true; body: Labels }
-  | { success: false; error: Error, errorMsg: string;};
+  | { success: false; error: GASError};
 /**
  *
  * @returns {LabelResponse}
@@ -263,18 +264,24 @@ const getLabelConfig = (): LabelResponse => {
 
       return {
         success: false,
-        error: new ConfigSheetError('config sheet not found'),
-        errorMsg: 'config sheet not found',
+        error: {
+          code: "ConfigSheet",
+          message: 'config sheet not found',
+        }
       };
     }
     for (let i = 0; i < values[0].length; i++) {
       if (values[0][i] !== CONFIG_HEADER[i]) {
+        console.log(`header: ${CONFIG_HEADER.join(", ")}`)
+        console.log(`value: ${values[0].join(", ")}`)
         Logger.log('invalid header config sheet');
 
         return {
           success: false,
-          error: new ConfigSheetError('invalid header config sheet'),
-          errorMsg: 'invalid header config sheet',
+          error: {
+            code: "ConfigSheet",
+            message: 'invalid header config sheet',
+          }
         };
       }
     }
@@ -284,8 +291,10 @@ const getLabelConfig = (): LabelResponse => {
 
       return {
         success: false,
-        error: new ConfigSheetError(`not found '${CONFIG_LABEL}' on header`),
-        errorMsg: `not found '${CONFIG_LABEL}' on header`,
+        error:{
+          code: "ConfigSheet",
+          message: `not found '${CONFIG_LABEL}' on header`,
+        }
       };
     }
     const colorIdx = values[0].indexOf(CONFIG_COLOR);
@@ -294,8 +303,10 @@ const getLabelConfig = (): LabelResponse => {
 
       return {
         success: false,
-        errorMsg: `not found '${CONFIG_COLOR}' on header`,
-        error: new ConfigSheetError(`not found '${CONFIG_COLOR}' on header`),
+        error: {
+          code: "ConfigSheet",
+          message: `not found '${CONFIG_COLOR}' on header`,
+        }
       };
     }
 
@@ -312,8 +323,10 @@ const getLabelConfig = (): LabelResponse => {
 
     return {
       success: false,
-      error: err,
-      errorMsg: 'undefined server error',
+      error: {
+        code: "Undefined",
+        message: `[${err.name}] - ${err.message}`
+      },
     };
   }
 };
@@ -415,7 +428,7 @@ const getClassRoomConfig = (): ClassRoomResponse => {
     };
   } catch (e: unknown) {
     Logger.log(e);
-    const err = e as UndefinedError;
+    const err = e as UndefinedServerError;
 
     return {
       success: false,

@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 import { PropagateLoader } from 'react-spinners';
 import initAPI from '@/Menu/API/initAPI';
 import Full from '@/Menu/components/loader';
-import { InitError, UndefinedError } from '@/Menu/errors';
+import { InitError, UndefinedServerError } from '@/Menu/errors';
 
 const InitForm: FC = () => {
   const methods = useFormContext();
@@ -24,7 +24,7 @@ const InitForm: FC = () => {
               duration: 8000,
             }
           );
-        }else if(err instanceof UndefinedError){
+        }else if(err instanceof UndefinedServerError){
           toast.error(
             `未定義エラーが発生したよ！\n${err.name}\n${err.message}`,
             {

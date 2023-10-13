@@ -1,5 +1,5 @@
 import { type LabelData } from '../components/menuParts/labels/labels';
-import { ConfigSheetError, PropertyError, UndefinedError } from '../errors';
+import { ConfigSheetError, PropertyError, UndefinedServerError, errorMapper } from '../errors';
 import { type Labels, type Editor } from '../types';
 import { isGASEnvironment, serverFunctions } from './serverFunctions';
 
@@ -9,14 +9,9 @@ const getLabelDataAPI = async (): Promise<Labels> => {
       if (ret.success) {
         return ret.body;
       }else{
-        const err = ret.error;
-        if(err instanceof ConfigSheetError){
-          throw new ConfigSheetError(err.name + " " + err.message)
-        }else{
-          throw new UndefinedError(err.name + " " + err.message)
-        }
+        const err = errorMapper(ret.error)
 
-        // throw ret.error;
+        throw err;
       }
   } else {
     return await new Promise<Labels>((resolve) => {
@@ -67,8 +62,8 @@ const getConfigProtectionAPI = async (): Promise<Editor[]> => {
         throw new ConfigSheetError(ret.error.name + ' ' + ret.error.message);
     }else if(ret.error instanceof PropertyError){
       throw new PropertyError(ret.error.name + ' ' + ret.error.message);
-    }else if(ret.error instanceof UndefinedError){
-      throw new UndefinedError(ret.error.name + ' ' + ret.error.message);
+    }else if(ret.error instanceof UndefinedServerError){
+      throw new UndefinedServerError(ret.error.name + ' ' + ret.error.message);
     }else{
       throw new Error(ret.error.name + ' ' + ret.error.message);
 
