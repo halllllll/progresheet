@@ -11,11 +11,15 @@ import {
 import { useForm, FormProvider } from 'react-hook-form';
 import { FiCheckCircle } from 'react-icons/fi';
 import InitForm from './initForm';
+import { type InitOptions } from '@/Menu/AppsScript/service';
 
 const InitSheet: FC = () => {
-  const methods = useForm({
+  const methods = useForm<InitOptions>({
     mode: 'all',
     criteriaMode: 'all',
+    defaultValues: {
+      withEditors: true,
+    },
   });
 
   return (
@@ -50,7 +54,9 @@ const InitSheet: FC = () => {
           <HStack>
             <ListIcon as={FiCheckCircle} color="green.500" />
             <ListItem>
-              {'共同編集者はすべて削除されます。必要に応じて追加してください。'}
+              {
+                '共同編集者を引き継ぎたい場合は、初期化確認画面で設定できます（設定しない場合、共同編集者はすべて削除されます。）'
+              }
             </ListItem>
           </HStack>
           <HStack>

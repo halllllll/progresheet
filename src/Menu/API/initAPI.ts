@@ -1,10 +1,10 @@
-import { type InitResponse } from '../AppsScript/service';
+import { type InitOptions, type InitResponse } from '../AppsScript/service';
 import { errorMapper } from '../errors';
 import { isGASEnvironment, serverFunctions } from './serverFunctions';
 
-const initAPI = async (): Promise<InitResponse> => {
+const initAPI = async (data: InitOptions): Promise<InitResponse> => {
   if (isGASEnvironment()) {
-    const ret = await serverFunctions.initConfig();
+    const ret = await serverFunctions.initConfig(data);
     if (ret.success) {
       return ret;
     } else {

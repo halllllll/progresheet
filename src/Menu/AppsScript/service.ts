@@ -182,14 +182,18 @@ const getTargetSheet = (
   return targets.length === 0 ? null : targets[0];
 };
 
-interface InitOptions {
+export type InitOptions = {
   withEditors?: boolean;
-}
+};
 /**
  * initialize sheet. set default values for `CONFIG_SHEET`
  * @returns {InitResponse}
  */
 const initConfig = (options: InitOptions = {}): InitResponse => {
+  console.log(`フロントからなんか届いたかな？`);
+  console.log(options);
+  console.log(JSON.stringify(options));
+
   const lock = LockService.getScriptLock();
   try {
     lock.waitLock(10 * 1000);

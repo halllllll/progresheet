@@ -18,7 +18,6 @@ import {
   useFormContext,
   useFieldArray,
   type SubmitHandler,
-  // type SubmitHandler,
 } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { PropagateLoader } from 'react-spinners';
@@ -34,7 +33,8 @@ const LabelForm: FC = () => {
   const setMenuCtx = useContext(SetMenuCtx);
   const menuCtx = useContext(MenuCtx);
 
-  if (menuCtx === null) throw new ContextError('non-context error', {details: "on labelForm"});
+  if (menuCtx === null)
+    throw new ContextError('non-context error', { details: 'on labelForm' });
 
   // FieldArrayとやらをやってみる
 
@@ -65,7 +65,7 @@ const LabelForm: FC = () => {
       .then((res) => {
         setMenuCtx({
           labels: res,
-          ...menuCtx
+          ...menuCtx,
         });
       })
       .catch((err: unknown) => {
