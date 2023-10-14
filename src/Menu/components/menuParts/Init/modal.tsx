@@ -68,7 +68,7 @@ const InitModal: FC<ModalProps> = (props) => {
                     </HStack>
                   </FormControl>
                   <Box
-                    visibility={editorsSwitch ?? false ? 'visible' : 'hidden'}
+                    visibility={editorsSwitch ?? false ? 'hidden' : 'visible'}
                   >
                     <Text color="chocolate">
                       {'＊初期化後は編集者アカウントを別途設定してね！'}
