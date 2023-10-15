@@ -78,6 +78,7 @@ const LabelForm: FC = () => {
           labels: res,
           ...menuCtx,
         });
+        toast.success('ラベルデータをシートに反映しました！');
       })
       .catch((err: unknown) => {
         const e = err as Error;
@@ -164,7 +165,7 @@ const LabelForm: FC = () => {
           </Center>
           <FormErrorMessage>
             {' '}
-            {/** なぜか表示されない */}
+            {/** TODO: なぜか表示されない */}
             {methods.formState.errors.root?.message ?? ' '}
           </FormErrorMessage>
           <Center>
