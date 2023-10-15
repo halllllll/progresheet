@@ -8,6 +8,7 @@ import {
   Box,
   Button,
   Center,
+  FormErrorMessage,
   Grid,
   GridItem,
   Input,
@@ -40,8 +41,18 @@ const LabelForm: FC = () => {
 
   const { fields, append, remove } = useFieldArray<LabelData>({
     name: 'labels',
+    control: methods.control, // 不要？
     shouldUnregister: false,
-    rules: { minLength: 2 },
+    rules: {
+      minLength: {
+        value: 2,
+        message: '2つ以上必要です',
+      },
+      required: true,
+      validate: (values) => {
+        return values.length > 0;
+      },
+    },
   });
 
   // ピッカーをポップアップするためのスタイル
@@ -102,6 +113,7 @@ const LabelForm: FC = () => {
                       <GridItem colSpan={5}>
                         <Input
                           placeholder={field.value}
+                          required
                           {...methods.register(`labels.${idx}.value`, {
                             onChange: (e: ChangeEvent<HTMLInputElement>) => {
                               methods.setValue(
@@ -150,6 +162,11 @@ const LabelForm: FC = () => {
               追加
             </Button>
           </Center>
+          <FormErrorMessage>
+            {' '}
+            {/** なぜか表示されない */}
+            {methods.formState.errors.root?.message ?? ' '}
+          </FormErrorMessage>
           <Center>
             <Button
               mt="4"

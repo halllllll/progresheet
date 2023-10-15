@@ -25,7 +25,7 @@ const EditorsForm: FC = () => {
           ...menuCtx,
         });
         setEditors(res);
-        toast.success('編集者を反映したよ！', {
+        toast.success('編集者情報を取得したよ！', {
           duration: 5000,
         });
       })
