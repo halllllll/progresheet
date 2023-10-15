@@ -423,7 +423,6 @@ const setLabelConfig = (data: string): SetLabelResponse => {
   } catch (e: unknown) {
     console.log('error occured on "setLabelConfig"');
     console.log(e);
-    console.log(JSON.stringify(e));
     const err = e as Error;
 
     return {
