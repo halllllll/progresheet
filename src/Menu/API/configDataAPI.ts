@@ -82,7 +82,7 @@ const getConfigProtectionAPI = async (): Promise<Editor[]> => {
             id: 'aaa',
             editable: false,
           },
-          { id: 'bbb', editable: true },
+          { id: 'dummy id', editable: true },
           { id: 'xxx', editable: true },
           { id: 'ppp', editable: false },
         ]);

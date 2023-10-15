@@ -1,7 +1,8 @@
 import { useState, type FC, useContext } from 'react';
-import { Box, Button, HStack, Text } from '@chakra-ui/react';
+import { Box, Button, Center, Skeleton } from '@chakra-ui/react';
 import toast from 'react-hot-toast';
 import { SetMenuCtx, MenuCtx } from '@/Menu/App';
+import EditorTable from './Table';
 import { getConfigProtectionAPI } from '@/Menu/API/configDataAPI';
 import { ConfigSheetError, ContextError } from '@/Menu/errors';
 import { type Editor } from '@/Menu/types';
@@ -26,7 +27,7 @@ const EditorsForm: FC = () => {
         });
         setEditors(res);
         toast.success('編集者情報を取得したよ！', {
-          duration: 5000,
+          duration: 2000,
         });
       })
       .catch((err: unknown) => {
@@ -49,21 +50,21 @@ const EditorsForm: FC = () => {
 
   return (
     <Box>
-      <Button isLoading={isLoading} onClick={getEditors} isDisabled={isLoading}>
-        取得する
-      </Button>
+      <Center>
+        <Button
+          isLoading={isLoading}
+          onClick={getEditors}
+          isDisabled={isLoading}
+        >
+          {editors.length === 0 ? `取得する` : `更新する`}
+        </Button>
+      </Center>
       <Box my={10}>
-        <Text>数：{editors.length}</Text>
-        {editors.map((editor) => {
-          return (
-            <Box key={editor.id}>
-              <HStack>
-                <Text>{editor.id}</Text>
-                <Text>{editor.editable ? 'yes' : 'NO'}</Text>
-              </HStack>
-            </Box>
-          );
-        })}
+        <Skeleton height="50px" isLoaded={!isLoading} fadeDuration={1}>
+          {editors.length > 0 && (
+            <EditorTable editors={editors} myId={menuCtx.userID} />
+          )}
+        </Skeleton>
       </Box>
     </Box>
   );
