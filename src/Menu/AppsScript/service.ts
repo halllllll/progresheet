@@ -13,11 +13,10 @@ import {
 import { type LabelData } from '../components/menuParts/labels/labels';
 import {
   ConfigSheetError,
-  PropertyError,
-  type ErrorName,
-  type UndefinedError,
+  type GASError,
+  type UndefinedServerError,
 } from '../errors';
-import { type ClassRoom, type Labels } from '../types';
+import { type Editor, type ClassRoom, type Labels } from '../types';
 import { getPropertyByName, setDefaultProperty } from './utils';
 
 /**
@@ -29,6 +28,10 @@ const getId = (): string => {
   console.log(`get id: ${userid}`);
 
   return userid;
+};
+
+const getUserInfo = (): string => {
+  return getId();
 };
 
 /**
@@ -46,7 +49,7 @@ const getSpreadSheetName = (): string => {
  * @param {string} id - target account id
  * @returns {boolean}
  */
-const isAllowedConfigSheet = (id: string): boolean => {
+const _isAllowedConfigSheet = (id: string): boolean => {
   try {
     const configSheet = getTargetSheet(CONFIG_SHEET);
     if (configSheet === null)
@@ -66,6 +69,63 @@ const isAllowedConfigSheet = (id: string): boolean => {
   }
 };
 
+export type ConfigProtectData =
+  | {
+      success: true;
+      editors: Editor[];
+    }
+  | {
+      success: false;
+      error: GASError;
+    };
+
+const getConfigProtectData = (): ConfigProtectData => {
+  try {
+    const configSheet = getTargetSheet(CONFIG_SHEET);
+    if (configSheet === null) {
+      return {
+        success: false,
+        error: {
+          code: 'ConfigSheet',
+          message: `${CONFIG_SHEET} not found`,
+        },
+      };
+    }
+    const spreadSheetEditors = ss.getEditors().map((user) => user.getEmail());
+    console.log(`spreadsheet editors: ${spreadSheetEditors.join(', ')}`);
+
+    const protect = configSheet.protect();
+
+    const protectorAccounts = protect
+      .getEditors()
+      .map((user) => user.getEmail());
+    console.log(`accounts: ${protectorAccounts.join(', ')}`);
+    const editors = spreadSheetEditors.map((id): Editor => {
+      return {
+        id,
+        // eslint-disable-next-line no-unneeded-ternary, @typescript-eslint/prefer-includes
+        editable: protectorAccounts.indexOf(id) === -1 ? false : true,
+      };
+    });
+
+    return {
+      success: true,
+      editors,
+    };
+  } catch (e: unknown) {
+    const err = e as Error;
+    console.log(err);
+
+    return {
+      success: false,
+      error: {
+        code: 'Undefined',
+        message: `[${err.name}] - ${err.message}\nundefined error occured at "getConfigProtectData"`,
+      },
+    };
+  }
+};
+
 /**
  * 設定シートのデフォルトリスト
  * A列 ラベル名
@@ -78,8 +138,7 @@ export type InitResponse =
     }
   | {
       success: false;
-      error: Error;
-      errMsg: string;
+      error: GASError;
     };
 
 /**
@@ -109,25 +168,6 @@ const setBG = (range: GoogleAppsScript.Spreadsheet.Range): void => {
 };
 
 /**
- * setValues
- * @param {GoogleAppsScript.Spreadsheet.Range} range
- * @param {string[][]} values
- * @return {void}
- */
-const setValue = (
-  range: GoogleAppsScript.Spreadsheet.Range,
-  values: string[][]
-): void => {
-  if (
-    range.getHeight() !== values.length ||
-    range.getWidth() !== values[0].length
-  ) {
-    throw new Error('range and values should be same length');
-  }
-  range.setValues(values);
-};
-
-/**
  * find a sheet named sheetName
  * @param {string} sheetName
  * @returns {GoogleAppsScript.Spreadsheet.Sheet}
@@ -141,16 +181,27 @@ const getTargetSheet = (
   return targets.length === 0 ? null : targets[0];
 };
 
+export type InitOptions = {
+  withEditors?: boolean;
+};
 /**
  * initialize sheet. set default values for `CONFIG_SHEET`
  * @returns {InitResponse}
  */
-const initConfig = (): InitResponse => {
+const initConfig = (options: InitOptions = {}): InitResponse => {
+  console.log(`フロントからなんか届いたかな？`);
+  console.log(options);
+  console.log(JSON.stringify(options));
+
   const lock = LockService.getScriptLock();
   try {
     lock.waitLock(10 * 1000);
     const target = getTargetSheet(CONFIG_SHEET);
     let configSheet: GoogleAppsScript.Spreadsheet.Sheet | null = null;
+
+    /**
+     * reset spreadsheet sequence
+     */
     if (target === null) {
       configSheet = ss.insertSheet(0);
       configSheet.setName(CONFIG_SHEET);
@@ -159,6 +210,9 @@ const initConfig = (): InitResponse => {
       configSheet.clear().clearNotes();
     }
 
+    /**
+     * fixed header and default values
+     */
     configSheet.setFrozenRows(1);
 
     const range = configSheet.getRange(
@@ -169,24 +223,37 @@ const initConfig = (): InitResponse => {
     );
     range.setValues(CONFIG_DEFAULT);
 
-    // BG Color (based column B)
-    // (1, 1) -> (header回避1->2へ移動, A->Bへ移動)
+    /**
+     * BG Color (based column B)
+     * (1, 1) -> (header回避1->2へ移動, A->Bへ移動)
+     */
     const colorRange = range.offset(1, 1, CONFIG_DEFAULT.length - 1, 1);
     console.log('values:\n', colorRange.getValues());
     setBG(colorRange);
 
-    // （取得した時点での）設定シート以外全部削除
+    /**
+     * （取得した時点での）設定シート以外全部削除
+     */
     const sheets = ss.getSheets();
     for (const sheet of sheets) {
       if (sheet.getName() !== configSheet.getName()) ss.deleteSheet(sheet);
     }
+
+    /**
+     * sheets protection sequence
+     */
     const prot = configSheet.protect();
     prot.setDescription('設定シート');
     prot.removeEditors(prot.getEditors());
+    if (options.withEditors === true) {
+      prot.addEditors(ss.getEditors().map((user) => user.getEmail()));
+    }
     prot.addEditor(getId());
     // configSheet.hideSheet();
 
-    // delete and set default all properties
+    /**
+     * delete and set default all properties
+     */
     setDefaultProperty();
 
     return { success: true };
@@ -194,7 +261,13 @@ const initConfig = (): InitResponse => {
     Logger.log(e);
     const err = e as Error;
 
-    return { success: false, error: err, errMsg: err.message };
+    return {
+      success: false,
+      error: {
+        code: 'Undefined',
+        message: `[${err.name}] - ${err.message}`,
+      },
+    };
   } finally {
     lock.releaseLock();
   }
@@ -205,7 +278,7 @@ const initConfig = (): InitResponse => {
  */
 export type LabelResponse =
   | { success: true; body: Labels }
-  | { success: false; errorMsg: string; errorName?: ErrorName };
+  | { success: false; error: GASError };
 /**
  *
  * @returns {LabelResponse}
@@ -221,18 +294,29 @@ const getLabelConfig = (): LabelResponse => {
 
       return {
         success: false,
-        errorMsg: 'config sheet not found',
-        errorName: 'ConfigSheetError',
+        error: {
+          code: 'ConfigSheet',
+          message: 'config sheet not found',
+        },
       };
     }
     for (let i = 0; i < values[0].length; i++) {
       if (values[0][i] !== CONFIG_HEADER[i]) {
+        console.log(`header: ${CONFIG_HEADER.join(', ')}`);
+        console.log(`value: ${values[0].join(', ')}`);
         Logger.log('invalid header config sheet');
 
         return {
           success: false,
-          errorMsg: 'invalid header config sheet',
-          errorName: 'ConfigSheetError',
+          error: {
+            code: 'ConfigSheet',
+            message: `invalid header config sheet.\n
+            expected header is [${CONFIG_HEADER.join(', ')}](length: ${
+              CONFIG_HEADER.length
+            }) but current sheet has [${values[0].join(', ')}] (length: ${
+              values[0].length
+            }).`,
+          },
         };
       }
     }
@@ -242,8 +326,10 @@ const getLabelConfig = (): LabelResponse => {
 
       return {
         success: false,
-        errorMsg: `not found '${CONFIG_LABEL}' on header`,
-        errorName: 'ConfigSheetError',
+        error: {
+          code: 'ConfigSheet',
+          message: `not found '${CONFIG_LABEL}' on header`,
+        },
       };
     }
     const colorIdx = values[0].indexOf(CONFIG_COLOR);
@@ -252,8 +338,10 @@ const getLabelConfig = (): LabelResponse => {
 
       return {
         success: false,
-        errorMsg: `not found '${CONFIG_COLOR}' on header`,
-        errorName: 'ConfigSheetError',
+        error: {
+          code: 'ConfigSheet',
+          message: `not found '${CONFIG_COLOR}' on header`,
+        },
       };
     }
 
@@ -266,11 +354,14 @@ const getLabelConfig = (): LabelResponse => {
     };
   } catch (e: unknown) {
     Logger.log(e);
+    const err = e as Error;
 
     return {
       success: false,
-      errorMsg: 'undefined server error',
-      errorName: 'UndefinedServerError',
+      error: {
+        code: 'Undefined',
+        message: `[${err.name}] - ${err.message}`,
+      },
     };
   }
 };
@@ -278,11 +369,11 @@ const getLabelConfig = (): LabelResponse => {
 export type SetLabelResponse =
   | {
       success: true;
+      body: Labels;
     }
   | {
       success: false;
-      error: Error;
-      errMsg: string;
+      error: GASError;
     };
 /**
  *
@@ -294,8 +385,15 @@ const setLabelConfig = (data: string): SetLabelResponse => {
   try {
     lock.waitLock(1 * 3000);
     const targetSheet = getTargetSheet(CONFIG_SHEET);
-    if (targetSheet === null)
-      throw new Error(`sheet ${CONFIG_SHEET} is not found`);
+    if (targetSheet === null) {
+      return {
+        success: false,
+        error: {
+          code: 'ConfigSheet',
+          message: `sheet ${CONFIG_SHEET} is not found`,
+        },
+      };
+    }
     const d = JSON.parse(data) as LabelData;
     console.log(`data from front:`);
     console.log(`row string: ${data}`);
@@ -311,18 +409,29 @@ const setLabelConfig = (data: string): SetLabelResponse => {
       values.length,
       values[0].length
     );
-    setValue(range, values);
+    range.setValues(values);
     const colorRange = range.offset(1, 1, values.length - 1, 1);
     setBG(colorRange);
 
-    return { success: true };
+    // 新たに取得したものを返す
+    const labelData = getLabelConfig();
+    if (labelData.success) {
+      return { success: true, body: labelData.body };
+    } else {
+      return labelData; // エラー時のレスポンスデータの構造が同じなので
+    }
   } catch (e: unknown) {
     console.log('error occured on "setLabelConfig"');
     console.log(e);
-    console.log(JSON.stringify(e));
     const err = e as Error;
 
-    return { success: false, error: err, errMsg: err.message };
+    return {
+      success: false,
+      error: {
+        code: 'UpdateLabel',
+        message: `[${err.name}] - ${err.message}`,
+      },
+    };
   } finally {
     lock.releaseLock();
   }
@@ -333,7 +442,7 @@ const setLabelConfig = (data: string): SetLabelResponse => {
  */
 export type ClassRoomResponse =
   | { success: true; body: ClassRoom }
-  | { success: false; error: Error; errorMsg: string };
+  | { success: false; error: GASError };
 /**
  * Class room data, include `ClassRoom`
  * When something error occured during taking ClassRoom data,
@@ -350,8 +459,10 @@ const getClassRoomConfig = (): ClassRoomResponse => {
 
       return {
         success: false,
-        error: new PropertyError('property not found'),
-        errorMsg: 'property not found',
+        error: {
+          code: 'Property',
+          message: 'property not found',
+        },
       };
     }
 
@@ -364,22 +475,26 @@ const getClassRoomConfig = (): ClassRoomResponse => {
     };
   } catch (e: unknown) {
     Logger.log(e);
-    const err = e as UndefinedError;
+    const err = e as UndefinedServerError;
 
     return {
       success: false,
-      error: err,
-      errorMsg: 'undefined server error',
+      error: {
+        code: 'Undefined',
+        message: `[${err.name}] - ${err.message}`,
+      },
     };
   }
 };
 
 export {
   getId,
+  getUserInfo,
   getSpreadSheetName,
   getClassRoomConfig,
   initConfig,
   getLabelConfig,
   setLabelConfig,
-  isAllowedConfigSheet,
+  _isAllowedConfigSheet, // TODO: 未使用
+  getConfigProtectData,
 };

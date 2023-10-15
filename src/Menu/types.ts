@@ -14,6 +14,13 @@ export type Labels = {
   colors: string[];
 };
 
+// 編集者設定用
+export type Editor = {
+  id: string;
+  name?: string; // TODO: どうせ名前は取得できないが、かわりのものがあれば
+  editable: boolean;
+};
+
 // 教室
 export type HeightValue = string | number;
 export type WidthValue = string | number;

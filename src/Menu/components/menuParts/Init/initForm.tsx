@@ -1,16 +1,24 @@
-import { type FC } from 'react';
-import { Box, Button, Center } from '@chakra-ui/react';
-import { useFormContext } from 'react-hook-form';
+import { type FC, useRef } from 'react';
+import { Button, Center, useDisclosure } from '@chakra-ui/react';
+import { type SubmitHandler, useFormContext } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { PropagateLoader } from 'react-spinners';
+import InitModal from './modal';
 import initAPI from '@/Menu/API/initAPI';
+import { type InitOptions } from '@/Menu/AppsScript/service';
 import Full from '@/Menu/components/loader';
-import { InitError } from '@/Menu/errors';
+import { InitError, UndefinedServerError } from '@/Menu/errors';
 
 const InitForm: FC = () => {
-  const methods = useFormContext();
-  const onPost = async () => {
-    await initAPI()
+  const methods = useFormContext<InitOptions>();
+
+  // modal用ref
+  const initialRef = useRef<HTMLInputElement>(null);
+
+  const { isOpen, onOpen, onClose } = useDisclosure();
+
+  const onPost: SubmitHandler<InitOptions> = async (data) => {
+    await initAPI(data)
       .then((res) => {
         console.log(JSON.stringify(res));
         toast.success('初期化成功！');
@@ -18,13 +26,28 @@ const InitForm: FC = () => {
       .catch((err: unknown) => {
         // TODO: 下手くそ
         if (err instanceof InitError) {
-          toast.error(`エラーが発生したよ！\n${err.name}\n${err.message}`, {
-            duration: 8000,
-          });
+          toast.error(
+            `初期化エラーが発生したよ！\n${err.name}\n${err.message}`,
+            {
+              duration: 8000,
+            }
+          );
+        } else if (err instanceof UndefinedServerError) {
+          toast.error(
+            `未定義エラーが発生したよ！\n${err.name}\n${err.message}`,
+            {
+              duration: 8000,
+            }
+          );
         } else {
           const e = err as Error;
-          toast.error(`エラーが発生したよ！\n${e.name}`, { duration: 8000 });
+          toast.error(`謎のエラーが発生したよ！\n${e.name}\n${e.message}`, {
+            duration: 8000,
+          });
         }
+      })
+      .finally(() => {
+        onClose();
       });
   };
 
@@ -40,25 +63,17 @@ const InitForm: FC = () => {
           />
         </Full>
       )}
-      <form onSubmit={methods.handleSubmit(onPost)}>
-        <Box>
-          <Center>
-            <Button
-              mt="4"
-              type="submit"
-              disabled={
-                !methods.formState.isValid || methods.formState.isSubmitting
-              }
-              isLoading={methods.formState.isSubmitting}
-              loadingText="初期化中..."
-              spinnerPlacement="start"
-              colorScheme="red"
-            >
-              初期化する
-            </Button>
-          </Center>
-        </Box>
-      </form>
+      <InitModal
+        isOpen={isOpen}
+        onClose={onClose}
+        onPost={onPost}
+        initialRef={initialRef}
+      />
+      <Center>
+        <Button mt="4" colorScheme="red" onClick={onOpen}>
+          {'初期化する？'}
+        </Button>
+      </Center>
     </>
   );
 };

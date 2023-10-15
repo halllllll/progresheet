@@ -1,30 +1,32 @@
-import { type ClassRoomResponse } from '../AppsScript/service';
-import { PropertyError, UndefinedError } from '../errors';
+import { errorMapper } from '../errors';
+import { type ClassRoom } from '../types';
 import { isGASEnvironment, serverFunctions } from './serverFunctions';
 
-const getClassRoomInfoAPI = async (): Promise<ClassRoomResponse> => {
+const getClassRoomInfoAPI = async (): Promise<ClassRoom> => {
   if (isGASEnvironment()) {
     const ret = await serverFunctions.getClassRoomConfig();
     if (ret.success) {
-      return ret;
+      return ret.body;
     } else {
-      const err = ret.error;
-      if (err instanceof PropertyError) {
-        throw new PropertyError(ret.error.name + ' ' + ret.errorMsg);
-      } else {
-        throw new UndefinedError(ret.error.name + ' ' + ret.errorMsg);
-      }
+      const err = errorMapper(ret.error)
+      throw err
+      // // TODO: error mapper
+      // if (err instanceof PropertyError) {
+
+      //   throw new PropertyError(ret.error.name + ' ' + ret.errorMsg);
+      // } else {
+      //   throw new UndefinedServerError(ret.error.name + ' ' + ret.errorMsg);
+      // }
     }
   } else {
     return await new Promise((resolve) => {
       setTimeout(() => {
-        resolve({
-          success: true,
-          body: {
+        resolve(
+          {
             column: 3,
             row: 3,
           },
-        });
+        );
       }, 1000);
     });
   }

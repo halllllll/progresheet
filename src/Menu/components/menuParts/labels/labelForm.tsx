@@ -18,7 +18,6 @@ import {
   useFormContext,
   useFieldArray,
   type SubmitHandler,
-  // type SubmitHandler,
 } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { PropagateLoader } from 'react-spinners';
@@ -27,14 +26,15 @@ import LabelColor from './color';
 import { type LabelData } from './labels';
 import { setLabelDataAPI } from '@/Menu/API/configDataAPI';
 import Full from '@/Menu/components/loader';
+import { ContextError } from '@/Menu/errors';
 
 const LabelForm: FC = () => {
   const methods = useFormContext<LabelData>();
   const setMenuCtx = useContext(SetMenuCtx);
   const menuCtx = useContext(MenuCtx);
 
-  // TODO: error handling
-  if (menuCtx === null) throw new Error('non-context error');
+  if (menuCtx === null)
+    throw new ContextError('non-context error', { details: 'on labelForm' });
 
   // FieldArrayとやらをやってみる
 
@@ -63,22 +63,15 @@ const LabelForm: FC = () => {
   const onSubmit: SubmitHandler<LabelData> = async (data) => {
     await setLabelDataAPI(data)
       .then((res) => {
-        console.log('done!');
-        console.log(res);
-        // TODO: ほんとは引数のLabelDataではなくレスポンスデータにデータを含ませてそれをここで設定値に使うべきだと思う
         setMenuCtx({
-          userID: menuCtx?.userID,
-          sheetName: menuCtx?.sheetName,
-          labels: {
-            labels: data.labels.map((m) => m.value),
-            colors: data.labels.map((m) => m.color),
-          },
+          labels: res,
+          ...menuCtx,
         });
       })
       .catch((err: unknown) => {
         const e = err as Error;
         toast.error(
-          `ラベルデータの編集に失敗しました！\n${e.name}\n${e.message}`,
+          `ラベルデータの更新・取得に失敗しました！\n${e.name}\n${e.message}`,
           { duration: 8000 }
         );
       });

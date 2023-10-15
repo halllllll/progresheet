@@ -1,27 +1,27 @@
 import { useEffect, useState, type FC, type ReactNode } from 'react';
-import { Box, Center, Heading, Text } from '@chakra-ui/react';
+import { Box, Center,Code, Heading, Text } from '@chakra-ui/react';
 import { ClimbingBoxLoader } from 'react-spinners';
 import { getLabelDataAPI } from '../API/configDataAPI';
-import { getSpreadSheetNameAPI, getUserIdAPI } from '../API/userAndSheetAPI';
+import { getSpreadSheetInfoAPI, getAccessedUserInfoAPI } from '../API/userAndSheetAPI';
 import { MenuCtx, SetMenuCtx } from '../App';
-import { ConfigSheetError, UndefinedError } from '../errors';
-import { type Labels } from '../types';
+import { ConfigSheetError, UndefinedServerError } from '../errors';
+import { type Editor, type Labels } from '../types';
 
-export type hasError =
+type hasError =
   | {
       status: 'success';
     }
   | {
       status: 'failed';
+      errName: string;
       errMessage: string;
-      error?: Error;
     };
 
 export type CtxType = {
   userID: string;
   sheetName: string;
   labels?: Labels;
-  // } & hasError;
+  editors?: Editor[];
 };
 
 type Props = {
@@ -36,51 +36,46 @@ const CtxProvider: FC<Props> = ({ children }) => {
   useEffect(() => {
     const f = async () => {
       // TODO: タイムアウト要検証
-      const [userid, sheetname, labelResp] = await Promise.all([
-        getUserIdAPI(),
-        getSpreadSheetNameAPI(),
-        getLabelDataAPI(),
-      ]);
-      if (!labelResp.success) {
-        setRes({
-          userID: userid,
-          sheetName: sheetname,
-        });
-        switch (labelResp.errorName) {
-          case 'ConfigSheetError':
+
+      await Promise.all([getAccessedUserInfoAPI(), getSpreadSheetInfoAPI(), getLabelDataAPI()])
+        .then(([userid, sheetname, labels]) =>{
+          console.log('label!');
+          setRes({
+            userID: userid,
+            sheetName: sheetname,
+            labels
+          });
+        })
+        .catch((err: unknown)=>{
+          if(err instanceof ConfigSheetError){
             setIsError({
               status: 'failed',
+              errName: err.name,
               errMessage:
-                '設定シートが不正です。確認してください（よくわからなければ初期化してください）',
-              error: new ConfigSheetError(labelResp.errorMsg),
+                `${err.message}\n設定シートが不正です。確認してください（よくわからなければ初期化してください）`,
             });
-            break;
-          case 'UndefinedServerError':
+
+          }else if(err instanceof UndefinedServerError){
             setIsError({
               status: 'failed',
-              errMessage: `サーバーエラー: ${
-                labelResp.errorName ?? labelResp.errorMsg
-              }`,
-              error: new UndefinedError(labelResp.errorMsg),
+              errName: err.name,
+              errMessage: err.message
             });
-            break;
-          default:
+
+          }else{
+            // TODO: まじめ
             setIsError({
               status: 'failed',
-              errMessage: '不明なエラー',
+              errName:
+                '不明なエラー',
+              errMessage: "よくわからないエラーです"
             });
-        }
-      } else {
-        console.log('label!');
-        console.table(labelResp.body);
-        setRes({
-          userID: userid,
-          sheetName: sheetname,
-          labels: labelResp.body,
-          // status: 'success',
-        });
-      }
-      setIsLoading(false);
+
+          }
+        }).finally(()=>{
+          setIsLoading(false);
+
+        })
     };
     setIsLoading(true);
     void f();
@@ -109,8 +104,10 @@ const CtxProvider: FC<Props> = ({ children }) => {
         ) : isError.status === 'failed' ? (
           <Box>
             <Heading>{`Error occured`}</Heading>
-            <Text as="p">{isError?.error?.name ?? ''}</Text>
-            <Text as="p">{isError.errMessage}</Text>
+            <Text as="b" fontSize="18px" color={"tomato"}>{isError.errName}</Text>
+            <Code>
+              {isError.errMessage}
+            </Code>
           </Box>
         ) : (
           children
