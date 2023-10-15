@@ -1,26 +1,25 @@
 import { type LabelData } from '../components/menuParts/labels/labels';
-import { ConfigSheetError, PropertyError, UndefinedServerError, errorMapper } from '../errors';
+import { ConfigSheetError, errorMapper } from '../errors';
 import { type Labels, type Editor } from '../types';
 import { isGASEnvironment, serverFunctions } from './serverFunctions';
 
 const getLabelDataAPI = async (): Promise<Labels> => {
   if (isGASEnvironment()) {
-      const ret = await serverFunctions.getLabelConfig();
-      if (ret.success) {
-        return ret.body;
-      }else{
-        const err = errorMapper(ret.error)
+    const ret = await serverFunctions.getLabelConfig();
+    if (ret.success) {
+      return ret.body;
+    } else {
+      const err = errorMapper(ret.error);
 
-        throw err;
-      }
+      throw err;
+    }
   } else {
     return await new Promise<Labels>((resolve) => {
       setTimeout(() => {
         resolve({
-            labels: ['label1', 'label2'],
-            colors: ['#d95858', '#88aafc'],
-          },
-        );
+          labels: ['label1', 'label2'],
+          colors: ['#d95858', '#88aafc'],
+        });
       }, 1000);
     });
   }
@@ -45,7 +44,6 @@ const setLabelDataAPI = async (data: LabelData): Promise<Labels> => {
         resolve({
           labels: ['label1', 'label2', 'labelX'],
           colors: ['#d95858', '#88aafc', '#b87a69'],
-
         });
       }, 1000);
     });
@@ -58,17 +56,9 @@ const getConfigProtectionAPI = async (): Promise<Editor[]> => {
     if (ret.success) {
       return ret.editors;
     } else {
-      if(ret.error instanceof ConfigSheetError){
-        throw new ConfigSheetError(ret.error.name + ' ' + ret.error.message);
-    }else if(ret.error instanceof PropertyError){
-      throw new PropertyError(ret.error.name + ' ' + ret.error.message);
-    }else if(ret.error instanceof UndefinedServerError){
-      throw new UndefinedServerError(ret.error.name + ' ' + ret.error.message);
-    }else{
-      throw new Error(ret.error.name + ' ' + ret.error.message);
-
+      const err = errorMapper(ret.error);
+      throw err;
     }
-  }
   } else {
     return await new Promise<Editor[]>((resolve) => {
       setTimeout(() => {

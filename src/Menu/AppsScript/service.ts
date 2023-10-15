@@ -14,7 +14,7 @@ import { type LabelData } from '../components/menuParts/labels/labels';
 import {
   ConfigSheetError,
   type GASError,
-  UndefinedServerError,
+  type UndefinedServerError,
 } from '../errors';
 import { type Editor, type ClassRoom, type Labels } from '../types';
 import { getPropertyByName, setDefaultProperty } from './utils';
@@ -76,15 +76,21 @@ export type ConfigProtectData =
     }
   | {
       success: false;
-      error: Error;
-      errMsg: string;
+      error: GASError;
     };
 
 const getConfigProtectData = (): ConfigProtectData => {
   try {
     const configSheet = getTargetSheet(CONFIG_SHEET);
-    if (configSheet === null)
-      throw new UndefinedServerError(`${CONFIG_SHEET} not found`);
+    if (configSheet === null) {
+      return {
+        success: false,
+        error: {
+          code: 'ConfigSheet',
+          message: `${CONFIG_SHEET} not found`,
+        },
+      };
+    }
     const spreadSheetEditors = ss.getEditors().map((user) => user.getEmail());
     console.log(`spreadsheet editors: ${spreadSheetEditors.join(', ')}`);
 
@@ -107,23 +113,16 @@ const getConfigProtectData = (): ConfigProtectData => {
       editors,
     };
   } catch (e: unknown) {
-    console.log('エラーだぜ！');
-    console.log(e);
-    if (e instanceof UndefinedServerError) {
-      return {
-        success: false,
-        error: e,
-        errMsg: 'sheet not found',
-      };
-    } else {
-      const err = e as Error;
+    const err = e as Error;
+    console.log(err);
 
-      return {
-        success: false,
-        error: err,
-        errMsg: `${err.name}\n${err.message}\nundefined error occured at "getConfigProtectData"`,
-      };
-    }
+    return {
+      success: false,
+      error: {
+        code: 'Undefined',
+        message: `[${err.name}] - ${err.message}\nundefined error occured at "getConfigProtectData"`,
+      },
+    };
   }
 };
 

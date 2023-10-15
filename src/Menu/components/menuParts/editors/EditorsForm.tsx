@@ -10,7 +10,8 @@ const EditorsForm: FC = () => {
   const setMenuCtx = useContext(SetMenuCtx);
   const menuCtx = useContext(MenuCtx);
 
-  if (menuCtx === null) throw new ContextError('non-context error', {details: "on EditorsForm"});
+  if (menuCtx === null)
+    throw new ContextError('non-context error', { details: 'on EditorsForm' });
 
   const [editors, setEditors] = useState<Editor[]>(menuCtx.editors ?? []);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -21,21 +22,24 @@ const EditorsForm: FC = () => {
       .then((res) => {
         setMenuCtx({
           editors: res,
-          ...menuCtx
-        })
+          ...menuCtx,
+        });
         setEditors(res);
-        toast.success("編集者を反映したよ！", {
-          duration: 5000
-        })
+        toast.success('編集者を反映したよ！', {
+          duration: 5000,
+        });
       })
       .catch((err: unknown) => {
         if (err instanceof ConfigSheetError) {
           toast.error(`設定シートのエラー！\n${err.name}\n${err.message}`);
         } else {
           const e = err as Error;
-          toast.error(`謎のエラーが発生したよ！オーナー権限を確認してみてね！あなたには操作権限が無いかも？\n\n${e.name}\n${e.message}`, {
-            duration: 8000,
-          });
+          toast.error(
+            `謎のエラーが発生したよ！オーナー権限を確認してみてね！あなたには操作権限が無いかも？\n\n${e.name}\n${e.message}`,
+            {
+              duration: 8000,
+            }
+          );
         }
       })
       .finally(() => {
@@ -45,21 +49,17 @@ const EditorsForm: FC = () => {
 
   return (
     <Box>
-      <Button
-        isLoading={isLoading}
-        onClick={getEditors}
-        isDisabled={isLoading}
-      >
+      <Button isLoading={isLoading} onClick={getEditors} isDisabled={isLoading}>
         取得する
       </Button>
-      <Box>
+      <Box my={10}>
         <Text>数：{editors.length}</Text>
         {editors.map((editor) => {
           return (
             <Box key={editor.id}>
               <HStack>
                 <Text>{editor.id}</Text>
-                <Text>{editor.editable ? "yes" : "NO"}</Text>
+                <Text>{editor.editable ? 'yes' : 'NO'}</Text>
               </HStack>
             </Box>
           );
