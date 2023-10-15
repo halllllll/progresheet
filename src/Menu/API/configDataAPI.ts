@@ -1,5 +1,5 @@
 import { type LabelData } from '../components/menuParts/labels/labels';
-import { ConfigSheetError, errorMapper } from '../errors';
+import { errorMapper } from '../errors';
 import { type Labels, type Editor } from '../types';
 import { isGASEnvironment, serverFunctions } from './serverFunctions';
 
@@ -35,8 +35,8 @@ const setLabelDataAPI = async (data: LabelData): Promise<Labels> => {
     if (ret.success) {
       return ret.body;
     } else {
-      throw new ConfigSheetError(ret.error.name + ' ' + ret.errMsg);
-      // throw ret.error;
+      const err = errorMapper(ret.error);
+      throw err;
     }
   } else {
     return await new Promise<Labels>((resolve) => {

@@ -1,31 +1,40 @@
-export type ErrorCode = "Init" | "ConfigSheet" | "Undefined" | "Context" | "Property"
+export type ErrorCode =
+  | 'Init'
+  | 'ConfigSheet'
+  | 'Undefined'
+  | 'Context'
+  | 'Property'
+  | 'UpdateLabel';
 
 export type GASError = {
-  code: ErrorCode,
+  code: ErrorCode;
   message: string;
-}
+};
 
 interface ErrorOptions {
   cause?: Error;
   details?: unknown;
 }
 
-export const errorMapper = (gasError: GASError):Error =>{
-  switch(gasError.code){
-    case "ConfigSheet":
-      return new ConfigSheetError(gasError.message)
-    case "Context":
-      return new ContextError(gasError.message)
-    case "Init":
-      return new InitError(gasError.message)
-    case "Property":
-      return new PropertyError(gasError.message)
-    case "Undefined":
-      return new UndefinedServerError(gasError.message)
+export const errorMapper = (gasError: GASError): Error => {
+  switch (gasError.code) {
+    case 'ConfigSheet':
+      return new ConfigSheetError(gasError.message);
+    case 'Context':
+      return new ContextError(gasError.message);
+    case 'Init':
+      return new InitError(gasError.message);
+    case 'Property':
+      return new PropertyError(gasError.message);
+    case 'Undefined':
+      return new UndefinedServerError(gasError.message);
+    case 'UpdateLabel':
+      return new UpdateLabelError(gasError.message);
+
     default:
-      return new Error("undefined code")
+      return new Error('undefined code');
   }
-}
+};
 
 // なぜかこれを継承すると`clasp push`でエラーになる
 //  - `GaxiosError: Syntax error: ParseError: Unexpected token ; line: XX file: main.gs`
@@ -71,9 +80,16 @@ export class PropertyError extends Error {
   }
 }
 
-export class ContextError extends Error{
-  constructor(message?: string, options?: ErrorOptions){
+export class ContextError extends Error {
+  constructor(message?: string, options?: ErrorOptions) {
     super(message, options);
-    this.name = "ContextError"
+    this.name = 'ContextError';
+  }
+}
+
+export class UpdateLabelError extends Error {
+  constructor(message?: string, options?: ErrorOptions) {
+    super(message, options);
+    this.name = 'UpdateLabelError';
   }
 }

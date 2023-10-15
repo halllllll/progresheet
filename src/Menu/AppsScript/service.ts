@@ -373,8 +373,7 @@ export type SetLabelResponse =
     }
   | {
       success: false;
-      error: Error;
-      errMsg: string;
+      error: GASError;
     };
 /**
  *
@@ -386,8 +385,15 @@ const setLabelConfig = (data: string): SetLabelResponse => {
   try {
     lock.waitLock(1 * 3000);
     const targetSheet = getTargetSheet(CONFIG_SHEET);
-    if (targetSheet === null)
-      throw new Error(`sheet ${CONFIG_SHEET} is not found`);
+    if (targetSheet === null) {
+      return {
+        success: false,
+        error: {
+          code: 'ConfigSheet',
+          message: `sheet ${CONFIG_SHEET} is not found`,
+        },
+      };
+    }
     const d = JSON.parse(data) as LabelData;
     console.log(`data from front:`);
     console.log(`row string: ${data}`);
@@ -412,7 +418,7 @@ const setLabelConfig = (data: string): SetLabelResponse => {
     if (labelData.success) {
       return { success: true, body: labelData.body };
     } else {
-      throw new ConfigSheetError("label data can't get!");
+      return labelData; // エラー時のレスポンスデータの構造が同じなので
     }
   } catch (e: unknown) {
     console.log('error occured on "setLabelConfig"');
@@ -420,7 +426,13 @@ const setLabelConfig = (data: string): SetLabelResponse => {
     console.log(JSON.stringify(e));
     const err = e as Error;
 
-    return { success: false, error: err, errMsg: err.message };
+    return {
+      success: false,
+      error: {
+        code: 'UpdateLabel',
+        message: `[${err.name}] - ${err.message}`,
+      },
+    };
   } finally {
     lock.releaseLock();
   }
