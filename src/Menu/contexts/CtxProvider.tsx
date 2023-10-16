@@ -1,8 +1,11 @@
 import { useEffect, useState, type FC, type ReactNode } from 'react';
-import { Box, Center,Code, Heading, Text } from '@chakra-ui/react';
+import { Box, Center, Code, Heading, Text } from '@chakra-ui/react';
 import { ClimbingBoxLoader } from 'react-spinners';
 import { getLabelDataAPI } from '../API/configDataAPI';
-import { getSpreadSheetInfoAPI, getAccessedUserInfoAPI } from '../API/userAndSheetAPI';
+import {
+  getSpreadSheetInfoAPI,
+  getAccessedUserInfoAPI,
+} from '../API/userAndSheetAPI';
 import { MenuCtx, SetMenuCtx } from '../App';
 import { ConfigSheetError, UndefinedServerError } from '../errors';
 import { type Editor, type Labels } from '../types';
@@ -37,45 +40,44 @@ const CtxProvider: FC<Props> = ({ children }) => {
     const f = async () => {
       // TODO: タイムアウト要検証
 
-      await Promise.all([getAccessedUserInfoAPI(), getSpreadSheetInfoAPI(), getLabelDataAPI()])
-        .then(([userid, sheetname, labels]) =>{
+      await Promise.all([
+        getAccessedUserInfoAPI(),
+        getSpreadSheetInfoAPI(),
+        getLabelDataAPI(),
+      ])
+        .then(([userid, sheetname, labels]) => {
           console.log('label!');
           setRes({
             userID: userid,
             sheetName: sheetname,
-            labels
+            labels,
           });
         })
-        .catch((err: unknown)=>{
-          if(err instanceof ConfigSheetError){
+        .catch((err: unknown) => {
+          if (err instanceof ConfigSheetError) {
             setIsError({
               status: 'failed',
               errName: err.name,
-              errMessage:
-                `${err.message}\n設定シートが不正です。確認してください（よくわからなければ初期化してください）`,
+              errMessage: `${err.message}\n設定シートが不正です。確認してください（よくわからなければ初期化してください）`,
             });
-
-          }else if(err instanceof UndefinedServerError){
+          } else if (err instanceof UndefinedServerError) {
             setIsError({
               status: 'failed',
               errName: err.name,
-              errMessage: err.message
+              errMessage: err.message,
             });
-
-          }else{
+          } else {
             // TODO: まじめ
             setIsError({
               status: 'failed',
-              errName:
-                '不明なエラー',
-              errMessage: "よくわからないエラーです"
+              errName: '不明なエラー',
+              errMessage: 'よくわからないエラーです',
             });
-
           }
-        }).finally(()=>{
-          setIsLoading(false);
-
         })
+        .finally(() => {
+          setIsLoading(false);
+        });
     };
     setIsLoading(true);
     void f();
@@ -98,16 +100,16 @@ const CtxProvider: FC<Props> = ({ children }) => {
             justifyContent="center"
           >
             <Center h="full">
-              <ClimbingBoxLoader color="#36d7b7" size="40" />
+              <ClimbingBoxLoader color="#36d7b7" size="40px" />
             </Center>
           </Box>
         ) : isError.status === 'failed' ? (
           <Box>
             <Heading>{`Error occured`}</Heading>
-            <Text as="b" fontSize="18px" color={"tomato"}>{isError.errName}</Text>
-            <Code>
-              {isError.errMessage}
-            </Code>
+            <Text as="b" fontSize="18px" color={'tomato'}>
+              {isError.errName}
+            </Text>
+            <Code>{isError.errMessage}</Code>
           </Box>
         ) : (
           children

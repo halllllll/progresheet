@@ -1,8 +1,12 @@
 import { useState, type FC, useContext } from 'react';
-import { Box, Button, HStack, Text } from '@chakra-ui/react';
+import { Box, Button, Center, Skeleton } from '@chakra-ui/react';
 import toast from 'react-hot-toast';
 import { SetMenuCtx, MenuCtx } from '@/Menu/App';
-import { getConfigProtectionAPI } from '@/Menu/API/configDataAPI';
+import EditorTable from './Table';
+import {
+  getConfigProtectionAPI,
+  setConfigProtectionAPI,
+} from '@/Menu/API/configDataAPI';
 import { ConfigSheetError, ContextError } from '@/Menu/errors';
 import { type Editor } from '@/Menu/types';
 
@@ -25,8 +29,8 @@ const EditorsForm: FC = () => {
           ...menuCtx,
         });
         setEditors(res);
-        toast.success('編集者を反映したよ！', {
-          duration: 5000,
+        toast.success('編集者情報を取得したよ！', {
+          duration: 2000,
         });
       })
       .catch((err: unknown) => {
@@ -47,23 +51,68 @@ const EditorsForm: FC = () => {
       });
   };
 
+  const submitEditors = async (data: Editor[]) => {
+    // promise.thenは使うなと言われたので...
+    try {
+      // TODO: いまのところsubmitはhook-formではなくただのButtonのonClickでやっているため心を込めてローディング状態を切り替えている
+      setIsLoading(true);
+      const res = await setConfigProtectionAPI(data);
+      setMenuCtx({
+        editors: res,
+        ...menuCtx,
+      });
+      setEditors(res);
+      console.warn(
+        `想定ではここでちゃんと更新されるはずなんだけど...画面に表示されない...`
+      );
+      console.warn(res);
+      toast.success('編集者情報を更新したよ！', {
+        duration: 2000,
+      });
+    } catch (err: unknown) {
+      if (err instanceof ConfigSheetError) {
+        toast.error(`設定シートのエラー！\n${err.name}\n${err.message}`);
+      } else {
+        const e = err as Error;
+        toast.error(
+          `謎のエラーが発生したよ！オーナー権限を確認してみてね！あなたには操作権限が無いかも？\n\n${e.name}\n${e.message}`,
+          {
+            duration: 8000,
+          }
+        );
+      }
+    } finally {
+      setIsLoading(false);
+      console.log('done');
+    }
+  };
+
   return (
     <Box>
-      <Button isLoading={isLoading} onClick={getEditors} isDisabled={isLoading}>
-        取得する
-      </Button>
+      <Center>
+        <Button
+          isLoading={isLoading}
+          onClick={getEditors}
+          isDisabled={isLoading}
+        >
+          {editors.length === 0 ? `取得する` : `更新する`}
+        </Button>
+      </Center>
       <Box my={10}>
-        <Text>数：{editors.length}</Text>
-        {editors.map((editor) => {
-          return (
-            <Box key={editor.id}>
-              <HStack>
-                <Text>{editor.id}</Text>
-                <Text>{editor.editable ? 'yes' : 'NO'}</Text>
-              </HStack>
-            </Box>
-          );
-        })}
+        <Skeleton height="50px" isLoaded={!isLoading} fadeDuration={1}>
+          <>
+            {/** TODO: かなりひどい冗長なコードになっているのでなんとかしたい。 追加や削除のないuseFormArrayを使えたらまだマシかも知れない */}
+            {editors.length > 0 && (
+              <EditorTable
+                onSubmit={submitEditors}
+                editors={editors}
+                setEditors={setEditors}
+                myId={menuCtx.userID}
+                isLoading={isLoading}
+              />
+            )}
+          </>
+        </Skeleton>
       </Box>
     </Box>
   );

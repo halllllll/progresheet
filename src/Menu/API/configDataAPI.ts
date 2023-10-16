@@ -1,8 +1,13 @@
 import { type LabelData } from '../components/menuParts/labels/labels';
 import { errorMapper } from '../errors';
-import { type Labels, type Editor } from '../types';
+import { type Labels, type Editor, type EditorRequest } from '../types';
 import { isGASEnvironment, serverFunctions } from './serverFunctions';
 
+/**
+ * get label data from Apps Script
+ * (when Local Server, return pseudo data)
+ * @returns {Promise<void>}
+ */
 const getLabelDataAPI = async (): Promise<Labels> => {
   if (isGASEnvironment()) {
     const ret = await serverFunctions.getLabelConfig();
@@ -25,12 +30,18 @@ const getLabelDataAPI = async (): Promise<Labels> => {
   }
 };
 
-// JSON.stringifyにするため（ほかの方法不明）
-export type LabelDataRequest = string;
-
+/** JSON.stringifyにするため（ほかの方法不明） */
+// export type LabelDataRequest = string;
+/**
+ * send new label data to Apps Script
+ * (when Local Server, return pseudo data)
+ * @param {LabelData} data
+ * @returns {Promise<Labels>}
+ */
 const setLabelDataAPI = async (data: LabelData): Promise<Labels> => {
   if (isGASEnvironment()) {
-    console.table(data);
+    console.warn('labelぶん投げるとき');
+    console.warn(JSON.stringify(data));
     const ret = await serverFunctions.setLabelConfig(JSON.stringify(data));
     if (ret.success) {
       return ret.body;
@@ -50,6 +61,11 @@ const setLabelDataAPI = async (data: LabelData): Promise<Labels> => {
   }
 };
 
+/**
+ * get Config Sheet Protection data from Apps Script
+ * (when Local Server, return pseudo data)
+ * @returns {Promise<Editor[]>}
+ */
 const getConfigProtectionAPI = async (): Promise<Editor[]> => {
   if (isGASEnvironment()) {
     const ret = await serverFunctions.getConfigProtection();
@@ -64,16 +80,52 @@ const getConfigProtectionAPI = async (): Promise<Editor[]> => {
       setTimeout(() => {
         resolve([
           {
-            id: 'aaa',
+            useId: 'aaa',
             editable: false,
           },
-          { id: 'bbb', editable: true },
-          { id: 'xxx', editable: true },
-          { id: 'ppp', editable: false },
+          { useId: 'dummy id', editable: true },
+          { useId: 'xxx', editable: true },
+          { useId: 'ppp', editable: false },
         ]);
       }, 1400);
     });
   }
 };
 
-export { getLabelDataAPI, setLabelDataAPI, getConfigProtectionAPI };
+/**
+ * update Config Sheet Protection data from Apps Script
+ * and return new protected conditions.
+ * (when Local Server, return pseudo data)
+ * @param {Editor[]} data
+ * @returns {Editor[]}
+ */
+const setConfigProtectionAPI = async (data: Editor[]): Promise<Editor[]> => {
+  if (isGASEnvironment()) {
+    console.warn(data);
+    const req: EditorRequest = {
+      editors: [...data],
+    };
+    console.warn('protectionをぶん投げるとき');
+    console.warn(JSON.stringify(req));
+    const ret = await serverFunctions.setConfigProtection(JSON.stringify(req));
+    if (ret.success) {
+      return ret.editors;
+    } else {
+      const err = errorMapper(ret.error);
+      throw err;
+    }
+  } else {
+    return await new Promise<Editor[]>((resolve) => {
+      setTimeout(() => {
+        resolve(data);
+      }, 1500);
+    });
+  }
+};
+
+export {
+  getLabelDataAPI,
+  setLabelDataAPI,
+  getConfigProtectionAPI,
+  setConfigProtectionAPI,
+};

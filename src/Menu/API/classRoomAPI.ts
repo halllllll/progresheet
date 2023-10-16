@@ -8,25 +8,16 @@ const getClassRoomInfoAPI = async (): Promise<ClassRoom> => {
     if (ret.success) {
       return ret.body;
     } else {
-      const err = errorMapper(ret.error)
-      throw err
-      // // TODO: error mapper
-      // if (err instanceof PropertyError) {
-
-      //   throw new PropertyError(ret.error.name + ' ' + ret.errorMsg);
-      // } else {
-      //   throw new UndefinedServerError(ret.error.name + ' ' + ret.errorMsg);
-      // }
+      const err = errorMapper(ret.error);
+      throw err;
     }
   } else {
     return await new Promise((resolve) => {
       setTimeout(() => {
-        resolve(
-          {
-            column: 3,
-            row: 3,
-          },
-        );
+        resolve({
+          column: 3,
+          row: 3,
+        });
       }, 1000);
     });
   }

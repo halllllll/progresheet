@@ -4,6 +4,7 @@ export type ErrorCode =
   | 'Undefined'
   | 'Context'
   | 'Property'
+  | 'Permission'
   | 'UpdateLabel'
   | 'UpdateProtection';
 
@@ -33,6 +34,8 @@ export const errorMapper = (gasError: GASError): Error => {
       return new UpdateLabelError(gasError.message);
     case 'UpdateProtection':
       return new UpdateProtectionError(gasError.message);
+    case 'Permission':
+      return new PermissionError(gasError.message);
 
     default:
       return new Error('undefined code');
@@ -101,5 +104,12 @@ export class UpdateProtectionError extends Error {
   constructor(message?: string, options?: ErrorOptions) {
     super(message, options);
     this.name = 'UpdateProtectionError';
+  }
+}
+
+export class PermissionError extends Error {
+  constructor(message?: string, options?: ErrorOptions) {
+    super(message, options);
+    this.name = 'PermissionError';
   }
 }

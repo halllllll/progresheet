@@ -16,7 +16,12 @@ import {
   type GASError,
   type UndefinedServerError,
 } from '../errors';
-import { type Editor, type ClassRoom, type Labels } from '../types';
+import {
+  type Editor,
+  type ClassRoom,
+  type Labels,
+  type EditorRequest,
+} from '../types';
 import { getPropertyByName, setDefaultProperty } from './utils';
 
 /**
@@ -58,8 +63,10 @@ const _isAllowedConfigSheet = (id: string): boolean => {
     const editors = prot.getEditors();
 
     // Apps ScriptではES6までしか対応してないので、たぶんincludesは使えない気がする
-    // return editors.map((editor) => editor.getEmail()).includes(id);
-    return editors.map((editor) => editor.getEmail()).includes(id);
+    // eslint-disable-next-line no-unneeded-ternary, @typescript-eslint/prefer-includes
+    return editors.map((editor) => editor.getEmail()).indexOf(id) !== -1
+      ? true
+      : false;
   } catch (e: unknown) {
     // TODO: error handling
     console.log(`error occured! at isAllowedConfigSheet`);
@@ -69,6 +76,9 @@ const _isAllowedConfigSheet = (id: string): boolean => {
   }
 };
 
+/**
+ * 設定シートの保護データ情報
+ */
 export type ConfigProtectData =
   | {
       success: true;
@@ -78,9 +88,13 @@ export type ConfigProtectData =
       success: false;
       error: GASError;
     };
-
+/**
+ * `CONFIG_SHEET` protection data (editable-user, editable-permission)
+ * @returns {ConfigProtectData}
+ */
 const getConfigProtectData = (): ConfigProtectData => {
   try {
+    /* exist check for CONFIG_SHEET */
     const configSheet = getTargetSheet(CONFIG_SHEET);
     if (configSheet === null) {
       return {
@@ -95,14 +109,22 @@ const getConfigProtectData = (): ConfigProtectData => {
     console.log(`spreadsheet editors: ${spreadSheetEditors.join(', ')}`);
 
     const protect = configSheet.protect();
-
+    if (!protect.canEdit()) {
+      return {
+        success: false,
+        error: {
+          code: 'Permission',
+          message: `you've NO permission for editting "${CONFIG_SHEET}", and getting data`,
+        },
+      };
+    }
     const protectorAccounts = protect
       .getEditors()
       .map((user) => user.getEmail());
     console.log(`accounts: ${protectorAccounts.join(', ')}`);
     const editors = spreadSheetEditors.map((id): Editor => {
       return {
-        id,
+        useId: id,
         // eslint-disable-next-line no-unneeded-ternary, @typescript-eslint/prefer-includes
         editable: protectorAccounts.indexOf(id) === -1 ? false : true,
       };
@@ -121,6 +143,71 @@ const getConfigProtectData = (): ConfigProtectData => {
       error: {
         code: 'Undefined',
         message: `[${err.name}] - ${err.message}\nundefined error occured at "getConfigProtectData"`,
+      },
+    };
+  }
+};
+
+/**
+ * update `CONFIG_SHEET` protection from user data.
+ * @param {string} data - interpretated as `Editor[]`
+ * @returns {ConfigProtectData} - just call `getConfigProtectData`
+ */
+const setConfigProtection = (data: string): ConfigProtectData => {
+  try {
+    const configSheet = getTargetSheet(CONFIG_SHEET);
+    if (configSheet === null) {
+      return {
+        success: false,
+        error: {
+          code: 'ConfigSheet',
+          message: `${CONFIG_SHEET} not found`,
+        },
+      };
+    }
+
+    // update config protection
+    // 編集権限かつ送信されたユーザーに対して
+
+    /**
+     * しゃーなしで as Editor[]
+     */
+    const d = JSON.parse(data) as EditorRequest;
+    console.log(`data from front:`);
+    console.log(`row string: ${data}`);
+    console.log(d);
+
+    const spreadSheetEditors = new Set(
+      ss.getEditors().map((user) => user.getEmail())
+    );
+    const requestEditors = [
+      ...new Set(
+        d.editors
+          .filter((editor) => editor.editable)
+          .map((editor) => editor.useId)
+      ),
+    ];
+    const updateEditors = requestEditors.filter((editor) =>
+      spreadSheetEditors.has(editor)
+    );
+
+    const prot = configSheet.protect();
+    prot.setDescription('設定シート');
+    prot.removeEditors(prot.getEditors());
+    prot.addEditor(getId()); // 自身は例外とする（一応）
+    console.log(`ちゃんと彼らが追加される？ -> ${updateEditors.join(', ')}`);
+    prot.addEditors(updateEditors);
+
+    return getConfigProtectData();
+  } catch (e: unknown) {
+    const err = e as Error;
+    console.log(e);
+
+    return {
+      success: false,
+      error: {
+        code: 'Undefined',
+        message: `[${err.name}] = ${err.message}`,
       },
     };
   }
@@ -394,6 +481,7 @@ const setLabelConfig = (data: string): SetLabelResponse => {
         },
       };
     }
+    // しょうがないのでas
     const d = JSON.parse(data) as LabelData;
     console.log(`data from front:`);
     console.log(`row string: ${data}`);
@@ -497,4 +585,5 @@ export {
   setLabelConfig,
   _isAllowedConfigSheet, // TODO: 未使用
   getConfigProtectData,
+  setConfigProtection,
 };

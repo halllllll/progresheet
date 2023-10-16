@@ -16,9 +16,13 @@ export type Labels = {
 
 // 編集者設定用
 export type Editor = {
-  id: string;
+  useId: string;
   name?: string; // TODO: どうせ名前は取得できないが、かわりのものがあれば
   editable: boolean;
+};
+
+export type EditorRequest = {
+  editors: Editor[];
 };
 
 // 教室

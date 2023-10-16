@@ -2,14 +2,13 @@ import { type TupleOf } from './Menu/types';
 
 const ss = SpreadsheetApp.getActive();
 
-// 設定用シート名
+/**
+ * 設定シート
+ * デフォルト値など
+ */
 const CONFIG_SHEET = '設定';
-
-// 設定シート デフォルト値
 const CONFIG_LABEL = 'Labels';
 const CONFIG_COLOR = 'colors';
-const PROPERTY_WIDTH = 'classroom_width';
-const PROPERTY_HEIGHT = 'classroom_height';
 const CONFIG_HEADER = [CONFIG_LABEL, CONFIG_COLOR];
 const CONFIG_DEFAULT_VALUES = [
   ['All Right!', '#61a7e9'],
@@ -23,23 +22,35 @@ type Property = Record<string, string>;
 
 const CONFIG_DEFAULT = [CONFIG_HEADER, ...CONFIG_DEFAULT_VALUES];
 
-// default properties
+/**
+ * DEFAULT PROPERTIES
+ * PropertyServceのプロパティ名とか値
+ */
 const PROPERTY_DEFAULT: Property = {
   PROPERTY_HEIGHT: '1',
   PROPERTY_WIDTH: '1',
 };
+
+/**
+ * 座席シート設定
+ */
+const SEAT_SHEET = '座席';
+// 座席（グリッドにしたときの高さ・幅） Property Store
+const PROPERTY_WIDTH = 'classroom_width';
+const PROPERTY_HEIGHT = 'classroom_height';
 
 export {
   ss,
   CONFIG_SHEET,
   CONFIG_LABEL,
   CONFIG_COLOR,
-  PROPERTY_HEIGHT,
-  PROPERTY_WIDTH,
   CONFIG_HEADER,
   CONFIG_DEFAULT,
   CONFIG_DEFAULT_COLUMN_OFFSET,
   CONFIG_DEFAULT_ROW_OFFSET,
   PROPERTY_DEFAULT,
   type ConfigElements,
+  SEAT_SHEET,
+  PROPERTY_HEIGHT,
+  PROPERTY_WIDTH,
 };
