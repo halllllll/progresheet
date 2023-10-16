@@ -109,7 +109,15 @@ const getConfigProtectData = (): ConfigProtectData => {
     console.log(`spreadsheet editors: ${spreadSheetEditors.join(', ')}`);
 
     const protect = configSheet.protect();
-
+    if (!protect.canEdit()) {
+      return {
+        success: false,
+        error: {
+          code: 'Permission',
+          message: `you've NO permission for editting "${CONFIG_SHEET}", and getting data`,
+        },
+      };
+    }
     const protectorAccounts = protect
       .getEditors()
       .map((user) => user.getEmail());
