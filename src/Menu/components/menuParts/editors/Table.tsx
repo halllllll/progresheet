@@ -1,6 +1,12 @@
-import { type FC } from 'react';
+import {
+  type Dispatch,
+  type SetStateAction,
+  type FC,
+  type ChangeEvent,
+} from 'react';
 import {
   Box,
+  Button,
   HStack,
   Switch,
   Table,
@@ -12,16 +18,20 @@ import {
   Th,
   Thead,
   Tr,
+  VisuallyHiddenInput,
 } from '@chakra-ui/react';
 import { type Editor } from '@/Menu/types';
 
 type EditorTableProps = {
   editors: Editor[];
+  setEditors: Dispatch<SetStateAction<Editor[]>>;
+  isLoading: boolean;
   myId: string;
+  onSubmit: (editors: Editor[]) => void;
 };
 
 const EditorTable: FC<EditorTableProps> = (props) => {
-  const { editors, myId } = props;
+  const { editors, setEditors, isLoading, myId, onSubmit } = props;
 
   return (
     <Box>
@@ -37,15 +47,16 @@ const EditorTable: FC<EditorTableProps> = (props) => {
           </Tr>
         </Thead>
         <Tbody>
-          {editors.map((editor) => {
+          {editors.map((editor, idx) => {
             return (
-              <Tr key={editor.id} my="xl">
+              <Tr key={editor.useId} my="xl">
                 <Td>
                   <Text>
                     <HStack>
                       <>
-                        <Text>{editor.id}</Text>
-                        {editor.id === myId && (
+                        <Text>{editors[idx].useId}</Text>
+                        <VisuallyHiddenInput value={editors[idx].useId} />
+                        {editors[idx].useId === myId && (
                           <Tag
                             variant={'solid'}
                             borderRadius={'full'}
@@ -63,9 +74,13 @@ const EditorTable: FC<EditorTableProps> = (props) => {
                   <HStack justifyContent={'space-evenly'}>
                     <Text>{'No'}</Text>
                     <Switch
-                      defaultChecked={editor.editable}
+                      defaultChecked={editors[idx].editable}
                       size={'lg'}
-                      disabled={editor.id === myId}
+                      onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                        editors[idx].editable = e.target.checked;
+                        setEditors(editors);
+                      }}
+                      disabled={editors[idx].useId === myId}
                     />
                     <Text>{'OK'}</Text>
                   </HStack>
@@ -75,6 +90,18 @@ const EditorTable: FC<EditorTableProps> = (props) => {
           })}
         </Tbody>
       </Table>
+      <Button
+        type="submit"
+        onClick={() => {
+          onSubmit(editors);
+        }}
+        isDisabled={isLoading}
+        isLoading={isLoading}
+        loadingText="送信中..."
+        spinnerPlacement="start"
+      >
+        送信
+      </Button>
     </Box>
   );
 };

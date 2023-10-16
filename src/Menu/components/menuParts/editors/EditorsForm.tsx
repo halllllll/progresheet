@@ -3,7 +3,10 @@ import { Box, Button, Center, Skeleton } from '@chakra-ui/react';
 import toast from 'react-hot-toast';
 import { SetMenuCtx, MenuCtx } from '@/Menu/App';
 import EditorTable from './Table';
-import { getConfigProtectionAPI } from '@/Menu/API/configDataAPI';
+import {
+  getConfigProtectionAPI,
+  setConfigProtectionAPI,
+} from '@/Menu/API/configDataAPI';
 import { ConfigSheetError, ContextError } from '@/Menu/errors';
 import { type Editor } from '@/Menu/types';
 
@@ -48,6 +51,42 @@ const EditorsForm: FC = () => {
       });
   };
 
+  const submitEditors = async (data: Editor[]) => {
+    // promise.thenは使うなと言われたので...
+    try {
+      // TODO: いまのところsubmitはhook-formではなくただのButtonのonClickでやっているため心を込めてローディング状態を切り替えている
+      setIsLoading(true);
+      const res = await setConfigProtectionAPI(data);
+      setMenuCtx({
+        editors: res,
+        ...menuCtx,
+      });
+      setEditors(res);
+      console.warn(
+        `想定ではここでちゃんと更新されるはずなんだけど...画面に表示されない...`
+      );
+      console.warn(res);
+      toast.success('編集者情報を更新したよ！', {
+        duration: 2000,
+      });
+    } catch (err: unknown) {
+      if (err instanceof ConfigSheetError) {
+        toast.error(`設定シートのエラー！\n${err.name}\n${err.message}`);
+      } else {
+        const e = err as Error;
+        toast.error(
+          `謎のエラーが発生したよ！オーナー権限を確認してみてね！あなたには操作権限が無いかも？\n\n${e.name}\n${e.message}`,
+          {
+            duration: 8000,
+          }
+        );
+      }
+    } finally {
+      setIsLoading(false);
+      console.log('done');
+    }
+  };
+
   return (
     <Box>
       <Center>
@@ -61,9 +100,18 @@ const EditorsForm: FC = () => {
       </Center>
       <Box my={10}>
         <Skeleton height="50px" isLoaded={!isLoading} fadeDuration={1}>
-          {editors.length > 0 && (
-            <EditorTable editors={editors} myId={menuCtx.userID} />
-          )}
+          <>
+            {/** TODO: かなりひどい冗長なコードになっているのでなんとかしたい。 追加や削除のないuseFormArrayを使えたらまだマシかも知れない */}
+            {editors.length > 0 && (
+              <EditorTable
+                onSubmit={submitEditors}
+                editors={editors}
+                setEditors={setEditors}
+                myId={menuCtx.userID}
+                isLoading={isLoading}
+              />
+            )}
+          </>
         </Skeleton>
       </Box>
     </Box>

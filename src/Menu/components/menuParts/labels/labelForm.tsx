@@ -43,6 +43,7 @@ const LabelForm: FC = () => {
     name: 'labels',
     control: methods.control, // 不要？
     shouldUnregister: false,
+    // なぜかルールが効かない
     rules: {
       minLength: {
         value: 2,

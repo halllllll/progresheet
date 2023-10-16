@@ -16,7 +16,12 @@ import {
   type GASError,
   type UndefinedServerError,
 } from '../errors';
-import { type Editor, type ClassRoom, type Labels } from '../types';
+import {
+  type Editor,
+  type ClassRoom,
+  type Labels,
+  type EditorRequest,
+} from '../types';
 import { getPropertyByName, setDefaultProperty } from './utils';
 
 /**
@@ -111,7 +116,7 @@ const getConfigProtectData = (): ConfigProtectData => {
     console.log(`accounts: ${protectorAccounts.join(', ')}`);
     const editors = spreadSheetEditors.map((id): Editor => {
       return {
-        id,
+        useId: id,
         // eslint-disable-next-line no-unneeded-ternary, @typescript-eslint/prefer-includes
         editable: protectorAccounts.indexOf(id) === -1 ? false : true,
       };
@@ -159,7 +164,7 @@ const setConfigProtection = (data: string): ConfigProtectData => {
     /**
      * しゃーなしで as Editor[]
      */
-    const d = JSON.parse(data) as Editor[];
+    const d = JSON.parse(data) as EditorRequest;
     console.log(`data from front:`);
     console.log(`row string: ${data}`);
     console.log(d);
@@ -169,7 +174,9 @@ const setConfigProtection = (data: string): ConfigProtectData => {
     );
     const requestEditors = [
       ...new Set(
-        d.filter((editor) => editor.editable).map((editor) => editor.id)
+        d.editors
+          .filter((editor) => editor.editable)
+          .map((editor) => editor.useId)
       ),
     ];
     const updateEditors = requestEditors.filter((editor) =>
@@ -177,8 +184,10 @@ const setConfigProtection = (data: string): ConfigProtectData => {
     );
 
     const prot = configSheet.protect();
+    prot.setDescription('設定シート');
     prot.removeEditors(prot.getEditors());
     prot.addEditor(getId()); // 自身は例外とする（一応）
+    console.log(`ちゃんと彼らが追加される？ -> ${updateEditors.join(', ')}`);
     prot.addEditors(updateEditors);
 
     return getConfigProtectData();
