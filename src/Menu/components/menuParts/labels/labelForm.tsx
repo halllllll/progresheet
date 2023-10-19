@@ -168,6 +168,7 @@ const LabelForm: FC = () => {
             {' '}
             {/** TODO: なぜか表示されない */}
             {methods.formState.errors.root?.message ?? ' '}
+            {methods.formState.errors.labels?.message}
           </FormErrorMessage>
           <Center>
             <Button

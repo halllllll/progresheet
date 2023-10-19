@@ -1,6 +1,7 @@
 import { type FC, useState } from 'react';
-import { Box, HStack, Stack, Text } from '@chakra-ui/react';
+import { Box, HStack, Stack } from '@chakra-ui/react';
 import AmountRoller from './AmountRoller';
+import TestSheatsLaout from './Test/TestSeatsLayoutDnd';
 
 const LayoutRoot: FC = () => {
   const [height, setHeight] = useState<number>(0);
@@ -24,8 +25,8 @@ const LayoutRoot: FC = () => {
               <AmountRoller label="Width" setValue={widthHandler} />
             </HStack>
           </HStack>
-          <Text>{`width: ${width}`}</Text>
-          <Text>{`height: ${height}`}</Text>
+
+          <TestSheatsLaout height={height} width={width} />
         </Stack>
       </Box>
     </Box>
