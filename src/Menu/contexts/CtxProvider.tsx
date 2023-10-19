@@ -39,6 +39,7 @@ const CtxProvider: FC<Props> = ({ children }) => {
   useEffect(() => {
     const f = async () => {
       // TODO: タイムアウト要検証
+      // TODO: thenを使わない記法（catchは使う）
 
       await Promise.all([
         getAccessedUserInfoAPI(),
