@@ -1,4 +1,5 @@
 import { PROPERTY_DEFAULT } from '@/Const';
+import { type GASError } from '../errors';
 import { initConfig } from './service';
 
 const customMenu = (): void => {
@@ -39,4 +40,76 @@ const initMenu = (): void => {
   }
 };
 
-export { customMenu, initMenu, getPropertyByName, setDefaultProperty };
+const isSameRow = (values: string[], expected: string[]): boolean => {
+  return (
+    values.length === expected.length &&
+    values.every((ele, idx) => ele === expected[idx])
+  );
+};
+
+type RowAt = {
+  index: number;
+  error: GASError | null;
+};
+const rowAt = (target: string, row: string[]): RowAt => {
+  /**
+   * Apps Script環境はES6までしか対応してないのでArray.includesが使えない
+   */
+  const idx = row.indexOf(target);
+  if (idx === -1) {
+    Logger.log(`not found '${target}' on header`);
+
+    return {
+      index: idx,
+      error: {
+        code: 'SheetHeader',
+        message: `not found '${target}' on header`,
+      },
+    };
+  }
+
+  return {
+    index: idx,
+    error: null,
+  };
+};
+
+type ConfigSheetData = {
+  values: string[][];
+  error: GASError | null;
+};
+const getSheetValues = (
+  ss: GoogleAppsScript.Spreadsheet.Spreadsheet,
+  sheetName: string
+): ConfigSheetData => {
+  const values = ss
+    .getSheetByName(sheetName)
+    ?.getDataRange()
+    .getDisplayValues();
+  if (values === undefined) {
+    Logger.log(`sheet "${sheetName}" not found`);
+
+    return {
+      error: {
+        code: 'SheetNotFound',
+        message: `sheet "${sheetName}" not found`,
+      },
+      values: [],
+    };
+  } else {
+    return {
+      error: null,
+      values,
+    };
+  }
+};
+
+export {
+  customMenu,
+  initMenu,
+  isSameRow,
+  rowAt,
+  getPropertyByName,
+  getSheetValues,
+  setDefaultProperty,
+};

@@ -1,5 +1,7 @@
 export type ErrorCode =
   | 'Init'
+  | 'SheetNotFound'
+  | 'SheetHeader'
   | 'ConfigSheet'
   | 'Undefined'
   | 'Context'
@@ -36,6 +38,10 @@ export const errorMapper = (gasError: GASError): Error => {
       return new UpdateProtectionError(gasError.message);
     case 'Permission':
       return new PermissionError(gasError.message);
+    case 'SheetNotFound':
+      return new SheetNotFoundError(gasError.message);
+    case 'SheetHeader':
+      return new SheetHeaderError(gasError.message);
 
     default:
       return new Error('undefined code');
@@ -111,5 +117,19 @@ export class PermissionError extends Error {
   constructor(message?: string, options?: ErrorOptions) {
     super(message, options);
     this.name = 'PermissionError';
+  }
+}
+
+export class SheetNotFoundError extends Error {
+  constructor(message?: string, options?: ErrorOptions) {
+    super(message, options);
+    this.name = 'SheetNotFoundError';
+  }
+}
+
+export class SheetHeaderError extends Error {
+  constructor(message?: string, options?: ErrorOptions) {
+    super(message, options);
+    this.name = 'SheetHeaderError';
   }
 }

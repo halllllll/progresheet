@@ -5,6 +5,8 @@ const ss = SpreadsheetApp.getActive();
 /**
  * 設定シート
  * デフォルト値など
+ * ラベル
+ * 座席表リスト
  */
 const CONFIG_SHEET = '設定';
 const CONFIG_LABEL = 'Labels';
@@ -27,8 +29,8 @@ const CONFIG_DEFAULT = [CONFIG_HEADER, ...CONFIG_DEFAULT_VALUES];
  * PropertyServceのプロパティ名とか値
  */
 const PROPERTY_DEFAULT: Property = {
-  PROPERTY_HEIGHT: '1',
-  PROPERTY_WIDTH: '1',
+  PROPERTY_HEIGHT: '5',
+  PROPERTY_WIDTH: '5',
 };
 
 /**

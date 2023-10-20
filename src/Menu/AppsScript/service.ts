@@ -22,7 +22,7 @@ import {
   type Labels,
   type EditorRequest,
 } from '../types';
-import { getPropertyByName, setDefaultProperty } from './utils';
+import * as Utils from './utils';
 
 /**
  * just return user acount id
@@ -49,6 +49,7 @@ const getSpreadSheetName = (): string => {
   return sheetname;
 };
 
+// TODO: 不要かも
 /**
  * protection check for `CONFIG_SHEET`
  * @param {string} id - target account id
@@ -341,7 +342,7 @@ const initConfig = (options: InitOptions = {}): InitResponse => {
     /**
      * delete and set default all properties
      */
-    setDefaultProperty();
+    Utils.setDefaultProperty();
 
     return { success: true };
   } catch (e: unknown) {
@@ -360,83 +361,101 @@ const initConfig = (options: InitOptions = {}): InitResponse => {
   }
 };
 
+/** -*-*-*-*-*-*-*-*-*-*-*-*
+ *     ラベル取得・設定
+ -*-*-*-*-*-*-*-*-*-*-*-*-*-**/
+
 /**
- * ラベル取得・設定
+ * めんどくさいので処理をまとめたやつ
  */
+type LabelInfo =
+  | {
+      error: GASError;
+    }
+  | {
+      error: null;
+      labelIdx: number;
+      colorIdx: number;
+    };
+/**
+ * めんどくさいので処理をまとめたが、逆にわかりにくい可能性ある
+ *
+ * @param {string[]} header
+ * @returns {LabelInfo}
+ */
+const labelInfo = (header: string[]): LabelInfo => {
+  // header check
+  if (!Utils.isSameRow(header, CONFIG_HEADER)) {
+    console.log(`header: ${CONFIG_HEADER.join(', ')}`);
+    console.log(`value: ${header.join(', ')}`);
+    Logger.log('invalid header config sheet');
+
+    return {
+      error: {
+        code: 'SheetHeader',
+        message: `invalid header config sheet.\n
+              expected header is [${CONFIG_HEADER.join(', ')}](length: ${
+          CONFIG_HEADER.length
+        }) but current sheet has [${header.join(', ')}] (length: ${
+          header.length
+        }).`,
+      },
+    };
+  }
+
+  const labelRes = Utils.rowAt(CONFIG_LABEL, header);
+  if (labelRes.error !== null) {
+    return { error: labelRes.error };
+  }
+  const colorRes = Utils.rowAt(CONFIG_COLOR, header);
+  if (colorRes.error !== null) {
+    return { error: colorRes.error };
+  }
+
+  return {
+    error: null,
+    colorIdx: colorRes.index,
+    labelIdx: labelRes.index,
+  };
+};
+
 export type LabelResponse =
   | { success: true; body: Labels }
   | { success: false; error: GASError };
 /**
- *
+ * return label values
  * @returns {LabelResponse}
  */
 const getLabelConfig = (): LabelResponse => {
   try {
-    const values = ss
-      .getSheetByName(CONFIG_SHEET)
-      ?.getDataRange()
-      .getDisplayValues();
-    if (values === undefined) {
-      Logger.log('config sheet not found');
+    // sheet check and get values
+    const sheetValue = Utils.getSheetValues(ss, CONFIG_SHEET);
 
+    if (sheetValue.error !== null) {
       return {
         success: false,
-        error: {
-          code: 'ConfigSheet',
-          message: 'config sheet not found',
-        },
+        error: sheetValue.error,
       };
     }
-    for (let i = 0; i < values[0].length; i++) {
-      if (values[0][i] !== CONFIG_HEADER[i]) {
-        console.log(`header: ${CONFIG_HEADER.join(', ')}`);
-        console.log(`value: ${values[0].join(', ')}`);
-        Logger.log('invalid header config sheet');
 
-        return {
-          success: false,
-          error: {
-            code: 'ConfigSheet',
-            message: `invalid header config sheet.\n
-            expected header is [${CONFIG_HEADER.join(', ')}](length: ${
-              CONFIG_HEADER.length
-            }) but current sheet has [${values[0].join(', ')}] (length: ${
-              values[0].length
-            }).`,
-          },
-        };
-      }
-    }
-    const labelIdx = values[0].indexOf(CONFIG_LABEL);
-    if (labelIdx === -1) {
-      Logger.log(`not found '${CONFIG_LABEL}' on header`);
-
+    // いろいろ混ぜたやつ
+    const labelInfoValue = labelInfo(sheetValue.values[0]);
+    if (labelInfoValue.error !== null) {
       return {
         success: false,
-        error: {
-          code: 'ConfigSheet',
-          message: `not found '${CONFIG_LABEL}' on header`,
-        },
-      };
-    }
-    const colorIdx = values[0].indexOf(CONFIG_COLOR);
-    if (colorIdx === -1) {
-      Logger.log(`not found '${CONFIG_COLOR}' on header`);
-
-      return {
-        success: false,
-        error: {
-          code: 'ConfigSheet',
-          message: `not found '${CONFIG_COLOR}' on header`,
-        },
+        error: labelInfoValue.error,
       };
     }
 
     return {
       success: true,
       body: {
-        labels: values.map((d) => d[labelIdx]).slice(1),
-        colors: values.map((d) => d[colorIdx]).slice(1),
+        labels: sheetValue.values
+          .map((d) => d[labelInfoValue.labelIdx])
+          .slice(1),
+        colors: sheetValue.values
+          .map((d) => d[labelInfoValue.colorIdx])
+          .slice(1),
       },
     };
   } catch (e: unknown) {
@@ -539,8 +558,8 @@ export type ClassRoomResponse =
  */
 const getClassRoomConfig = (): ClassRoomResponse => {
   try {
-    const width = getPropertyByName(PROPERTY_WIDTH);
-    const height = getPropertyByName(PROPERTY_HEIGHT);
+    const width = Utils.getPropertyByName(PROPERTY_WIDTH);
+    const height = Utils.getPropertyByName(PROPERTY_HEIGHT);
 
     if (width === null || height === null) {
       Logger.log('property not found');
