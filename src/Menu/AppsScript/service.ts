@@ -1,8 +1,8 @@
 import {
   ss,
   CONFIG_SHEET,
-  CONFIG_DEFAULT,
-  CONFIG_HEADER,
+  CONFIG_LABELS_DEFAULT,
+  CONFIG_LABELS_HEADER,
   CONFIG_DEFAULT_COLUMN_OFFSET,
   CONFIG_DEFAULT_ROW_OFFSET,
   CONFIG_LABEL,
@@ -277,9 +277,7 @@ export type InitOptions = {
  * @returns {InitResponse}
  */
 const initConfig = (options: InitOptions = {}): InitResponse => {
-  console.log(`フロントからなんか届いたかな？`);
-  console.log(options);
-  console.log(JSON.stringify(options));
+  console.log(`options: ${JSON.stringify(options)}`);
 
   const lock = LockService.getScriptLock();
   try {
@@ -306,16 +304,16 @@ const initConfig = (options: InitOptions = {}): InitResponse => {
     const range = configSheet.getRange(
       CONFIG_DEFAULT_ROW_OFFSET,
       CONFIG_DEFAULT_COLUMN_OFFSET,
-      CONFIG_DEFAULT.length,
-      CONFIG_DEFAULT[0].length
+      CONFIG_LABELS_DEFAULT.length,
+      CONFIG_LABELS_DEFAULT[0].length
     );
-    range.setValues(CONFIG_DEFAULT);
+    range.setValues(CONFIG_LABELS_DEFAULT);
 
     /**
      * BG Color (based column B)
      * (1, 1) -> (header回避1->2へ移動, A->Bへ移動)
      */
-    const colorRange = range.offset(1, 1, CONFIG_DEFAULT.length - 1, 1);
+    const colorRange = range.offset(1, 1, CONFIG_LABELS_DEFAULT.length - 1, 1);
     console.log('values:\n', colorRange.getValues());
     setBG(colorRange);
 
@@ -385,8 +383,8 @@ type LabelInfo =
  */
 const labelInfo = (header: string[]): LabelInfo => {
   // header check
-  if (!Utils.isSameRow(header, CONFIG_HEADER)) {
-    console.log(`header: ${CONFIG_HEADER.join(', ')}`);
+  if (!Utils.isSameRow(header, CONFIG_LABELS_HEADER)) {
+    console.log(`header: ${CONFIG_LABELS_HEADER.join(', ')}`);
     console.log(`value: ${header.join(', ')}`);
     Logger.log('invalid header config sheet');
 
@@ -394,8 +392,8 @@ const labelInfo = (header: string[]): LabelInfo => {
       error: {
         code: 'SheetHeader',
         message: `invalid header config sheet.\n
-              expected header is [${CONFIG_HEADER.join(', ')}](length: ${
-          CONFIG_HEADER.length
+              expected header is [${CONFIG_LABELS_HEADER.join(', ')}](length: ${
+          CONFIG_LABELS_HEADER.length
         }) but current sheet has [${header.join(', ')}] (length: ${
           header.length
         }).`,
@@ -505,7 +503,10 @@ const setLabelConfig = (data: string): SetLabelResponse => {
     console.log(`data from front:`);
     console.log(`row string: ${data}`);
     console.log(d);
-    const values = [CONFIG_HEADER, ...d.labels.map((v) => [v.value, v.color])];
+    const values = [
+      CONFIG_LABELS_HEADER,
+      ...d.labels.map((v) => [v.value, v.color]),
+    ];
     // 今の設定を削除
     let range = targetSheet.getDataRange();
     range.clear();
