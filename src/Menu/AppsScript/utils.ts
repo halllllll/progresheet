@@ -9,12 +9,20 @@ const customMenu = (): void => {
   SpreadsheetApp.getUi().showModalDialog(html, 'menu');
 };
 
+/**
+ * return a property by propertyName
+ * @param {string} propertyName
+ * @returns {string | null}
+ */
 const getPropertyByName = (propertyName: string): string | null => {
   const properties = PropertiesService.getScriptProperties();
 
   return properties.getProperty(propertyName);
 };
 
+/**
+ * reset and init Properties values
+ */
 const setDefaultProperty = (): void => {
   const properties = PropertiesService.getScriptProperties();
   properties.deleteAllProperties();
@@ -40,6 +48,12 @@ const initMenu = (): void => {
   }
 };
 
+/**
+ * compare arg arrays has same element
+ * @param {string[]} values
+ * @param {string[]} expected
+ * @returns {boolean}
+ */
 const isSameRow = (values: string[], expected: string[]): boolean => {
   return (
     values.length === expected.length &&
@@ -51,6 +65,12 @@ type RowAt = {
   index: number;
   error: GASError | null;
 };
+/**
+ * find index the target of row
+ * @param target
+ * @param row
+ * @returns
+ */
 const rowAt = (target: string, row: string[]): RowAt => {
   /**
    * Apps Script環境はES6までしか対応してないのでArray.includesが使えない
@@ -78,6 +98,13 @@ type ConfigSheetData = {
   values: string[][];
   error: GASError | null;
 };
+/**
+ * return the all values at sheet
+ * if not found, return error
+ * @param ss
+ * @param sheetName
+ * @returns
+ */
 const getSheetValues = (
   ss: GoogleAppsScript.Spreadsheet.Spreadsheet,
   sheetName: string
