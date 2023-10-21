@@ -7,7 +7,11 @@ import {
   getAccessedUserInfoAPI,
 } from '../API/userAndSheetAPI';
 import { MenuCtx, SetMenuCtx } from '../App';
-import { ConfigSheetError, UndefinedServerError } from '../errors';
+import {
+  ConfigError,
+  SheetNotFoundError,
+  UndefinedServerError,
+} from '../errors';
 import { type Editor, type Labels } from '../types';
 
 type hasError =
@@ -55,7 +59,7 @@ const CtxProvider: FC<Props> = ({ children }) => {
           });
         })
         .catch((err: unknown) => {
-          if (err instanceof ConfigSheetError) {
+          if (err instanceof ConfigError) {
             setIsError({
               status: 'failed',
               errName: err.name,
@@ -67,12 +71,19 @@ const CtxProvider: FC<Props> = ({ children }) => {
               errName: err.name,
               errMessage: err.message,
             });
+          } else if (err instanceof SheetNotFoundError) {
+            setIsError({
+              status: 'failed',
+              errName: err.name,
+              errMessage: err.message,
+            });
           } else {
             // TODO: まじめ
+            const e = err as Error;
             setIsError({
               status: 'failed',
               errName: '不明なエラー',
-              errMessage: 'よくわからないエラーです',
+              errMessage: `${e.name} \n ${e.message}`,
             });
           }
         })
@@ -110,7 +121,9 @@ const CtxProvider: FC<Props> = ({ children }) => {
             <Text as="b" fontSize="18px" color={'tomato'}>
               {isError.errName}
             </Text>
-            <Code>{isError.errMessage}</Code>
+            <Box>
+              <Code>{isError.errMessage}</Code>
+            </Box>
           </Box>
         ) : (
           children
