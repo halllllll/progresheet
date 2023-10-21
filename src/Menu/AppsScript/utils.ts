@@ -1,4 +1,4 @@
-import { PROPERTY_DEFAULT } from '@/Const';
+import { PROPERTY_DEFAULT } from '@/Const/GAS';
 import { type GASError } from '../errors';
 import { initConfig } from './service';
 

@@ -1,10 +1,7 @@
-import {
-  ss,
-  ENV_LABEL,
-  PROPERTY_WIDTH,
-  PROPERTY_HEIGHT,
-  CONFIG_SHEET,
-} from '@/Const';
+import { PROPERTY_DEFAULT, ss } from '@/Const/GAS';
+import { ENV_LABEL } from '@/Const/Label';
+import { CONFIG_SHEET_NAMES } from '@/Const/SheetEnv';
+
 import { type LabelData } from '../components/menuParts/labels/labels';
 import {
   ConfigError,
@@ -92,13 +89,13 @@ const getConfigProtectData = (): ConfigProtectData => {
   try {
     // TODO: config_sheetは配列なのであとでちゃんとやる とりあえず従来の設定シートのみ
     /* exist check for CONFIG_SHEET */
-    const configSheet = getTargetSheet(CONFIG_SHEET[0]);
+    const configSheet = getTargetSheet(CONFIG_SHEET_NAMES[0]);
     if (configSheet === null) {
       return {
         success: false,
         error: {
           code: 'Config',
-          message: `${CONFIG_SHEET[0]} not found`,
+          message: `${CONFIG_SHEET_NAMES[0]} not found`,
         },
       };
     }
@@ -111,7 +108,7 @@ const getConfigProtectData = (): ConfigProtectData => {
         success: false,
         error: {
           code: 'Permission',
-          message: `you've NO permission for editting "${CONFIG_SHEET[0]}", and getting data`,
+          message: `you've NO permission for editting "${CONFIG_SHEET_NAMES[0]}", and getting data`,
         },
       };
     }
@@ -153,13 +150,13 @@ const getConfigProtectData = (): ConfigProtectData => {
 const setConfigProtection = (data: string): ConfigProtectData => {
   try {
     // TODO CONFIG_SHEETは複数の設定シート全部 とりあえず今は最初だけやる
-    const configSheet = getTargetSheet(CONFIG_SHEET[0]);
+    const configSheet = getTargetSheet(CONFIG_SHEET_NAMES[0]);
     if (configSheet === null) {
       return {
         success: false,
         error: {
           code: 'Config',
-          message: `${CONFIG_SHEET[0]} not found`,
+          message: `${CONFIG_SHEET_NAMES[0]} not found`,
         },
       };
     }
@@ -282,7 +279,7 @@ const initConfig = (options: InitOptions = {}): InitResponse => {
   try {
     lock.waitLock(10 * 1000);
     // TODO: CONFIG_SHEET工事中 とりあえず最初のシートだけ
-    const target = getTargetSheet(CONFIG_SHEET[0]);
+    const target = getTargetSheet(CONFIG_SHEET_NAMES[0]);
     let configSheet: GoogleAppsScript.Spreadsheet.Sheet | null = null;
 
     /**
@@ -290,7 +287,7 @@ const initConfig = (options: InitOptions = {}): InitResponse => {
      */
     if (target === null) {
       configSheet = ss.insertSheet(0);
-      configSheet.setName(CONFIG_SHEET[0]); // TODO: とりあえず最初のシートだけ
+      configSheet.setName(CONFIG_SHEET_NAMES[0]); // TODO: とりあえず最初のシートだけ
     } else {
       configSheet = target;
       configSheet.clear().clearNotes();
@@ -569,8 +566,8 @@ export type ClassRoomResponse =
  */
 const getClassRoomConfig = (): ClassRoomResponse => {
   try {
-    const width = Utils.getPropertyByName(PROPERTY_WIDTH);
-    const height = Utils.getPropertyByName(PROPERTY_HEIGHT);
+    const width = Utils.getPropertyByName(PROPERTY_DEFAULT.CLASSROOM_WIDTH);
+    const height = Utils.getPropertyByName(PROPERTY_DEFAULT.CLASSROOM_HEIGHT);
 
     if (width === null || height === null) {
       Logger.log('property not found');
