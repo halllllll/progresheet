@@ -63,7 +63,7 @@ const InitSheet: FC = () => {
             <ListIcon as={FiCheckCircle} color="green.500" />
             <ListItem>
               {
-                '初期化後は、基本的に「ラベル設定」「クラス設定」を済ませてから使用する想定です。'
+                '初期化後は、基本的に「ラベル設定」「クラス作成」を済ませてから使用する想定です。'
               }
             </ListItem>
           </HStack>

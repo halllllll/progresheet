@@ -26,7 +26,7 @@ export const SideMenu: FC = () => {
     {
       link: `class_data`,
       icon: FaSchool,
-      name: 'クラス設定',
+      name: 'クラス作成',
     },
     {
       link: `info`,
