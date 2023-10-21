@@ -1,18 +1,13 @@
 import {
   ss,
-  CONFIG_SHEET,
-  CONFIG_LABELS_DEFAULT,
-  CONFIG_LABELS_HEADER,
-  CONFIG_DEFAULT_COLUMN_OFFSET,
-  CONFIG_DEFAULT_ROW_OFFSET,
-  CONFIG_LABEL,
-  CONFIG_COLOR,
+  ENV_LABEL,
   PROPERTY_WIDTH,
   PROPERTY_HEIGHT,
+  CONFIG_SHEET,
 } from '@/Const';
 import { type LabelData } from '../components/menuParts/labels/labels';
 import {
-  ConfigSheetError,
+  ConfigError,
   type GASError,
   type UndefinedServerError,
 } from '../errors';
@@ -57,9 +52,9 @@ const getSpreadSheetName = (): string => {
  */
 const _isAllowedConfigSheet = (id: string): boolean => {
   try {
-    const configSheet = getTargetSheet(CONFIG_SHEET);
+    const configSheet = getTargetSheet(ENV_LABEL.SHEET_NAME);
     if (configSheet === null)
-      throw new ConfigSheetError(`sheet ${CONFIG_SHEET} is not found`);
+      throw new ConfigError(`sheet ${ENV_LABEL.SHEET_NAME} is not found`);
     const prot = configSheet.protect();
     const editors = prot.getEditors();
 
@@ -95,14 +90,15 @@ export type ConfigProtectData =
  */
 const getConfigProtectData = (): ConfigProtectData => {
   try {
+    // TODO: config_sheetは配列なのであとでちゃんとやる とりあえず従来の設定シートのみ
     /* exist check for CONFIG_SHEET */
-    const configSheet = getTargetSheet(CONFIG_SHEET);
+    const configSheet = getTargetSheet(CONFIG_SHEET[0]);
     if (configSheet === null) {
       return {
         success: false,
         error: {
-          code: 'ConfigSheet',
-          message: `${CONFIG_SHEET} not found`,
+          code: 'Config',
+          message: `${CONFIG_SHEET[0]} not found`,
         },
       };
     }
@@ -115,7 +111,7 @@ const getConfigProtectData = (): ConfigProtectData => {
         success: false,
         error: {
           code: 'Permission',
-          message: `you've NO permission for editting "${CONFIG_SHEET}", and getting data`,
+          message: `you've NO permission for editting "${CONFIG_SHEET[0]}", and getting data`,
         },
       };
     }
@@ -156,13 +152,14 @@ const getConfigProtectData = (): ConfigProtectData => {
  */
 const setConfigProtection = (data: string): ConfigProtectData => {
   try {
-    const configSheet = getTargetSheet(CONFIG_SHEET);
+    // TODO CONFIG_SHEETは複数の設定シート全部 とりあえず今は最初だけやる
+    const configSheet = getTargetSheet(CONFIG_SHEET[0]);
     if (configSheet === null) {
       return {
         success: false,
         error: {
-          code: 'ConfigSheet',
-          message: `${CONFIG_SHEET} not found`,
+          code: 'Config',
+          message: `${CONFIG_SHEET[0]} not found`,
         },
       };
     }
@@ -196,7 +193,9 @@ const setConfigProtection = (data: string): ConfigProtectData => {
     prot.setDescription('設定シート');
     prot.removeEditors(prot.getEditors());
     prot.addEditor(getId()); // 自身は例外とする（一応）
-    console.log(`ちゃんと彼らが追加される？ -> ${updateEditors.join(', ')}`);
+    console.log(
+      `add editors to protected sheet -> ${updateEditors.join(', ')}`
+    );
     prot.addEditors(updateEditors);
 
     return getConfigProtectData();
@@ -282,7 +281,8 @@ const initConfig = (options: InitOptions = {}): InitResponse => {
   const lock = LockService.getScriptLock();
   try {
     lock.waitLock(10 * 1000);
-    const target = getTargetSheet(CONFIG_SHEET);
+    // TODO: CONFIG_SHEET工事中 とりあえず最初のシートだけ
+    const target = getTargetSheet(CONFIG_SHEET[0]);
     let configSheet: GoogleAppsScript.Spreadsheet.Sheet | null = null;
 
     /**
@@ -290,7 +290,7 @@ const initConfig = (options: InitOptions = {}): InitResponse => {
      */
     if (target === null) {
       configSheet = ss.insertSheet(0);
-      configSheet.setName(CONFIG_SHEET);
+      configSheet.setName(CONFIG_SHEET[0]); // TODO: とりあえず最初のシートだけ
     } else {
       configSheet = target;
       configSheet.clear().clearNotes();
@@ -302,18 +302,26 @@ const initConfig = (options: InitOptions = {}): InitResponse => {
     configSheet.setFrozenRows(1);
 
     const range = configSheet.getRange(
-      CONFIG_DEFAULT_ROW_OFFSET,
-      CONFIG_DEFAULT_COLUMN_OFFSET,
-      CONFIG_LABELS_DEFAULT.length,
-      CONFIG_LABELS_DEFAULT[0].length
+      ENV_LABEL.OFFSET_ROW,
+      ENV_LABEL.OFFSET_COL,
+      ENV_LABEL.DEFAULT_VALUES.length + 1, // body + header(1)
+      ENV_LABEL.HEADER.size
     );
-    range.setValues(CONFIG_LABELS_DEFAULT);
+    range.setValues([
+      Array.from(ENV_LABEL.HEADER.values()),
+      ...ENV_LABEL.DEFAULT_VALUES,
+    ]);
 
     /**
      * BG Color (based column B)
      * (1, 1) -> (header回避1->2へ移動, A->Bへ移動)
      */
-    const colorRange = range.offset(1, 1, CONFIG_LABELS_DEFAULT.length - 1, 1);
+    const colorRange = range.offset(
+      1,
+      1,
+      ENV_LABEL.DEFAULT_VALUES.length, // default valueの数ぶんの高さ
+      1
+    );
     console.log('values:\n', colorRange.getValues());
     setBG(colorRange);
 
@@ -383,8 +391,8 @@ type LabelInfo =
  */
 const labelInfo = (header: string[]): LabelInfo => {
   // header check
-  if (!Utils.isSameRow(header, CONFIG_LABELS_HEADER)) {
-    console.log(`header: ${CONFIG_LABELS_HEADER.join(', ')}`);
+  if (!Utils.isSameRow(header, Array.from(ENV_LABEL.HEADER.values()))) {
+    console.log(`header: ${Array.from(ENV_LABEL.HEADER.values()).join(', ')}`);
     console.log(`value: ${header.join(', ')}`);
     Logger.log('invalid header config sheet');
 
@@ -392,8 +400,10 @@ const labelInfo = (header: string[]): LabelInfo => {
       error: {
         code: 'SheetHeader',
         message: `invalid header config sheet.\n
-              expected header is [${CONFIG_LABELS_HEADER.join(', ')}](length: ${
-          CONFIG_LABELS_HEADER.length
+              expected header is [${Array.from(ENV_LABEL.HEADER.values()).join(
+                ', '
+              )}}](length: ${
+          Array.from(ENV_LABEL.HEADER.values()).length
         }) but current sheet has [${header.join(', ')}] (length: ${
           header.length
         }).`,
@@ -401,11 +411,11 @@ const labelInfo = (header: string[]): LabelInfo => {
     };
   }
 
-  const labelRes = Utils.rowAt(CONFIG_LABEL, header);
+  const labelRes = Utils.rowAt(ENV_LABEL.HEADER.get(0) as string, header);
   if (labelRes.error !== null) {
     return { error: labelRes.error };
   }
-  const colorRes = Utils.rowAt(CONFIG_COLOR, header);
+  const colorRes = Utils.rowAt(ENV_LABEL.HEADER.get(1) as string, header);
   if (colorRes.error !== null) {
     return { error: colorRes.error };
   }
@@ -427,7 +437,7 @@ export type LabelResponse =
 const getLabelConfig = (): LabelResponse => {
   try {
     // sheet check and get values
-    const sheetValue = Utils.getSheetValues(ss, CONFIG_SHEET);
+    const sheetValue = Utils.getSheetValues(ss, ENV_LABEL.SHEET_NAME);
 
     if (sheetValue.error !== null) {
       return {
@@ -488,13 +498,13 @@ const setLabelConfig = (data: string): SetLabelResponse => {
   const lock = LockService.getScriptLock();
   try {
     lock.waitLock(1 * 3000);
-    const targetSheet = getTargetSheet(CONFIG_SHEET);
+    const targetSheet = getTargetSheet(ENV_LABEL.SHEET_NAME);
     if (targetSheet === null) {
       return {
         success: false,
         error: {
-          code: 'ConfigSheet',
-          message: `sheet ${CONFIG_SHEET} is not found`,
+          code: 'Config',
+          message: `sheet ${ENV_LABEL.SHEET_NAME} is not found`,
         },
       };
     }
@@ -504,7 +514,7 @@ const setLabelConfig = (data: string): SetLabelResponse => {
     console.log(`row string: ${data}`);
     console.log(d);
     const values = [
-      CONFIG_LABELS_HEADER,
+      Array.from(ENV_LABEL.HEADER.values()),
       ...d.labels.map((v) => [v.value, v.color]),
     ];
     // 今の設定を削除
@@ -512,8 +522,8 @@ const setLabelConfig = (data: string): SetLabelResponse => {
     range.clear();
 
     range = targetSheet.getRange(
-      CONFIG_DEFAULT_ROW_OFFSET,
-      CONFIG_DEFAULT_COLUMN_OFFSET,
+      ENV_LABEL.OFFSET_ROW,
+      ENV_LABEL.OFFSET_COL,
       values.length,
       values[0].length
     );

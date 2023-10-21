@@ -2,7 +2,7 @@ export type ErrorCode =
   | 'Init'
   | 'SheetNotFound'
   | 'SheetHeader'
-  | 'ConfigSheet'
+  | 'Config'
   | 'Undefined'
   | 'Context'
   | 'Property'
@@ -22,8 +22,8 @@ interface ErrorOptions {
 
 export const errorMapper = (gasError: GASError): Error => {
   switch (gasError.code) {
-    case 'ConfigSheet':
-      return new ConfigSheetError(gasError.message);
+    case 'Config':
+      return new ConfigError(gasError.message);
     case 'Context':
       return new ContextError(gasError.message);
     case 'Init':
@@ -71,10 +71,10 @@ export class InitError extends Error {
   }
 }
 
-export class ConfigSheetError extends Error {
+export class ConfigError extends Error {
   constructor(message?: string, options?: ErrorOptions) {
     super(message, options);
-    this.name = 'ConfigSheetError';
+    this.name = 'ConfigError';
   }
 }
 
