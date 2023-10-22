@@ -1,12 +1,13 @@
 import { PROPERTY_DEFAULT, ss } from '@/Const/GAS';
-import { ENV_LABEL } from '@/Const/Label';
+import { ENV_LABEL, LABEL_SHEET_NAME } from '@/Const/Label';
 import { CONFIG_SHEET_NAMES } from '@/Const/SheetEnv';
 
 import { type LabelData } from '../components/menuParts/labels/labels';
 import {
   ConfigError,
-  type GASError,
   type UndefinedServerError,
+  type GASError,
+  InitError,
 } from '../errors';
 import {
   type Editor,
@@ -15,6 +16,7 @@ import {
   type EditorRequest,
 } from '../types';
 import * as Utils from './utils';
+import { getTargetSheet } from './utils';
 
 /**
  * just return user acount id
@@ -252,44 +254,32 @@ const setBG = (range: GoogleAppsScript.Spreadsheet.Range): void => {
 };
 
 /**
- * find a sheet named sheetName
- * @param {string} sheetName
- * @returns {GoogleAppsScript.Spreadsheet.Sheet}
+ * init LabelSheet, if not exist, create with default value. if exist,  clear all value and fill default value.
+ *
+ * @returns {{error: GASError} | {error: null, sheet: GoogleAppsScript.Spreadsheet.Sheet} }
  */
-const getTargetSheet = (
-  sheetName: string
-): GoogleAppsScript.Spreadsheet.Sheet | null => {
-  const sheets = ss.getSheets();
-  const targets = sheets.filter((s) => s.getSheetName() === sheetName);
-
-  return targets.length === 0 ? null : targets[0];
-};
-
-export type InitOptions = {
-  withEditors?: boolean;
-};
-/**
- * initialize sheet. set default values for `CONFIG_SHEET`
- * @returns {InitResponse}
- */
-const initConfig = (options: InitOptions = {}): InitResponse => {
-  console.log(`options: ${JSON.stringify(options)}`);
-
+const initLabelSheet = ():
+  | {
+      error: GASError;
+    }
+  | {
+      error: null;
+      sheet: GoogleAppsScript.Spreadsheet.Sheet;
+    } => {
   const lock = LockService.getScriptLock();
+  lock.waitLock(10 * 1000);
   try {
-    lock.waitLock(10 * 1000);
-    // TODO: CONFIG_SHEET工事中 とりあえず最初のシートだけ
-    const target = getTargetSheet(CONFIG_SHEET_NAMES[0]);
+    const targetSheet = getTargetSheet(LABEL_SHEET_NAME);
     let configSheet: GoogleAppsScript.Spreadsheet.Sheet | null = null;
 
     /**
      * reset spreadsheet sequence
      */
-    if (target === null) {
+    if (targetSheet === null) {
       configSheet = ss.insertSheet(0);
-      configSheet.setName(CONFIG_SHEET_NAMES[0]); // TODO: とりあえず最初のシートだけ
+      configSheet.setName(LABEL_SHEET_NAME);
     } else {
-      configSheet = target;
+      configSheet = targetSheet;
       configSheet.clear().clearNotes();
     }
 
@@ -301,7 +291,7 @@ const initConfig = (options: InitOptions = {}): InitResponse => {
     const range = configSheet.getRange(
       ENV_LABEL.OFFSET_ROW,
       ENV_LABEL.OFFSET_COL,
-      ENV_LABEL.DEFAULT_VALUES.length + 1, // body + header(1)
+      ENV_LABEL.DEFAULT_VALUES.length + 1, // body + header(1 row)
       ENV_LABEL.HEADER.size
     );
     range.setValues([
@@ -322,18 +312,59 @@ const initConfig = (options: InitOptions = {}): InitResponse => {
     console.log('values:\n', colorRange.getValues());
     setBG(colorRange);
 
+    return { sheet: configSheet, error: null };
+  } catch (e: unknown) {
+    Logger.log(e);
+    const err = e as Error;
+
+    return {
+      error: {
+        code: 'Undefined',
+        message: `[${err.name}] - ${err.message}`,
+        options: {
+          cause: new InitError(),
+          details: 'initLabelSheet',
+        },
+      },
+    };
+  } finally {
+    lock.releaseLock();
+  }
+};
+
+export type InitOptions = {
+  withEditors?: boolean;
+};
+/**
+ * initialize sheet. set default values for `CONFIG_SHEET`
+ * @returns {InitResponse}
+ */
+const initConfig = async (options: InitOptions = {}): Promise<InitResponse> => {
+  console.log(`options: ${JSON.stringify(options)}`);
+
+  // まずラベル設定シートだけ考える あとでそれぞれのInitSheetに対してPromiseしてPromise.allする予定
+  const [ret] = await Promise.all([initLabelSheet()]);
+  try {
+    if (ret.error) {
+      return {
+        success: false,
+        error: ret.error,
+      };
+    }
+
+    // ほんとは設定シートすべてに対してやる
     /**
-     * （取得した時点での）設定シート以外全部削除
+     * （取得した時点での）設定シート[以外]全部削除
      */
     const sheets = ss.getSheets();
     for (const sheet of sheets) {
-      if (sheet.getName() !== configSheet.getName()) ss.deleteSheet(sheet);
+      if (sheet.getName() !== ret.sheet.getName()) ss.deleteSheet(sheet);
     }
 
     /**
      * sheets protection sequence
      */
-    const prot = configSheet.protect();
+    const prot = ret.sheet.protect();
     prot.setDescription('設定シート');
     prot.removeEditors(prot.getEditors());
     if (options.withEditors === true) {
@@ -359,14 +390,15 @@ const initConfig = (options: InitOptions = {}): InitResponse => {
         message: `[${err.name}] - ${err.message}`,
       },
     };
-  } finally {
-    lock.releaseLock();
   }
 };
 
-/** -*-*-*-*-*-*-*-*-*-*-*-*
- *     ラベル取得・設定
- -*-*-*-*-*-*-*-*-*-*-*-*-*-**/
+/** -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+ *
+ * ラベル取得・設定
+ *
+ * *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+ */
 
 /**
  * めんどくさいので処理をまとめたやつ

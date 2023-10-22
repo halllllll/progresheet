@@ -1,4 +1,4 @@
-import { PROPERTY_DEFAULT } from '@/Const/GAS';
+import { PROPERTY_DEFAULT, ss } from '@/Const/GAS';
 import { type GASError } from '../errors';
 import { initConfig } from './service';
 
@@ -29,7 +29,8 @@ const setDefaultProperty = (): void => {
   properties.setProperties(PROPERTY_DEFAULT);
 };
 
-const initMenu = (): void => {
+// メニューにつけるやつ、Promiseでも大丈夫なんか？エラーは起きてないけど
+const initMenu = async (): Promise<void> => {
   const ui = SpreadsheetApp.getUi();
   let btn = ui.alert('初期化します', ui.ButtonSet.OK_CANCEL);
   if (btn === ui.Button.CANCEL) return;
@@ -38,7 +39,7 @@ const initMenu = (): void => {
     ui.ButtonSet.OK_CANCEL
   );
   if (btn === ui.Button.CANCEL) return;
-  const res = initConfig();
+  const res = await initConfig();
   if (res.success) {
     ui.alert('初期化しました');
   } else {
@@ -94,6 +95,21 @@ const rowAt = (target: string, row: string[]): RowAt => {
   };
 };
 
+/**
+ * find a sheet named sheetName
+ * @param {string} sheetName
+ * @returns {GoogleAppsScript.Spreadsheet.Sheet}
+ */
+
+const getTargetSheet = (
+  sheetName: string
+): GoogleAppsScript.Spreadsheet.Sheet | null => {
+  const sheets = ss.getSheets();
+  const targets = sheets.filter((s) => s.getSheetName() === sheetName);
+
+  return targets.length === 0 ? null : targets[0];
+};
+
 type ConfigSheetData = {
   values: string[][];
   error: GASError | null;
@@ -101,7 +117,6 @@ type ConfigSheetData = {
 /**
  * return the all values at sheet
  * if not found, return error
- * @param ss
  * @param sheetName
  * @returns
  */
@@ -109,11 +124,9 @@ const getSheetValues = (
   ss: GoogleAppsScript.Spreadsheet.Spreadsheet,
   sheetName: string
 ): ConfigSheetData => {
-  const values = ss
-    .getSheetByName(sheetName)
-    ?.getDataRange()
-    .getDisplayValues();
-  if (values === undefined) {
+  // check valid sheet name
+  const targetSheet = getTargetSheet(sheetName);
+  if (targetSheet === null) {
     Logger.log(`sheet "${sheetName}" not found`);
 
     return {
@@ -123,12 +136,13 @@ const getSheetValues = (
       },
       values: [],
     };
-  } else {
-    return {
-      error: null,
-      values,
-    };
   }
+  const values = targetSheet.getDataRange().getDisplayValues();
+
+  return {
+    error: null,
+    values,
+  };
 };
 
 export {
@@ -138,5 +152,6 @@ export {
   rowAt,
   getPropertyByName,
   getSheetValues,
+  getTargetSheet,
   setDefaultProperty,
 };

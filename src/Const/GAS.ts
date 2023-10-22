@@ -9,7 +9,6 @@ const ss = SpreadsheetApp.getActive();
  *
  * *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
  */
-
 const PROPERTY_DEFAULT: Record<string, string> = {
   CLASSROOM_HEIGHT: '5',
   CLASSROOM_WIDTH: '5',

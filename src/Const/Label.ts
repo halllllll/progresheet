@@ -38,4 +38,4 @@ const ENV_LABEL = {
   CONFIG_SHEET | readonly LabelsSet[] | LabelsSet | Map<number, string> | number
 >;
 
-export { ENV_LABEL };
+export { ENV_LABEL, LABEL_SHEET_NAME };
