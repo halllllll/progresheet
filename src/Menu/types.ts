@@ -43,6 +43,3 @@ export type ClassRoom = {
   column: HeightValue;
   row: WidthValue;
 };
-
-// エラーつきレスポンス
-export type Resp = { success: boolean };
