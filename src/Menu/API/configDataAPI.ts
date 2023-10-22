@@ -30,11 +30,10 @@ const getLabelDataAPI = async (): Promise<Labels> => {
   }
 };
 
-/** JSON.stringifyにするため（ほかの方法不明） */
-// export type LabelDataRequest = string;
 /**
  * send new label data to Apps Script
  * (when Local Server, return pseudo data)
+ * LabelDataが入れ子要素に配列をもつので、入れ子になったオブジェクトは解釈できないため、JSON.stringifyにする（ほかの方法不明）
  * @param {LabelData} data
  * @returns {Promise<Labels>}
  */

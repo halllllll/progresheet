@@ -1,11 +1,12 @@
 import { PROPERTY_DEFAULT, ss } from '@/Const/GAS';
-import { ENV_LABEL, LABEL_SHEET_NAME } from '@/Const/Label';
+import { ENV_LABEL } from '@/Const/Label';
+import { ENV_SEAT } from '@/Const/Seat';
 import { CONFIG_SHEET_NAMES } from '@/Const/SheetEnv';
 
 import { type LabelData } from '../components/menuParts/labels/labels';
 import {
   ConfigError,
-  type UndefinedServerError,
+  UndefinedServerError,
   type GASError,
   InitError,
 } from '../errors';
@@ -29,6 +30,7 @@ const getId = (): string => {
   return userid;
 };
 
+// TODO: そのうちid以外にも取得する用
 const getUserInfo = (): string => {
   return getId();
 };
@@ -51,9 +53,9 @@ const getSpreadSheetName = (): string => {
  */
 const _isAllowedConfigSheet = (id: string): boolean => {
   try {
-    const configSheet = getTargetSheet(ENV_LABEL.SHEET_NAME);
+    const configSheet = getTargetSheet(ENV_LABEL.NAME);
     if (configSheet === null)
-      throw new ConfigError(`sheet ${ENV_LABEL.SHEET_NAME} is not found`);
+      throw new ConfigError(`sheet ${ENV_LABEL.NAME} is not found`);
     const prot = configSheet.protect();
     const editors = prot.getEditors();
 
@@ -269,15 +271,15 @@ const initLabelSheet = ():
   const lock = LockService.getScriptLock();
   lock.waitLock(10 * 1000);
   try {
-    const targetSheet = getTargetSheet(LABEL_SHEET_NAME);
+    const targetSheet = getTargetSheet(ENV_LABEL.NAME);
     let configSheet: GoogleAppsScript.Spreadsheet.Sheet | null = null;
 
     /**
      * reset spreadsheet sequence
      */
     if (targetSheet === null) {
-      configSheet = ss.insertSheet(0);
-      configSheet.setName(LABEL_SHEET_NAME);
+      configSheet = ss.insertSheet(0); // on first sheet
+      configSheet.setName(ENV_LABEL.NAME);
     } else {
       configSheet = targetSheet;
       configSheet.clear().clearNotes();
@@ -332,6 +334,68 @@ const initLabelSheet = ():
   }
 };
 
+const initSeatListSheet = ():
+  | {
+      error: GASError;
+    }
+  | {
+      error: null;
+      sheet: GoogleAppsScript.Spreadsheet.Sheet;
+    } => {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10 * 1000);
+  try {
+    const targetSheet = getTargetSheet(ENV_SEAT.NAME);
+    let configSheet: GoogleAppsScript.Spreadsheet.Sheet | null = null;
+
+    /**
+     * reset spreadsheet sequence
+     */
+    if (targetSheet === null) {
+      configSheet = ss.insertSheet(1); // on second sheet
+      configSheet.setName(ENV_SEAT.NAME);
+    } else {
+      configSheet = targetSheet;
+      configSheet.clear().clearNotes();
+    }
+
+    /**
+     * fixed header and default values
+     */
+    configSheet.setFrozenRows(1);
+
+    const range = configSheet.getRange(
+      ENV_SEAT.OFFSET_ROW,
+      ENV_SEAT.OFFSET_COL,
+      ENV_SEAT.DEFAULT_VALUES.length + 1,
+      ENV_SEAT.HEADER.size
+    );
+
+    range.setValues([
+      Array.from(ENV_SEAT.HEADER.values()),
+      ...ENV_SEAT.DEFAULT_VALUES.map((v) => [v.index, v.name, v.visible]),
+    ]);
+
+    return { sheet: configSheet, error: null };
+  } catch (e: unknown) {
+    Logger.log(e);
+    const err = e as Error;
+
+    return {
+      error: {
+        code: 'Undefined',
+        message: `[${err.name}] - ${err.message}`,
+        options: {
+          cause: new InitError(),
+          details: 'initSeatSheet',
+        },
+      },
+    };
+  } finally {
+    lock.releaseLock();
+  }
+};
+
 export type InitOptions = {
   withEditors?: boolean;
 };
@@ -342,36 +406,54 @@ export type InitOptions = {
 const initConfig = async (options: InitOptions = {}): Promise<InitResponse> => {
   console.log(`options: ${JSON.stringify(options)}`);
 
-  // まずラベル設定シートだけ考える あとでそれぞれのInitSheetに対してPromiseしてPromise.allする予定
-  const [ret] = await Promise.all([initLabelSheet()]);
   try {
-    if (ret.error) {
-      return {
-        success: false,
-        error: ret.error,
-      };
-    }
+    // TODO: まずラベル設定シートだけ考える あとでそれぞれのInitSheetに対してPromiseしてPromise.allする予定
+    const results = await Promise.all([
+      Promise.resolve(initLabelSheet()),
+      Promise.resolve(initSeatListSheet()),
+    ]).catch((e: Error) => {
+      Logger.log(e);
+      throw new UndefinedServerError(e.name);
+    });
 
-    // ほんとは設定シートすべてに対してやる
+    const configSheets: GoogleAppsScript.Spreadsheet.Sheet[] = [];
+    for (const result of results) {
+      if (result.error !== null) {
+        return {
+          success: false,
+          error: result.error,
+        };
+      }
+      configSheets.push(result.sheet);
+    }
     /**
      * （取得した時点での）設定シート[以外]全部削除
      */
-    const sheets = ss.getSheets();
-    for (const sheet of sheets) {
-      if (sheet.getName() !== ret.sheet.getName()) ss.deleteSheet(sheet);
+    for (const sheet of ss.getSheets()) {
+      if (
+        // GASはES6で止まってるのでincludesは使えないきがする
+        // eslint-disable-next-line @typescript-eslint/prefer-includes
+        CONFIG_SHEET_NAMES.map((val) => val as string).indexOf(
+          sheet.getName()
+        ) === -1
+      ) {
+        ss.deleteSheet(sheet);
+      }
     }
 
     /**
      * sheets protection sequence
      */
-    const prot = ret.sheet.protect();
-    prot.setDescription('設定シート');
-    prot.removeEditors(prot.getEditors());
-    if (options.withEditors === true) {
-      prot.addEditors(ss.getEditors().map((user) => user.getEmail()));
+    for (const sheet of configSheets) {
+      const prot = sheet.protect();
+      prot.setDescription('設定シート');
+      prot.removeEditors(prot.getEditors());
+      if (options.withEditors === true) {
+        prot.addEditors(ss.getEditors().map((user) => user.getEmail()));
+      }
+      prot.addEditor(getId());
+      // sheet.hideSheet();
     }
-    prot.addEditor(getId());
-    // configSheet.hideSheet();
 
     /**
      * delete and set default all properties
@@ -400,9 +482,6 @@ const initConfig = async (options: InitOptions = {}): Promise<InitResponse> => {
  * *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
  */
 
-/**
- * めんどくさいので処理をまとめたやつ
- */
 type LabelInfo =
   | {
       error: GASError;
@@ -466,7 +545,7 @@ export type LabelResponse =
 const getLabelConfig = (): LabelResponse => {
   try {
     // sheet check and get values
-    const sheetValue = Utils.getSheetValues(ss, ENV_LABEL.SHEET_NAME);
+    const sheetValue = Utils.getSheetValues(ss, ENV_LABEL.NAME);
 
     if (sheetValue.error !== null) {
       return {
@@ -527,13 +606,13 @@ const setLabelConfig = (data: string): SetLabelResponse => {
   const lock = LockService.getScriptLock();
   try {
     lock.waitLock(1 * 3000);
-    const targetSheet = getTargetSheet(ENV_LABEL.SHEET_NAME);
+    const targetSheet = getTargetSheet(ENV_LABEL.NAME);
     if (targetSheet === null) {
       return {
         success: false,
         error: {
           code: 'Config',
-          message: `sheet ${ENV_LABEL.SHEET_NAME} is not found`,
+          message: `sheet ${ENV_LABEL.NAME} is not found`,
         },
       };
     }
@@ -590,6 +669,7 @@ const setLabelConfig = (data: string): SetLabelResponse => {
 export type ClassRoomResponse =
   | { success: true; body: ClassRoom }
   | { success: false; error: GASError };
+
 /**
  * Class room data, include `ClassRoom`
  * When something error occured during taking ClassRoom data,

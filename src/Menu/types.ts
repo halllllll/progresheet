@@ -8,10 +8,21 @@ type _TupleOf<T, N extends number, R extends unknown[]> = R['length'] extends N
   ? R
   : _TupleOf<T, N, [T, ...R]>;
 
-// 設定のやつ
+// ラベル設定のやつ
 export type Labels = {
   labels: string[];
   colors: string[];
+};
+
+// 座席データ構造
+// export declare const seatId: unique symbol;
+// export declare const name: unique symbol;
+export type Seat = {
+  // index: number & { [seatId]: never };
+  // name: string & { [name]: never };
+  index: number;
+  name: string;
+  visible: boolean;
 };
 
 // 編集者設定用

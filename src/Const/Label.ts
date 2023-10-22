@@ -14,7 +14,7 @@ type LabelHexColor = [
  *
  * *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
  */
-const LABEL_SHEET_NAME: CONFIG_SHEET = 'ラベル設定';
+const SHEET_NAME: CONFIG_SHEET = 'ラベル設定';
 const LABEL_HEADER = ['Labels', 'colors'] as const;
 const LABEL_DEFAULT_VALUES = [
   ['All Right!', '#61a7e9'] as LabelHexColor,
@@ -28,7 +28,7 @@ const LABEL_DEFAULT_VALUES = [
  * *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
  */
 const ENV_LABEL = {
-  SHEET_NAME: LABEL_SHEET_NAME,
+  NAME: SHEET_NAME,
   HEADER: new Map(LABEL_HEADER.map((v, i) => [i, v])),
   DEFAULT_VALUES: LABEL_DEFAULT_VALUES,
   OFFSET_COL: 1, // A
@@ -38,4 +38,4 @@ const ENV_LABEL = {
   CONFIG_SHEET | readonly LabelsSet[] | LabelsSet | Map<number, string> | number
 >;
 
-export { ENV_LABEL, LABEL_SHEET_NAME };
+export { ENV_LABEL };
