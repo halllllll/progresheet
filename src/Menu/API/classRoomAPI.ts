@@ -17,6 +17,7 @@ const getClassRoomInfoAPI = async (): Promise<ClassRoom> => {
         resolve({
           column: 3,
           row: 3,
+          name: 'dev class',
         });
       }, 1000);
     });

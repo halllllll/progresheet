@@ -39,7 +39,11 @@ export type EditorRequest = {
 // 教室
 export type HeightValue = string | number;
 export type WidthValue = string | number;
+
 export type ClassRoom = {
   column: HeightValue;
   row: WidthValue;
+  name: string;
 };
+
+export type ClassLayout = ClassRoom & { seats: Seat[] };

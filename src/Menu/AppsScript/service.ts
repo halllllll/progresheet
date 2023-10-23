@@ -680,8 +680,9 @@ const getClassRoomConfig = (): ClassRoomResponse => {
   try {
     const width = Utils.getPropertyByName(PROPERTY_DEFAULT.CLASSROOM_WIDTH);
     const height = Utils.getPropertyByName(PROPERTY_DEFAULT.CLASSROOM_HEIGHT);
+    const name = Utils.getPropertyByName(PROPERTY_DEFAULT.CLASSROOM_CLASSNAME);
 
-    if (width === null || height === null) {
+    if (width === null || height === null || name === null) {
       Logger.log('property not found');
 
       return {
@@ -698,6 +699,7 @@ const getClassRoomConfig = (): ClassRoomResponse => {
       body: {
         column: height,
         row: width,
+        name,
       },
     };
   } catch (e: unknown) {
