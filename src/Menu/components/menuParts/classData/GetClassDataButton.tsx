@@ -1,5 +1,5 @@
 import { type FC, type Dispatch, type SetStateAction, useState } from 'react';
-import { Box, Button, Center } from '@chakra-ui/react';
+import { Box, Button } from '@chakra-ui/react';
 import toast from 'react-hot-toast';
 import {
   getClassRoomInfoAPI,
@@ -33,11 +33,9 @@ const GetClassData: FC<Props> = ({ setClassData }) => {
   return (
     <>
       <Box>
-        <Center>
-          <Button isLoading={loading} onClick={getSeats}>
-            {'編集する'}
-          </Button>
-        </Center>
+        <Button isLoading={loading} onClick={getSeats}>
+          {'編集する'}
+        </Button>
       </Box>
     </>
   );
