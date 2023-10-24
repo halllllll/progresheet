@@ -64,6 +64,11 @@ const SEAT_DEFAULT_VALUES = [
   } satisfies Seat,
   {
     index: 11,
+    name: 'pseudo11',
+    visible: true,
+  } satisfies Seat,
+  {
+    index: 12,
     name: 'pseudo12',
     visible: true,
   } satisfies Seat,
