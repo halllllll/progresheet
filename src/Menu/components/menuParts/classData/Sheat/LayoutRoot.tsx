@@ -1,8 +1,9 @@
-import { type FC, useState } from 'react';
+import { type FC, useState, useContext } from 'react';
 import { Box, HStack, Stack, Text } from '@chakra-ui/react';
 // import TestSheatsLaout from '../Test/TestSeatsLayoutDnd';
+import { ClassDataCtx, SetClassDataCtx } from '../classData';
 import AmountRoller from './AmountRoller';
-import { type ClassLayout } from '@/Menu/types';
+import { ContextError } from '@/Menu/errors';
 
 /**
  *
@@ -11,17 +12,18 @@ import { type ClassLayout } from '@/Menu/types';
  * this code is only for POC
  */
 
-type Props = {
-  classData: ClassLayout;
-};
-const LayoutRoot: FC<Props> = ({ classData }) => {
-  // とりあえずここから手を付けるか 初期化後のデータを取得する想定
+const LayoutRoot: FC = () => {
+  const _setClassDataCtx = useContext(SetClassDataCtx);
+  const classDataCtx = useContext(ClassDataCtx);
+  if (classDataCtx === null)
+    throw new ContextError('non-context error', { details: 'on labelForm' });
+
   // TODO: tostringとparseIntしているが大丈夫か？
   const [height, setHeight] = useState<number>(
-    parseInt(classData.row.toString())
+    parseInt(classDataCtx.row.toString())
   );
   const [width, setWidth] = useState<number>(
-    parseInt(classData.column.toString())
+    parseInt(classDataCtx.column.toString())
   );
   const heightHandler = (val: string) => {
     setHeight(parseInt(val));
@@ -52,9 +54,9 @@ const LayoutRoot: FC<Props> = ({ classData }) => {
           </HStack>
           <Text>
             {/** TODO: あとでちゃんとやる */}
-            {width} {height}
+            W: {width} H:{height}
           </Text>
-          {classData.seats.map((seat) => {
+          {classDataCtx.seats.map((seat) => {
             return (
               <Box key={seat.index}>
                 <Text>

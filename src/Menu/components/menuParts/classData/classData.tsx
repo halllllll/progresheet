@@ -1,14 +1,23 @@
-import { type FC, useState } from 'react';
+import {
+  type FC,
+  type Dispatch,
+  type SetStateAction,
+  useState,
+  createContext,
+} from 'react';
 import { Box, HStack, Heading, Text, Tooltip } from '@chakra-ui/react';
-import { useFormContext } from 'react-hook-form';
 import { RiInformationFill } from 'react-icons/ri';
 import GetClassData from './GetClassDataButton';
 import SendClassData from './SetClassDataButton';
 import LayoutRoot from './Sheat/LayoutRoot';
 import { type ClassLayout } from '@/Menu/types';
 
+export const ClassDataCtx = createContext<ClassLayout | null>(null);
+export const SetClassDataCtx = createContext<
+  Dispatch<SetStateAction<ClassLayout | null>>
+>(() => null);
+
 const ClassData: FC = () => {
-  const _methods = useFormContext();
   const [classData, setClassData] = useState<ClassLayout | null>(null);
 
   return (
@@ -39,10 +48,12 @@ const ClassData: FC = () => {
         {classData === null || classData?.seats?.length === 0 ? (
           <GetClassData setClassData={setClassData} />
         ) : (
-          <>
-            <LayoutRoot classData={classData} />
-            <SendClassData />
-          </>
+          <SetClassDataCtx.Provider value={setClassData}>
+            <ClassDataCtx.Provider value={classData}>
+              <LayoutRoot />
+              <SendClassData />
+            </ClassDataCtx.Provider>
+          </SetClassDataCtx.Provider>
         )}
       </Box>
     </Box>
