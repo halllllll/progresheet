@@ -1,5 +1,6 @@
 export type ErrorCode =
   | 'Init'
+  | 'InvalidValue'
   | 'SheetNotFound'
   | 'SheetHeader'
   | 'Config'
@@ -43,6 +44,8 @@ export const errorMapper = (gasError: GASError): Error => {
       return new SheetNotFoundError(gasError.message, gasError.options);
     case 'SheetHeader':
       return new SheetHeaderError(gasError.message, gasError.options);
+    case 'InvalidValue':
+      return new InvalidValueError(gasError.message, gasError.options);
 
     default:
       return new Error('undefined code');
@@ -132,5 +135,12 @@ export class SheetHeaderError extends Error {
   constructor(message?: string, options?: ErrorOptions) {
     super(message, options);
     this.name = 'SheetHeaderError';
+  }
+}
+
+export class InvalidValueError extends Error {
+  constructor(message?: string, options?: ErrorOptions) {
+    super(message, options);
+    this.name = 'InvalidValueError';
   }
 }

@@ -1,4 +1,4 @@
-import { PROPERTY_DEFAULT, ss } from '@/Const/GAS';
+import { ss } from '@/Const/GAS';
 import { ENV_LABEL } from '@/Const/Label';
 import { ENV_SEAT } from '@/Const/Seat';
 import { CONFIG_SHEET_NAMES } from '@/Const/SheetEnv';
@@ -15,6 +15,7 @@ import {
   type ClassRoom,
   type Labels,
   type EditorRequest,
+  type Seat,
 } from '../types';
 import * as Utils from './utils';
 import { getTargetSheet } from './utils';
@@ -678,11 +679,15 @@ export type ClassRoomResponse =
  */
 const getClassRoomConfig = (): ClassRoomResponse => {
   try {
-    const width = Utils.getPropertyByName(PROPERTY_DEFAULT.CLASSROOM_WIDTH);
-    const height = Utils.getPropertyByName(PROPERTY_DEFAULT.CLASSROOM_HEIGHT);
-    const name = Utils.getPropertyByName(PROPERTY_DEFAULT.CLASSROOM_CLASSNAME);
+    const width = Utils.getPropertyByName('CLASSROOM_WIDTH');
+    const height = Utils.getPropertyByName('CLASSROOM_HEIGHT');
+    const name = Utils.getPropertyByName('CLASSROOM_CLASSNAME');
 
     if (width === null || height === null || name === null) {
+      Logger.log(`name: ${name ?? 'omg'}`);
+      Logger.log(`height: ${height ?? 'omg'}`);
+      Logger.log(`width: ${width ?? 'omg'}`);
+
       Logger.log('property not found');
 
       return {
@@ -716,11 +721,133 @@ const getClassRoomConfig = (): ClassRoomResponse => {
   }
 };
 
+type SeatSheetRespone =
+  | { success: true; body: Seat[] }
+  | { success: false; error: GASError };
+
+const getClassRoomSeatData = (): SeatSheetRespone => {
+  try {
+    const targetSheet = getTargetSheet(ENV_SEAT.NAME);
+    if (targetSheet === null) {
+      return {
+        success: false,
+        error: {
+          code: 'Config',
+          message: `sheet ${ENV_SEAT.NAME} is not found`,
+        },
+      };
+    }
+    const sheetValues = Utils.getSheetValues(ss, ENV_SEAT.NAME);
+    if (sheetValues.error !== null) {
+      return {
+        success: false,
+        error: sheetValues.error,
+      };
+    }
+
+    // バリデーションチェック 規定ヘッダと設定されてるヘッダーの値の比較
+    if (
+      sheetValues.values[0].length !== ENV_SEAT.HEADER.size ||
+      !sheetValues.values[0].every(
+        (v, i) => v === Array.from(ENV_SEAT.HEADER.values())[i]
+      )
+    ) {
+      Logger.log(
+        `expected ${ENV_SEAT.NAME} header is [${Array.from(
+          ENV_SEAT.HEADER.values()
+        ).join(',')}], but current value is [${sheetValues.values[0].join(
+          ','
+        )}]`
+      );
+
+      return {
+        success: false,
+        error: {
+          code: 'SheetHeader',
+          message: `expected ${ENV_SEAT.NAME} header is [${Array.from(
+            ENV_SEAT.HEADER.values()
+          ).join(',')}], but current value is [${sheetValues.values[0].join(
+            ','
+          )}]`,
+        },
+      };
+    }
+    let ret: Seat[] = [];
+
+    for (const val of sheetValues.values.slice(1)) {
+      if (val.length !== ENV_SEAT.HEADER.size) {
+        // バリデーションチェック 規定ヘッダとrowの長さ・要素の比較
+        return {
+          success: false,
+          error: {
+            code: 'InvalidValue',
+            message: 'not same length header and body',
+          },
+        };
+      } else if (!Number.isInteger(parseInt(val[0]))) {
+        // バリデーションチェック 1つ目の要素`Index`はnumber
+        return {
+          success: false,
+          error: {
+            code: 'InvalidValue',
+            message: `value ${val[0]} should be Interger`,
+          },
+        };
+      } else if (val[1] === '') {
+        // バリデーションチェック 2つ目の要素`name`は NOT empty
+        return {
+          success: false,
+          error: {
+            code: 'InvalidValue',
+            message: `${val[1]} should be NOT empty`,
+          },
+        };
+      } else if (val[2] !== 'TRUE' && val[2] !== 'FALSE') {
+        // バリデーションチェック 3つ目の要素はTRUE or FALSE(Sheet上では文字列)
+        return {
+          success: false,
+          error: {
+            code: 'InvalidValue',
+            message: `${val[2]} should be TRUE' or 'FALSE'`,
+          },
+        };
+      }
+      ret = [
+        {
+          index: parseInt(val[0]),
+          name: val[1],
+          visible: val[2] === 'TRUE',
+        },
+        ...ret,
+      ];
+    }
+
+    return {
+      success: true,
+      body: ret,
+    };
+
+    // ok
+  } catch (e: unknown) {
+    Logger.log(e);
+    const err = e as UndefinedServerError;
+
+    return {
+      success: false,
+      error: {
+        code: 'Undefined',
+        message: `[${err.name}] - ${err.message}`,
+      },
+    };
+  }
+};
+
 export {
   getId,
   getUserInfo,
   getSpreadSheetName,
   getClassRoomConfig,
+  getClassRoomSeatData,
   initConfig,
   getLabelConfig,
   setLabelConfig,
