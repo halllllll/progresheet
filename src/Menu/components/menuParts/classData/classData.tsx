@@ -3,6 +3,7 @@ import { Box, HStack, Heading, Text, Tooltip } from '@chakra-ui/react';
 import { useFormContext } from 'react-hook-form';
 import { RiInformationFill } from 'react-icons/ri';
 import GetClassData from './GetClassDataButton';
+import SendClassData from './SetClassDataButton';
 import LayoutRoot from './Sheat/LayoutRoot';
 import { type ClassLayout } from '@/Menu/types';
 
@@ -38,18 +39,11 @@ const ClassData: FC = () => {
         {classData === null || classData?.seats?.length === 0 ? (
           <GetClassData setClassData={setClassData} />
         ) : (
-          classData.seats.map((seat) => {
-            return (
-              <Box key={seat.index}>
-                <Text>
-                  {seat.index} {seat.name}
-                </Text>
-              </Box>
-            );
-          })
+          <>
+            <LayoutRoot classData={classData} />
+            <SendClassData />
+          </>
         )}
-
-        <LayoutRoot />
       </Box>
     </Box>
   );
