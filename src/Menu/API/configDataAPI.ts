@@ -39,7 +39,6 @@ const getLabelDataAPI = async (): Promise<Labels> => {
  */
 const setLabelDataAPI = async (data: LabelData): Promise<Labels> => {
   if (isGASEnvironment()) {
-    console.warn('labelぶん投げるとき');
     console.warn(JSON.stringify(data));
     const ret = await serverFunctions.setLabelConfig(JSON.stringify(data));
     if (ret.success) {
@@ -104,8 +103,6 @@ const setConfigProtectionAPI = async (data: Editor[]): Promise<Editor[]> => {
     const req: EditorRequest = {
       editors: [...data],
     };
-    console.warn('protectionをぶん投げるとき');
-    console.warn(JSON.stringify(req));
     const ret = await serverFunctions.setConfigProtection(JSON.stringify(req));
     if (ret.success) {
       return ret.editors;

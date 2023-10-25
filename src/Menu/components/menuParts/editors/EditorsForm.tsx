@@ -62,9 +62,6 @@ const EditorsForm: FC = () => {
         ...menuCtx,
       });
       setEditors(res);
-      console.warn(
-        `想定ではここでちゃんと更新されるはずなんだけど...画面に表示されない...`
-      );
       console.warn(res);
       toast.success('編集者情報を更新したよ！', {
         duration: 2000,
