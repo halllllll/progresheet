@@ -22,6 +22,12 @@ const ClassData: FC = () => {
   const methods = useForm<ClassLayout>({
     mode: 'all',
     criteriaMode: 'all',
+    defaultValues: {
+      column: classData?.column,
+      row: classData?.row,
+      name: classData?.name,
+      seats: classData?.seats,
+    },
   });
 
   return (
@@ -48,17 +54,17 @@ const ClassData: FC = () => {
         </HStack>
       </Box>
       <Box py={5}>
-        {classData === null || classData?.seats?.length === 0 ? (
-          <GetClassData setClassData={setClassData} />
-        ) : (
-          <SetClassDataCtx.Provider value={setClassData}>
-            <ClassDataCtx.Provider value={classData}>
-              <FormProvider {...methods}>
+        <FormProvider {...methods}>
+          {classData === null || classData?.seats?.length === 0 ? (
+            <GetClassData setClassData={setClassData} />
+          ) : (
+            <SetClassDataCtx.Provider value={setClassData}>
+              <ClassDataCtx.Provider value={classData}>
                 <SeatForm />
-              </FormProvider>
-            </ClassDataCtx.Provider>
-          </SetClassDataCtx.Provider>
-        )}
+              </ClassDataCtx.Provider>
+            </SetClassDataCtx.Provider>
+          )}
+        </FormProvider>
       </Box>
     </Box>
   );

@@ -1,5 +1,5 @@
 import { type FC, useState } from 'react';
-import { Text, HStack, Button } from '@chakra-ui/react';
+import { Text, HStack, Button, Stack } from '@chakra-ui/react';
 
 type Props = {
   defaultValue?: number;
@@ -25,7 +25,8 @@ const AmountRoller: FC<Props> = ({
   };
 
   return (
-    <>
+    <Stack>
+      <Text>{label}</Text>
       <HStack>
         <Button
           onClick={() => {
@@ -35,7 +36,7 @@ const AmountRoller: FC<Props> = ({
         >
           -
         </Button>{' '}
-        <Text>{`${label}: ${num}`}</Text>
+        <Text>{`COUNT: ${num}`}</Text>
         <Button
           onClick={() => {
             setNumHandler(num + 1);
@@ -45,7 +46,7 @@ const AmountRoller: FC<Props> = ({
           +
         </Button>
       </HStack>
-    </>
+    </Stack>
   );
 };
 export default AmountRoller;

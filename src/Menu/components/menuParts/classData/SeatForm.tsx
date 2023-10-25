@@ -1,17 +1,22 @@
 import { type FC } from 'react';
-import { useFormContext } from 'react-hook-form';
+import { useFieldArray, useFormContext } from 'react-hook-form';
 import SendClassData from './SetClassDataButton';
 import AmountManager from './Sheat/AmountManager';
 import Layout from './Sheat/Layout';
 import { type ClassLayout } from '@/Menu/types';
 
 const SeatForm: FC = () => {
-  const _methods = useFormContext<ClassLayout>();
+  const methods = useFormContext<ClassLayout>();
+  const { fields, append, remove } = useFieldArray<ClassLayout>({
+    name: 'seats',
+    shouldUnregister: false,
+    control: methods.control,
+  });
 
   return (
     <form>
-      <AmountManager />
-      <Layout />
+      <AmountManager append={append} remove={remove} fields={fields} />
+      <Layout fields={fields} />
       <SendClassData />
     </form>
   );

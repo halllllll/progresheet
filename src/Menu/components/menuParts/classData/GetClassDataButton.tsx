@@ -1,5 +1,6 @@
-import { type FC, type Dispatch, type SetStateAction, useState } from 'react';
+import { type FC, useState, type Dispatch, type SetStateAction } from 'react';
 import { Box, Button } from '@chakra-ui/react';
+import { useFormContext } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import {
   getClassRoomInfoAPI,
@@ -11,6 +12,7 @@ type Props = {
   setClassData: Dispatch<SetStateAction<ClassLayout | null>>;
 };
 const GetClassData: FC<Props> = ({ setClassData }) => {
+  const methods = useFormContext<ClassLayout>();
   const [loading, setLoading] = useState<boolean>(false);
   const getSeats = async () => {
     setLoading(true);
@@ -21,6 +23,10 @@ const GetClassData: FC<Props> = ({ setClassData }) => {
             '座席数が0です。異常値なので初期化したほうがいいかもしれません。'
           );
         }
+        methods.setValue('column', data.column);
+        methods.setValue('row', data.row);
+        methods.setValue('name', data.name);
+        methods.setValue('seats', seats);
         setClassData({ seats, ...data });
       })
       .catch((err: unknown) => {
