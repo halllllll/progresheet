@@ -96,40 +96,39 @@ const CtxProvider: FC<Props> = ({ children }) => {
   }, []);
 
   return (
-    <SetMenuCtx.Provider value={setRes}>
-      <MenuCtx.Provider value={res}>
-        {' '}
-        {isLoading ? (
-          // 全画面縦横中央ローディング(Fullで救えない)
-          <Box
-            left="0"
-            top="0"
-            w="100vw"
-            h="100vh"
-            bg="rgba(0, 0, 0, 0.05)"
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-          >
-            <Center h="full">
-              <ClimbingBoxLoader color="#36d7b7" size="40px" />
-            </Center>
-          </Box>
-        ) : isError.status === 'failed' ? (
+    <>
+      {isLoading ? (
+        // 全画面縦横中央ローディング(Fullで救えない)
+        <Box
+          left="0"
+          top="0"
+          w="100vw"
+          h="100vh"
+          bg="rgba(0, 0, 0, 0.05)"
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+        >
+          <Center h="full">
+            <ClimbingBoxLoader color="#36d7b7" size="40px" />
+          </Center>
+        </Box>
+      ) : isError.status === 'failed' ? (
+        <Box>
+          <Heading>{`Error occured`}</Heading>
+          <Text as="b" fontSize="18px" color={'tomato'}>
+            {isError.errName}
+          </Text>
           <Box>
-            <Heading>{`Error occured`}</Heading>
-            <Text as="b" fontSize="18px" color={'tomato'}>
-              {isError.errName}
-            </Text>
-            <Box>
-              <Code>{isError.errMessage}</Code>
-            </Box>
+            <Code>{isError.errMessage}</Code>
           </Box>
-        ) : (
-          children
-        )}
-      </MenuCtx.Provider>
-    </SetMenuCtx.Provider>
+        </Box>
+      ) : (
+        <SetMenuCtx.Provider value={setRes}>
+          <MenuCtx.Provider value={res}>{children}</MenuCtx.Provider>
+        </SetMenuCtx.Provider>
+      )}
+    </>
   );
 };
 

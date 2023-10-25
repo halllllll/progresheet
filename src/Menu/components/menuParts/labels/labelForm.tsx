@@ -126,6 +126,13 @@ const LabelForm: FC = () => {
                           })}
                         />
                       </GridItem>
+                      <FormErrorMessage>
+                        {
+                          methods.formState.errors?.labels?.[idx]?.value
+                            ?.message
+                        }
+                      </FormErrorMessage>
+
                       <GridItem colSpan={1}>
                         <LabelColor
                           popover={popover}
@@ -135,12 +142,19 @@ const LabelForm: FC = () => {
                           {...methods.register(`labels.${idx}.color`)}
                         />
                       </GridItem>
+                      <FormErrorMessage>
+                        {
+                          methods.formState.errors?.labels?.[idx]?.color
+                            ?.message
+                        }
+                      </FormErrorMessage>
                       <GridItem colSpan={2}>
                         <Button
                           type="button"
                           onClick={() => {
                             remove(idx);
                           }}
+                          isDisabled={fields.length < 2}
                         >
                           削除
                         </Button>
@@ -161,15 +175,9 @@ const LabelForm: FC = () => {
                 });
               }}
             >
-              追加
+              {'追加'}
             </Button>
           </Center>
-          <FormErrorMessage>
-            {' '}
-            {/** TODO: なぜか表示されない */}
-            {methods.formState.errors.root?.message ?? ' '}
-            {methods.formState.errors.labels?.message}
-          </FormErrorMessage>
           <Center>
             <Button
               mt="4"
@@ -181,8 +189,9 @@ const LabelForm: FC = () => {
               loadingText="送信中..."
               spinnerPlacement="start"
               colorScheme="telegram"
+              isDisabled={fields.length < 2}
             >
-              送信する
+              {'送信する'}
             </Button>
           </Center>
         </Box>
