@@ -1,12 +1,5 @@
-import { type FC } from 'react';
-import {
-  NumberInput,
-  NumberInputField,
-  NumberInputStepper,
-  NumberIncrementStepper,
-  NumberDecrementStepper,
-  Text,
-} from '@chakra-ui/react';
+import { type FC, useState } from 'react';
+import { Text, HStack, Button } from '@chakra-ui/react';
 
 type Props = {
   defaultValue?: number;
@@ -23,23 +16,35 @@ const AmountRoller: FC<Props> = ({
   setValue,
   label,
 }: Props) => {
+  const [num, setNum] = useState<number>(defaultValue);
+  const setNumHandler = (n: number) => {
+    if (minValue <= n && n <= maxValue) {
+      setValue(n.toString());
+      setNum(n);
+    }
+  };
+
   return (
     <>
-      <Text>{`${label}: `}</Text>
-      <NumberInput
-        size="md"
-        maxW={24}
-        defaultValue={defaultValue}
-        min={minValue}
-        max={maxValue}
-        onChange={setValue}
-      >
-        <NumberInputField />
-        <NumberInputStepper>
-          <NumberIncrementStepper />
-          <NumberDecrementStepper />
-        </NumberInputStepper>
-      </NumberInput>
+      <HStack>
+        <Button
+          onClick={() => {
+            setNumHandler(num - 1);
+          }}
+          isDisabled={num === minValue}
+        >
+          -
+        </Button>{' '}
+        <Text>{`${label}: ${num}`}</Text>
+        <Button
+          onClick={() => {
+            setNumHandler(num + 1);
+          }}
+          isDisabled={num === maxValue}
+        >
+          +
+        </Button>
+      </HStack>
     </>
   );
 };
