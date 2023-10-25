@@ -1,4 +1,10 @@
-import { type FC, useState, useContext } from 'react';
+import {
+  type FC,
+  useState,
+  useContext,
+  type Dispatch,
+  type SetStateAction,
+} from 'react';
 import { Box, HStack, Stack, Text } from '@chakra-ui/react';
 // import TestSheatsLaout from '../Test/TestSeatsLayoutDnd';
 import { type UseFieldArrayReturn } from 'react-hook-form';
@@ -11,10 +17,15 @@ type Props = {
   append: UseFieldArrayReturn<ClassLayout>['append'];
   remove: UseFieldArrayReturn<ClassLayout>['remove'];
   fields: UseFieldArrayReturn<ClassLayout>['fields'];
+  setColumnCount: Dispatch<SetStateAction<number>>;
 };
 
-const AmountManager: FC<Props> = ({ append, remove, fields }) => {
-  // const setClassDataCtx = useContext(SetClassDataCtx);
+const AmountManager: FC<Props> = ({
+  append,
+  remove,
+  fields,
+  setColumnCount,
+}) => {
   const classDataCtx = useContext(ClassDataCtx);
   if (classDataCtx === null)
     throw new ContextError('non-context error', {
@@ -40,43 +51,21 @@ const AmountManager: FC<Props> = ({ append, remove, fields }) => {
     append([
       ...Array.from({ length: count }, (_, i) => ({
         index: fields.length + i + 1,
-        name: 'a',
+        name: '', // TODO: 名前は設定されてなくてもよいものとしたい（index_name）
         visible: true,
       })),
     ]);
   };
 
   const heightHandler = (val: string) => {
-    // TODO: 増えたのなら増やすし、減ったのなら減らすようにする
     const nextHeight = parseInt(val);
     if (width === 1 && nextHeight === 1) {
       handleFirst();
-      // setClassDataCtx({
-      //   ...classDataCtx,
-      //   seats: [...classDataCtx.seats.slice(0, 1)],
-      // });
     } else {
-      // あたらしく加えるSeatを生成して埋める必要がある...
-      // heightが減ったのか増えたのか
       if (height < nextHeight) {
         handleAddBy(width * (nextHeight - height));
-        // setClassDataCtx({
-        //   ...classDataCtx,
-        //   seats: [
-        //     ...classDataCtx.seats,
-        //     ...Array.from({ length: width }, (_, i) => ({
-        //       index: classDataCtx.seats.length + i + 1,
-        //       name: 'a',
-        //       visible: true,
-        //     })),
-        //   ], // width分 後ろに追加
-        // });
       } else if (nextHeight < height) {
         handleRemoveBy(width * (height - nextHeight));
-        // setClassDataCtx({
-        //   ...classDataCtx,
-        //   seats: [...classDataCtx.seats.slice(0, -width)], // width分 後ろから削除
-        // });
       }
     }
     setHeight(nextHeight);
@@ -85,35 +74,15 @@ const AmountManager: FC<Props> = ({ append, remove, fields }) => {
     const nextWidth = parseInt(val);
     if (height === 1 && nextWidth === 1) {
       handleFirst();
-      // setClassDataCtx({
-      //   ...classDataCtx,
-      //   seats: [...classDataCtx.seats.slice(0, 1)],
-      // });
     } else {
       if (width < nextWidth) {
         handleAddBy(height * (nextWidth - width));
-        // 増えたとき
-        // setClassDataCtx({
-        //   ...classDataCtx,
-        //   seats: [
-        //     ...classDataCtx.seats,
-        //     ...Array.from({ length: height }, (_, i) => ({
-        //       index: classDataCtx.seats.length + i + 1,
-        //       name: 'a',
-        //       visible: true,
-        //     })),
-        //   ], // width分 後ろに追加
-        // });
       } else if (nextWidth < width) {
         handleRemoveBy(height * (width - nextWidth));
-        // 減ったとき
-        // setClassDataCtx({
-        //   ...classDataCtx,
-        //   seats: [...classDataCtx.seats.slice(0, -height)], // width分 後ろから削除
-        // });
       }
     }
     setWidth(nextWidth);
+    setColumnCount(nextWidth);
   };
 
   return (
@@ -138,7 +107,7 @@ const AmountManager: FC<Props> = ({ append, remove, fields }) => {
           </HStack>
           <Text>
             {/** TODO: あとでちゃんとやる */}
-            W: {width} H:{height}
+            H:{height} W: {width}
           </Text>
 
           {/* <TestSheatsLaout height={height} width={width} /> */}

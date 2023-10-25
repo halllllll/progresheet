@@ -60,7 +60,10 @@ const ClassData: FC = () => {
           ) : (
             <SetClassDataCtx.Provider value={setClassData}>
               <ClassDataCtx.Provider value={classData}>
-                <SeatForm />
+                <SeatForm
+                  // TODO: 変換が多くて怖い
+                  defaultColumnCount={parseInt(classData.column.toString())}
+                />
               </ClassDataCtx.Provider>
             </SetClassDataCtx.Provider>
           )}
