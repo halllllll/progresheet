@@ -8,9 +8,9 @@ import {
 import toast from 'react-hot-toast';
 import { PropagateLoader } from 'react-spinners';
 import { MenuCtx, SetMenuCtx } from '@/Menu/App';
-import AddButton from './AddButton';
-import LabelArea from './LabelArea';
-import SendButton from './SendButton';
+import AddButton from './Parts/AddButton';
+import LabelArea from './Parts/LabelArea';
+import SendButton from './Parts/SendButton';
 import { type LabelData } from './labels';
 import { setLabelDataAPI } from '@/Menu/API/configDataAPI';
 import Full from '@/Menu/components/loader';

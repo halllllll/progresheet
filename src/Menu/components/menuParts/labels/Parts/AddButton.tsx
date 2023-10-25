@@ -1,7 +1,7 @@
 import { type FC } from 'react';
 import { Button } from '@chakra-ui/react';
 import { type UseFieldArrayReturn } from 'react-hook-form';
-import { type LabelData } from './labels';
+import { type LabelData } from '../labels';
 
 type AddButtonProps = {
   append: UseFieldArrayReturn<LabelData>['append'];

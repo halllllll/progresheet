@@ -1,7 +1,7 @@
 import { type FC } from 'react';
 import { Button } from '@chakra-ui/react';
 import { useFormContext } from 'react-hook-form';
-import { type LabelData } from './labels';
+import { type LabelData } from '../labels';
 
 type SendButtonProps = {
   text: string;
