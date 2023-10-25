@@ -6,10 +6,12 @@ import {
   createContext,
 } from 'react';
 import { Box, HStack, Heading, Text, Tooltip } from '@chakra-ui/react';
+import { FormProvider, useForm } from 'react-hook-form';
 import { RiInformationFill } from 'react-icons/ri';
 import GetClassData from './GetClassDataButton';
 import SendClassData from './SetClassDataButton';
-import LayoutRoot from './Sheat/LayoutRoot';
+import AmountManager from './Sheat/AmountManager';
+import Layout from './Sheat/Layout';
 import { type ClassLayout } from '@/Menu/types';
 
 export const ClassDataCtx = createContext<ClassLayout | null>(null);
@@ -19,6 +21,10 @@ export const SetClassDataCtx = createContext<
 
 const ClassData: FC = () => {
   const [classData, setClassData] = useState<ClassLayout | null>(null);
+  const methods = useForm<ClassLayout>({
+    mode: 'all',
+    criteriaMode: 'all',
+  });
 
   return (
     <Box>
@@ -50,8 +56,12 @@ const ClassData: FC = () => {
         ) : (
           <SetClassDataCtx.Provider value={setClassData}>
             <ClassDataCtx.Provider value={classData}>
-              <LayoutRoot />
-              <SendClassData />
+              <FormProvider {...methods}>
+                {/** ここでform? */}
+                <AmountManager />
+                <Layout />
+                <SendClassData />
+              </FormProvider>
             </ClassDataCtx.Provider>
           </SetClassDataCtx.Provider>
         )}
