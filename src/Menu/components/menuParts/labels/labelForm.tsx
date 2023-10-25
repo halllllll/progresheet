@@ -47,8 +47,8 @@ const LabelForm: FC = () => {
     await setLabelDataAPI(data)
       .then((res) => {
         setMenuCtx({
-          labels: res,
           ...menuCtx,
+          labels: res,
         });
         toast.success('ラベルデータをシートに反映しました！');
       })

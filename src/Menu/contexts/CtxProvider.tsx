@@ -12,7 +12,7 @@ import {
   SheetNotFoundError,
   UndefinedServerError,
 } from '../errors';
-import { type Editor, type Labels } from '../types';
+import { type ClassLayout, type Editor, type Labels } from '../types';
 
 type hasError =
   | {
@@ -29,6 +29,7 @@ export type CtxType = {
   sheetName: string;
   labels?: Labels;
   editors?: Editor[];
+  classLayout?: ClassLayout;
 };
 
 type Props = {

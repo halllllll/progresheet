@@ -48,14 +48,23 @@ const setLabelDataAPI = async (data: LabelData): Promise<Labels> => {
       throw err;
     }
   } else {
-    return await new Promise<Labels>((resolve) => {
+    const ret = await new Promise<Labels>((resolve) => {
       setTimeout(() => {
-        resolve({
-          labels: ['label1', 'label2', 'labelX'],
-          colors: ['#d95858', '#88aafc', '#b87a69'],
-        });
+        const ret = data.labels.reduce<Labels>(
+          (prev, cur) => {
+            return {
+              labels: [...prev.labels, cur.value],
+              colors: [...prev.colors, cur.color],
+            };
+          },
+          { labels: [], colors: [] }
+        );
+        resolve(ret);
       }, 1000);
     });
+    console.warn(ret);
+
+    return ret;
   }
 };
 

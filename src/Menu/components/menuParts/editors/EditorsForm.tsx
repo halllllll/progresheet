@@ -25,8 +25,8 @@ const EditorsForm: FC = () => {
     await getConfigProtectionAPI()
       .then((res) => {
         setMenuCtx({
-          editors: res,
           ...menuCtx,
+          editors: res,
         });
         setEditors(res);
         toast.success('編集者情報を取得したよ！', {
