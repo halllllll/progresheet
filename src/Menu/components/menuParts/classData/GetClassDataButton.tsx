@@ -16,13 +16,18 @@ const GetClassData: FC<Props> = ({ setClassData }) => {
     setLoading(true);
     await Promise.all([getClassRoomSeatAPI(), getClassRoomInfoAPI()])
       .then(([seats, data]) => {
+        if (seats.length === 0) {
+          throw new Error(
+            '座席数が0です。異常値なので初期化したほうがいいかもしれません。'
+          );
+        }
         setClassData({ seats, ...data });
       })
       .catch((err: unknown) => {
         // TODO: エラー処理
         const e = err as Error;
         console.warn(e);
-        toast.error(`エラーだよ！ \n${e.name} \n ${e.message}`);
+        toast.error(`エラーです\n${e.name} \n ${e.message}`);
         throw new Error(`${e.name} - ${e.message}`);
       })
       .finally(() => {
