@@ -13,6 +13,7 @@ const initConfig = Service.initConfig;
 const getLabelConfig = Service.getLabelConfig;
 const setLabelConfig = Service.setLabelConfig;
 const getClassRoomConfig = Service.getClassRoomConfig;
+const getClassRoomSeat = Service.getClassRoomSeatData;
 const getConfigProtection = Service.getConfigProtectData;
 const setConfigProtection = Service.setConfigProtection;
 
@@ -26,6 +27,7 @@ global.initConfig = initConfig;
 global.getLabelConfig = getLabelConfig;
 global.setLabelConfig = setLabelConfig;
 global.getClassRoomConfig = getClassRoomConfig;
+global.getClassRoomSeat = getClassRoomSeat;
 global.getConfigProtection = getConfigProtection;
 global.setConfigProtection = setConfigProtection;
 
@@ -37,6 +39,7 @@ export {
   getLabelConfig,
   setLabelConfig,
   getClassRoomConfig,
+  getClassRoomSeat,
   getConfigProtection,
   setConfigProtection,
 };

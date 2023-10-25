@@ -1,6 +1,9 @@
 export type ErrorCode =
   | 'Init'
-  | 'ConfigSheet'
+  | 'InvalidValue'
+  | 'SheetNotFound'
+  | 'SheetHeader'
+  | 'Config'
   | 'Undefined'
   | 'Context'
   | 'Property'
@@ -11,6 +14,7 @@ export type ErrorCode =
 export type GASError = {
   code: ErrorCode;
   message: string;
+  options?: ErrorOptions;
 };
 
 interface ErrorOptions {
@@ -20,22 +24,28 @@ interface ErrorOptions {
 
 export const errorMapper = (gasError: GASError): Error => {
   switch (gasError.code) {
-    case 'ConfigSheet':
-      return new ConfigSheetError(gasError.message);
+    case 'Config':
+      return new ConfigError(gasError.message, gasError.options);
     case 'Context':
-      return new ContextError(gasError.message);
+      return new ContextError(gasError.message, gasError.options);
     case 'Init':
-      return new InitError(gasError.message);
+      return new InitError(gasError.message, gasError.options);
     case 'Property':
-      return new PropertyError(gasError.message);
+      return new PropertyError(gasError.message, gasError.options);
     case 'Undefined':
-      return new UndefinedServerError(gasError.message);
+      return new UndefinedServerError(gasError.message, gasError.options);
     case 'UpdateLabel':
-      return new UpdateLabelError(gasError.message);
+      return new UpdateLabelError(gasError.message, gasError.options);
     case 'UpdateProtection':
-      return new UpdateProtectionError(gasError.message);
+      return new UpdateProtectionError(gasError.message, gasError.options);
     case 'Permission':
-      return new PermissionError(gasError.message);
+      return new PermissionError(gasError.message, gasError.options);
+    case 'SheetNotFound':
+      return new SheetNotFoundError(gasError.message, gasError.options);
+    case 'SheetHeader':
+      return new SheetHeaderError(gasError.message, gasError.options);
+    case 'InvalidValue':
+      return new InvalidValueError(gasError.message, gasError.options);
 
     default:
       return new Error('undefined code');
@@ -65,10 +75,10 @@ export class InitError extends Error {
   }
 }
 
-export class ConfigSheetError extends Error {
+export class ConfigError extends Error {
   constructor(message?: string, options?: ErrorOptions) {
     super(message, options);
-    this.name = 'ConfigSheetError';
+    this.name = 'ConfigError';
   }
 }
 
@@ -111,5 +121,26 @@ export class PermissionError extends Error {
   constructor(message?: string, options?: ErrorOptions) {
     super(message, options);
     this.name = 'PermissionError';
+  }
+}
+
+export class SheetNotFoundError extends Error {
+  constructor(message?: string, options?: ErrorOptions) {
+    super(message, options);
+    this.name = 'SheetNotFoundError';
+  }
+}
+
+export class SheetHeaderError extends Error {
+  constructor(message?: string, options?: ErrorOptions) {
+    super(message, options);
+    this.name = 'SheetHeaderError';
+  }
+}
+
+export class InvalidValueError extends Error {
+  constructor(message?: string, options?: ErrorOptions) {
+    super(message, options);
+    this.name = 'InvalidValueError';
   }
 }

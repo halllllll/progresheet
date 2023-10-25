@@ -1,20 +1,5 @@
-import {
-  type CSSProperties,
-  type FC,
-  type ChangeEvent,
-  useContext,
-} from 'react';
-import {
-  Box,
-  Button,
-  Center,
-  FormErrorMessage,
-  Grid,
-  GridItem,
-  Input,
-  Stack,
-  VStack,
-} from '@chakra-ui/react';
+import { type FC, useContext } from 'react';
+import { Box, Center } from '@chakra-ui/react';
 import {
   useFormContext,
   useFieldArray,
@@ -23,7 +8,9 @@ import {
 import toast from 'react-hot-toast';
 import { PropagateLoader } from 'react-spinners';
 import { MenuCtx, SetMenuCtx } from '@/Menu/App';
-import LabelColor from './color';
+import AddButton from './AddButton';
+import LabelArea from './LabelArea';
+import SendButton from './SendButton';
 import { type LabelData } from './labels';
 import { setLabelDataAPI } from '@/Menu/API/configDataAPI';
 import Full from '@/Menu/components/loader';
@@ -56,22 +43,6 @@ const LabelForm: FC = () => {
     },
   });
 
-  // ピッカーをポップアップするためのスタイル
-  const popover: CSSProperties = {
-    position: 'absolute',
-    marginTop: '5px',
-    zIndex: '2',
-  };
-
-  // ピッカー以外の領域を所をクリックした時に閉じるためのカバー
-  const cover: CSSProperties = {
-    position: 'fixed',
-    top: '0px',
-    right: '0px',
-    bottom: '0px',
-    left: '0px',
-  };
-
   const onSubmit: SubmitHandler<LabelData> = async (data) => {
     await setLabelDataAPI(data)
       .then((res) => {
@@ -90,8 +61,6 @@ const LabelForm: FC = () => {
       });
   };
 
-  // type LabelList
-
   return (
     <>
       {methods.formState.isSubmitting && (
@@ -106,83 +75,12 @@ const LabelForm: FC = () => {
       )}
       <form onSubmit={methods.handleSubmit(onSubmit)}>
         <Box>
-          <Box py={4}>
-            <VStack spacing={2}>
-              {fields.map((field, idx) => {
-                return (
-                  <Stack key={field.id}>
-                    <Grid templateColumns="repeat(8, 1fr)" gap={3}>
-                      <GridItem colSpan={5}>
-                        <Input
-                          placeholder={field.value}
-                          required
-                          {...methods.register(`labels.${idx}.value`, {
-                            onChange: (e: ChangeEvent<HTMLInputElement>) => {
-                              methods.setValue(
-                                `labels.${idx}.value`,
-                                e.target.value
-                              );
-                            },
-                          })}
-                        />
-                      </GridItem>
-                      <GridItem colSpan={1}>
-                        <LabelColor
-                          popover={popover}
-                          cover={cover}
-                          curColor={field.color}
-                          idx={idx}
-                          {...methods.register(`labels.${idx}.color`)}
-                        />
-                      </GridItem>
-                      <GridItem colSpan={2}>
-                        <Button
-                          type="button"
-                          onClick={() => {
-                            remove(idx);
-                          }}
-                        >
-                          削除
-                        </Button>
-                      </GridItem>
-                    </Grid>
-                  </Stack>
-                );
-              })}
-            </VStack>
-          </Box>
+          <LabelArea remove={remove} fields={fields} />
           <Center>
-            <Button
-              type="button"
-              onClick={() => {
-                append({
-                  value: 'ラベルだよ！',
-                  color: '#eeeeee',
-                });
-              }}
-            >
-              追加
-            </Button>
+            <AddButton append={append} text={'追加'} />
           </Center>
-          <FormErrorMessage>
-            {' '}
-            {/** TODO: なぜか表示されない */}
-            {methods.formState.errors.root?.message ?? ' '}
-          </FormErrorMessage>
           <Center>
-            <Button
-              mt="4"
-              type="submit"
-              disabled={
-                !methods.formState.isValid || methods.formState.isSubmitting
-              }
-              isLoading={methods.formState.isSubmitting}
-              loadingText="送信中..."
-              spinnerPlacement="start"
-              colorScheme="telegram"
-            >
-              送信する
-            </Button>
+            <SendButton text="送信する" disabledCondition={fields.length < 2} />
           </Center>
         </Box>
       </form>
