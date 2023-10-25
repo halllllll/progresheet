@@ -7,7 +7,11 @@ import {
   getAccessedUserInfoAPI,
 } from '../API/userAndSheetAPI';
 import { MenuCtx, SetMenuCtx } from '../App';
-import { ConfigSheetError, UndefinedServerError } from '../errors';
+import {
+  ConfigError,
+  SheetNotFoundError,
+  UndefinedServerError,
+} from '../errors';
 import { type Editor, type Labels } from '../types';
 
 type hasError =
@@ -39,6 +43,7 @@ const CtxProvider: FC<Props> = ({ children }) => {
   useEffect(() => {
     const f = async () => {
       // TODO: タイムアウト要検証
+      // TODO: thenを使わない記法（catchは使う）
 
       await Promise.all([
         getAccessedUserInfoAPI(),
@@ -54,7 +59,7 @@ const CtxProvider: FC<Props> = ({ children }) => {
           });
         })
         .catch((err: unknown) => {
-          if (err instanceof ConfigSheetError) {
+          if (err instanceof ConfigError) {
             setIsError({
               status: 'failed',
               errName: err.name,
@@ -66,12 +71,19 @@ const CtxProvider: FC<Props> = ({ children }) => {
               errName: err.name,
               errMessage: err.message,
             });
+          } else if (err instanceof SheetNotFoundError) {
+            setIsError({
+              status: 'failed',
+              errName: err.name,
+              errMessage: err.message,
+            });
           } else {
             // TODO: まじめ
+            const e = err as Error;
             setIsError({
               status: 'failed',
               errName: '不明なエラー',
-              errMessage: 'よくわからないエラーです',
+              errMessage: `${e.name} \n ${e.message}`,
             });
           }
         })
@@ -84,38 +96,39 @@ const CtxProvider: FC<Props> = ({ children }) => {
   }, []);
 
   return (
-    <SetMenuCtx.Provider value={setRes}>
-      <MenuCtx.Provider value={res}>
-        {' '}
-        {isLoading ? (
-          // 全画面縦横中央ローディング(Fullで救えない)
-          <Box
-            left="0"
-            top="0"
-            w="100vw"
-            h="100vh"
-            bg="rgba(0, 0, 0, 0.05)"
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-          >
-            <Center h="full">
-              <ClimbingBoxLoader color="#36d7b7" size="40px" />
-            </Center>
-          </Box>
-        ) : isError.status === 'failed' ? (
+    <>
+      {isLoading ? (
+        // 全画面縦横中央ローディング(Fullで救えない)
+        <Box
+          left="0"
+          top="0"
+          w="100vw"
+          h="100vh"
+          bg="rgba(0, 0, 0, 0.05)"
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+        >
+          <Center h="full">
+            <ClimbingBoxLoader color="#36d7b7" size="40px" />
+          </Center>
+        </Box>
+      ) : isError.status === 'failed' ? (
+        <Box>
+          <Heading>{`Error occured`}</Heading>
+          <Text as="b" fontSize="18px" color={'tomato'}>
+            {isError.errName}
+          </Text>
           <Box>
-            <Heading>{`Error occured`}</Heading>
-            <Text as="b" fontSize="18px" color={'tomato'}>
-              {isError.errName}
-            </Text>
             <Code>{isError.errMessage}</Code>
           </Box>
-        ) : (
-          children
-        )}
-      </MenuCtx.Provider>
-    </SetMenuCtx.Provider>
+        </Box>
+      ) : (
+        <SetMenuCtx.Provider value={setRes}>
+          <MenuCtx.Provider value={res}>{children}</MenuCtx.Provider>
+        </SetMenuCtx.Provider>
+      )}
+    </>
   );
 };
 

@@ -11,7 +11,7 @@ const ErrorPage: FC = () => {
       <Box id="error-page" m={4}>
         <Heading size={'lg'}>Oops! {error.status}</Heading>
         <Text>{error.statusText}</Text>
-        {error.data}
+        <Text>{error.data}</Text>
       </Box>
     );
   } else if (error instanceof Error) {

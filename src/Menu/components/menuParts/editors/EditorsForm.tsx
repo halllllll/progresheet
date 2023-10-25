@@ -7,7 +7,7 @@ import {
   getConfigProtectionAPI,
   setConfigProtectionAPI,
 } from '@/Menu/API/configDataAPI';
-import { ConfigSheetError, ContextError } from '@/Menu/errors';
+import { ConfigError, ContextError } from '@/Menu/errors';
 import { type Editor } from '@/Menu/types';
 
 const EditorsForm: FC = () => {
@@ -34,7 +34,7 @@ const EditorsForm: FC = () => {
         });
       })
       .catch((err: unknown) => {
-        if (err instanceof ConfigSheetError) {
+        if (err instanceof ConfigError) {
           toast.error(`設定シートのエラー！\n${err.name}\n${err.message}`);
         } else {
           const e = err as Error;
@@ -62,16 +62,13 @@ const EditorsForm: FC = () => {
         ...menuCtx,
       });
       setEditors(res);
-      console.warn(
-        `想定ではここでちゃんと更新されるはずなんだけど...画面に表示されない...`
-      );
       console.warn(res);
       toast.success('編集者情報を更新したよ！', {
         duration: 2000,
       });
     } catch (err: unknown) {
-      if (err instanceof ConfigSheetError) {
-        toast.error(`設定シートのエラー！\n${err.name}\n${err.message}`);
+      if (err instanceof ConfigError) {
+        toast.error(`設定エラー！\n${err.name}\n${err.message}`);
       } else {
         const e = err as Error;
         toast.error(
