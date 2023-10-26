@@ -27,17 +27,16 @@ const AmountManager: FC<Props> = ({
 }) => {
   const menuCtx = useContext(MenuCtx);
 
-  if (menuCtx === null)
+  if (menuCtx === null || menuCtx.classLayout === undefined)
     throw new ContextError('non-context error', { details: 'on EditorsForm' });
 
-  // TODO: tostringとparseIntしているが大丈夫か？
   const [height, setHeight] = useState<number>(
     // parseInt(classDataCtx.row.toString())
-    parseInt((menuCtx.classLayout?.row ?? 1).toString())
+    parseInt(menuCtx.classLayout.row.toString())
   );
   const [width, setWidth] = useState<number>(
     // parseInt(classDataCtx.column.toString())
-    parseInt((menuCtx.classLayout?.column ?? 1).toString())
+    parseInt(menuCtx.classLayout.column.toString())
   );
 
   const handleFirst = (): void => {

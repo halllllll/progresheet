@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && bun run build:menu && node build.cjs",
+    "build": "tsc && bun run build:menu && bun build.cjs",
     "push": "cp appsscript.json dist && clasp push && rm -rf dist/*",
-    "build:menu": "tsc && bun run vite build --emptyOutDir --config vite.config.ts && find dist_menu -type f -name '*.html' -exec mv {} dist/ \\; && rm -rf dist_menu",
+    "build:menu": "bun run vite build --emptyOutDir --config vite.config.ts && find dist_menu -type f -name '*.html' -exec mv {} dist/ \\; && rm -rf dist_menu",
     "preview": "vite preview",
     "lint:es": "eslint 'src/**/*.{js,jsx,ts,tsx}'",
     "lint:es:fix": "eslint --fix 'src/**/*.{js,jsx,ts,tsx}'",
