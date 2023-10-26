@@ -14,7 +14,7 @@ const SEAT_HEADER = ['Index', 'LabelName', 'visible'] as const;
 const SEAT_DEFAULT_VALUES = [
   {
     index: 1,
-    name: 'pseudo',
+    name: 'pseudo1',
     visible: true,
   } satisfies Seat,
   {
@@ -119,7 +119,7 @@ const SEAT_DEFAULT_VALUES = [
   } satisfies Seat,
   {
     index: 22,
-    name: 'pseudo23',
+    name: 'pseudo22',
     visible: true,
   } satisfies Seat,
   {

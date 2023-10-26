@@ -17,7 +17,7 @@ const Layout: FC<Props> = ({ fields, columnCount }) => {
 
   if (menuCtx === null)
     throw new ContextError('non-context error', {
-      details: 'on ClassDataButton',
+      details: 'on Layout',
     });
 
   const _methods = useFormContext<ClassLayout>();
