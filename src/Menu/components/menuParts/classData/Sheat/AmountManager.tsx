@@ -15,14 +15,14 @@ import { type ClassLayout } from '@/Menu/types';
 type Props = {
   append: UseFieldArrayReturn<ClassLayout>['append'];
   remove: UseFieldArrayReturn<ClassLayout>['remove'];
-  fields: UseFieldArrayReturn<ClassLayout>['fields'];
+  fieldLength: number;
   setColumnCount: Dispatch<SetStateAction<number>>;
 };
 
 const AmountManager: FC<Props> = ({
   append,
   remove,
-  fields,
+  fieldLength,
   setColumnCount,
 }) => {
   const menuCtx = useContext(MenuCtx);
@@ -41,16 +41,16 @@ const AmountManager: FC<Props> = ({
   );
 
   const handleFirst = (): void => {
-    remove(Array.from({ length: fields.length }, (_, i) => i).slice(1));
+    remove(Array.from({ length: fieldLength }, (_, i) => i).slice(1));
   };
   const handleRemoveBy = (count: number): void => {
-    remove(Array.from({ length: fields.length }, (_, i) => i).slice(-count));
+    remove(Array.from({ length: fieldLength }, (_, i) => i).slice(-count));
   };
 
   const handleAddBy = (count: number): void => {
     append([
       ...Array.from({ length: count }, (_, i) => ({
-        index: fields.length + i + 1,
+        index: fieldLength + i + 1,
         name: '', // TODO: 名前は設定されてなくてもよいものとしたい（index_name）
         visible: true,
       })),

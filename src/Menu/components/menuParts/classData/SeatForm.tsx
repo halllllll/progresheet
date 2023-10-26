@@ -22,7 +22,7 @@ const SeatForm: FC<Props> = ({ defaultColumnCount }) => {
       <AmountManager
         append={append}
         remove={remove}
-        fields={fields}
+        fieldLength={fields.length}
         setColumnCount={setColumnCount}
       />
       <Layout fields={fields} columnCount={columnCount} />
