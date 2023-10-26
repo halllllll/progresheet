@@ -6,9 +6,8 @@ import {
   type SetStateAction,
 } from 'react';
 import { Box, HStack, Stack, Text } from '@chakra-ui/react';
-// import TestSheatsLaout from '../Test/TestSeatsLayoutDnd';
 import { type UseFieldArrayReturn } from 'react-hook-form';
-import { ClassDataCtx } from '../classData';
+import { MenuCtx } from '@/Menu/App';
 import AmountRoller from './AmountRoller';
 import { ContextError } from '@/Menu/errors';
 import { type ClassLayout } from '@/Menu/types';
@@ -26,18 +25,19 @@ const AmountManager: FC<Props> = ({
   fields,
   setColumnCount,
 }) => {
-  const classDataCtx = useContext(ClassDataCtx);
-  if (classDataCtx === null)
-    throw new ContextError('non-context error', {
-      details: 'on AmountManager',
-    });
+  const menuCtx = useContext(MenuCtx);
+
+  if (menuCtx === null)
+    throw new ContextError('non-context error', { details: 'on EditorsForm' });
 
   // TODO: tostringとparseIntしているが大丈夫か？
   const [height, setHeight] = useState<number>(
-    parseInt(classDataCtx.row.toString())
+    // parseInt(classDataCtx.row.toString())
+    parseInt((menuCtx.classLayout?.row ?? 1).toString())
   );
   const [width, setWidth] = useState<number>(
-    parseInt(classDataCtx.column.toString())
+    // parseInt(classDataCtx.column.toString())
+    parseInt((menuCtx.classLayout?.column ?? 1).toString())
   );
 
   const handleFirst = (): void => {
@@ -109,8 +109,6 @@ const AmountManager: FC<Props> = ({
             {/** TODO: あとでちゃんとやる */}
             H:{height} W: {width}
           </Text>
-
-          {/* <TestSheatsLaout height={height} width={width} /> */}
         </Stack>
       </Box>
     </Box>

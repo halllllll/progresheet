@@ -1,17 +1,24 @@
-import { type FC, useState, type Dispatch, type SetStateAction } from 'react';
+import { type FC, useState, useContext } from 'react';
 import { Box, Button } from '@chakra-ui/react';
 import { useFormContext } from 'react-hook-form';
 import toast from 'react-hot-toast';
+import { SetMenuCtx, MenuCtx } from '@/Menu/App';
 import {
   getClassRoomInfoAPI,
   getClassRoomSeatAPI,
 } from '@/Menu/API/classRoomAPI';
+import { ContextError } from '@/Menu/errors';
 import { type ClassLayout } from '@/Menu/types';
 
-type Props = {
-  setClassData: Dispatch<SetStateAction<ClassLayout | null>>;
-};
-const GetClassData: FC<Props> = ({ setClassData }) => {
+const GetClassData: FC = () => {
+  const setMenuCtx = useContext(SetMenuCtx);
+  const menuCtx = useContext(MenuCtx);
+
+  if (menuCtx === null)
+    throw new ContextError('non-context error', {
+      details: 'on ClassDataButton',
+    });
+
   const methods = useFormContext<ClassLayout>();
   const [loading, setLoading] = useState<boolean>(false);
   const getSeats = async () => {
@@ -27,7 +34,13 @@ const GetClassData: FC<Props> = ({ setClassData }) => {
         methods.setValue('row', data.row);
         methods.setValue('name', data.name);
         methods.setValue('seats', seats);
-        setClassData({ seats, ...data });
+        setMenuCtx({
+          ...menuCtx,
+          classLayout: {
+            seats,
+            ...data,
+          },
+        });
       })
       .catch((err: unknown) => {
         // TODO: エラー処理

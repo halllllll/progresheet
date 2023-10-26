@@ -1,7 +1,7 @@
 import { useContext, type FC } from 'react';
 import { Box, SimpleGrid } from '@chakra-ui/react';
 import { useFormContext, type UseFieldArrayReturn } from 'react-hook-form';
-import { ClassDataCtx, SetClassDataCtx } from '../classData';
+import { MenuCtx } from '@/Menu/App';
 
 import Cell from './Cell';
 import { ContextError } from '@/Menu/errors';
@@ -13,12 +13,13 @@ type Props = {
 };
 
 const Layout: FC<Props> = ({ fields, columnCount }) => {
-  const _setClassDataCtx = useContext(SetClassDataCtx);
-  const classDataCtx = useContext(ClassDataCtx);
-  if (classDataCtx === null)
+  const menuCtx = useContext(MenuCtx);
+
+  if (menuCtx === null)
     throw new ContextError('non-context error', {
-      details: 'on AmountManager',
+      details: 'on ClassDataButton',
     });
+
   const _methods = useFormContext<ClassLayout>();
 
   return (

@@ -52,7 +52,6 @@ const CtxProvider: FC<Props> = ({ children }) => {
         getLabelDataAPI(),
       ])
         .then(([userid, sheetname, labels]) => {
-          console.log('label!');
           setRes({
             userID: userid,
             sheetName: sheetname,

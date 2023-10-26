@@ -1,32 +1,27 @@
-import {
-  type FC,
-  type Dispatch,
-  type SetStateAction,
-  useState,
-  createContext,
-} from 'react';
+import { type FC, useContext } from 'react';
 import { Box, HStack, Heading, Text, Tooltip } from '@chakra-ui/react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { RiInformationFill } from 'react-icons/ri';
+import { MenuCtx } from '@/Menu/App';
 import GetClassData from './GetClassDataButton';
 import SeatForm from './SeatForm';
+import { ContextError } from '@/Menu/errors';
 import { type ClassLayout } from '@/Menu/types';
 
-export const ClassDataCtx = createContext<ClassLayout | null>(null);
-export const SetClassDataCtx = createContext<
-  Dispatch<SetStateAction<ClassLayout | null>>
->(() => null);
-
 const ClassData: FC = () => {
-  const [classData, setClassData] = useState<ClassLayout | null>(null);
+  const menuCtx = useContext(MenuCtx);
+
+  if (menuCtx === null)
+    throw new ContextError('non-context error', { details: 'on EditorsForm' });
+
   const methods = useForm<ClassLayout>({
     mode: 'all',
     criteriaMode: 'all',
     defaultValues: {
-      column: classData?.column,
-      row: classData?.row,
-      name: classData?.name,
-      seats: classData?.seats,
+      column: menuCtx.classLayout?.column,
+      row: menuCtx.classLayout?.row,
+      name: menuCtx.classLayout?.name,
+      seats: menuCtx.classLayout?.seats,
     },
   });
 
@@ -55,17 +50,18 @@ const ClassData: FC = () => {
       </Box>
       <Box py={5}>
         <FormProvider {...methods}>
-          {classData === null || classData?.seats?.length === 0 ? (
-            <GetClassData setClassData={setClassData} />
+          {menuCtx.classLayout === undefined ||
+          menuCtx.classLayout?.seats?.length === 0 ? (
+            <>
+              <GetClassData />
+            </>
           ) : (
-            <SetClassDataCtx.Provider value={setClassData}>
-              <ClassDataCtx.Provider value={classData}>
-                <SeatForm
-                  // TODO: 変換が多くて怖い
-                  defaultColumnCount={parseInt(classData.column.toString())}
-                />
-              </ClassDataCtx.Provider>
-            </SetClassDataCtx.Provider>
+            <SeatForm
+              // TODO: 変換が多くて怖い
+              defaultColumnCount={parseInt(
+                (menuCtx.classLayout?.column ?? 1).toString()
+              )}
+            />
           )}
         </FormProvider>
       </Box>
