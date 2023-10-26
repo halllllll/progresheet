@@ -813,12 +813,12 @@ const getClassRoomSeatData = (): SeatSheetRespone => {
         };
       }
       ret = [
+        ...ret,
         {
           index: parseInt(val[0]),
           name: val[1],
           visible: val[2] === 'TRUE',
         },
-        ...ret,
       ];
     }
 
