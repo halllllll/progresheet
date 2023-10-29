@@ -21,7 +21,7 @@ import Sortable from './Sortable';
 type Props = {
   layout: SeatLayoutData;
   columnCount: number;
-  setLayoutHandler: (data: SeatLayoutData) => void;
+  setLayoutHandler?: (data: SeatLayoutData) => void;
 };
 
 const Layout: FC<Props> = ({ layout, columnCount, setLayoutHandler }) => {
@@ -34,7 +34,7 @@ const Layout: FC<Props> = ({ layout, columnCount, setLayoutHandler }) => {
         const oldIndex = layout.findIndex((field) => field.id === active.id);
         const newIndex = layout.findIndex((field) => field.id === over.id);
         const newStates = arraySwap(layout, oldIndex, newIndex);
-        setLayoutHandler(newStates);
+        if (setLayoutHandler !== undefined) setLayoutHandler(newStates);
       }
     },
     [layout, setLayoutHandler]

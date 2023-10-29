@@ -59,13 +59,16 @@ const SeatForm: FC<Props> = ({
       const temp = [...layout.slice(0, -count)];
       const newSeats = [...temp];
       // indexを順番に降りなおす
-      const sorted = [...temp.sort((a, b) => (a.index < b.index ? -1 : 1))];
-      const sortedMap: Record<number, number> = {};
-      sorted.forEach((item, newIndex) => {
-        sortedMap[item.index] = newIndex + 1;
-      });
+      const sortedMap: Record<number, number> = [
+        ...temp.sort((a, b) => a.index - b.index),
+      ].reduce(
+        (acc, { index }, newIndex) => ({ ...acc, [index]: newIndex + 1 }),
+        {}
+      );
+
       const nextLayout = [
-        ...newSeats.map((seat, _index) => {
+        ...newSeats.map((seat) => {
+          // TODO: なんかもっといい方法（ヒットしなかった場合のエラーハンドリングがめんどくさいので確実な方法）
           const target = layout.filter((t) => t.id === seat.id)[0];
 
           return { ...target, index: sortedMap[target.index] };
