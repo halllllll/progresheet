@@ -31,11 +31,10 @@ const SeatForm: FC<Props> = ({
   const setLayoutHandler = (data: SeatLayoutData) => {
     setLayout(data);
     menuClassLayoutCtxUpdater({
-      seats: data.map((d) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      seats: data.map(({ id, ...rest }) => {
         return {
-          index: d.index,
-          name: d.name,
-          visible: d.visible,
+          ...rest,
         };
       }),
     });

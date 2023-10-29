@@ -18,8 +18,6 @@ export type Labels = {
 // export declare const seatId: unique symbol;
 // export declare const name: unique symbol;
 export type Seat = {
-  // index: number & { [seatId]: never };
-  // name: string & { [name]: never };
   index: number;
   name: string;
   visible: boolean;
