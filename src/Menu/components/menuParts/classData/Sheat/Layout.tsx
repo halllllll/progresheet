@@ -1,44 +1,85 @@
-import { useContext, type FC } from 'react';
+import { type FC, useCallback } from 'react';
 import { Box, SimpleGrid } from '@chakra-ui/react';
-import { useFormContext, type UseFieldArrayReturn } from 'react-hook-form';
-import { MenuCtx } from '@/Menu/App';
+import {
+  DndContext,
+  MouseSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  rectSwappingStrategy,
+  arraySwap,
+} from '@dnd-kit/sortable';
 
+import { type SeatLayoutData } from '../SeatForm';
 import Cell from './Cell';
-import { ContextError } from '@/Menu/errors';
-import { type ClassLayout } from '@/Menu/types';
+import Sortable from './Sortable';
 
 type Props = {
-  fields: UseFieldArrayReturn<ClassLayout>['fields'];
+  layout: SeatLayoutData;
   columnCount: number;
+  setLayoutHandler: (data: SeatLayoutData) => void;
 };
 
-const Layout: FC<Props> = ({ fields, columnCount }) => {
-  const menuCtx = useContext(MenuCtx);
+const Layout: FC<Props> = ({ layout, columnCount, setLayoutHandler }) => {
+  //  drag 終了時に発火するハンドラ
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (over === null) return;
+      if (active.id !== over.id) {
+        const oldIndex = layout.findIndex((field) => field.id === active.id);
+        const newIndex = layout.findIndex((field) => field.id === over.id);
+        const newStates = arraySwap(layout, oldIndex, newIndex);
+        setLayoutHandler(newStates);
+      }
+    },
+    [layout, setLayoutHandler]
+  );
 
-  if (menuCtx === null)
-    throw new ContextError('non-context error', {
-      details: 'on Layout',
-    });
-
-  const _methods = useFormContext<ClassLayout>();
+  // sensorの定義。
+  const sensors = useSensors(
+    useSensor(MouseSensor, {
+      // マウスの場合は10px動いたらドラッグと判断
+      activationConstraint: {
+        distance: 10,
+      },
+    }),
+    useSensor(TouchSensor, {
+      // タッチの場合は200ミリ秒押下かつ5px動いたらドラッグと判断
+      activationConstraint: {
+        delay: 200,
+        tolerance: 5,
+      },
+    })
+  );
 
   return (
     <Box maxH={'md'} maxW={'md'} overflow={'scroll'}>
       <Box w="max-content">
         <Box>
-          <SimpleGrid spacing={'4px'} columns={columnCount}>
-            {fields.map((seat, id) => {
-              return (
-                <Box key={id}>
-                  <Cell
-                    index={seat.index}
-                    name={seat.name}
-                    visible={seat.visible}
-                  />
-                </Box>
-              );
-            })}
-          </SimpleGrid>
+          <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+            <SortableContext items={layout} strategy={rectSwappingStrategy}>
+              <SimpleGrid spacing={'4px'} columns={columnCount}>
+                {layout.map((seat) => {
+                  return (
+                    <Box key={seat.id}>
+                      <Sortable id={seat.id}>
+                        <Cell
+                          index={seat.index}
+                          name={seat.name}
+                          visible={seat.visible}
+                        />
+                      </Sortable>
+                    </Box>
+                  );
+                })}
+              </SimpleGrid>
+            </SortableContext>
+          </DndContext>
         </Box>
       </Box>
     </Box>

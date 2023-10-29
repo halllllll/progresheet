@@ -6,44 +6,43 @@ import {
   type SetStateAction,
 } from 'react';
 import { Box, HStack, Stack, Text } from '@chakra-ui/react';
-import { type UseFieldArrayReturn } from 'react-hook-form';
 import { MenuCtx } from '@/Menu/App';
 import AmountRoller from './AmountRoller';
 import { ContextError } from '@/Menu/errors';
-import { type ClassLayout } from '@/Menu/types';
+import { type ClassLayout, type Seat } from '@/Menu/types';
 
 type Props = {
-  append: UseFieldArrayReturn<ClassLayout>['append'];
-  remove: UseFieldArrayReturn<ClassLayout>['remove'];
   fieldLength: number;
+  append: (seats: Seat | Seat[]) => void;
+  remove: (id: string | string[] | number) => void;
   setColumnCount: Dispatch<SetStateAction<number>>;
+  menuClassLayoutCtxUpdater: (data: Partial<ClassLayout>) => void;
 };
 
 const AmountManager: FC<Props> = ({
+  fieldLength,
   append,
   remove,
-  fieldLength,
   setColumnCount,
+  menuClassLayoutCtxUpdater,
 }) => {
   const menuCtx = useContext(MenuCtx);
 
-  if (menuCtx === null || menuCtx.classLayout === undefined)
+  if (menuCtx === null || !menuCtx.classLayout)
     throw new ContextError('non-context error', { details: 'on EditorsForm' });
 
   const [height, setHeight] = useState<number>(
-    // parseInt(classDataCtx.row.toString())
     parseInt(menuCtx.classLayout.row.toString())
   );
   const [width, setWidth] = useState<number>(
-    // parseInt(classDataCtx.column.toString())
     parseInt(menuCtx.classLayout.column.toString())
   );
 
   const handleFirst = (): void => {
-    remove(Array.from({ length: fieldLength }, (_, i) => i).slice(1));
+    remove(fieldLength - 1);
   };
   const handleRemoveBy = (count: number): void => {
-    remove(Array.from({ length: fieldLength }, (_, i) => i).slice(-count));
+    remove(count);
   };
 
   const handleAddBy = (count: number): void => {
@@ -68,6 +67,9 @@ const AmountManager: FC<Props> = ({
       }
     }
     setHeight(nextHeight);
+    menuClassLayoutCtxUpdater({
+      row: nextHeight,
+    });
   };
   const widthHandler = (val: string) => {
     const nextWidth = parseInt(val);
@@ -82,6 +84,9 @@ const AmountManager: FC<Props> = ({
     }
     setWidth(nextWidth);
     setColumnCount(nextWidth);
+    menuClassLayoutCtxUpdater({
+      column: nextWidth,
+    });
   };
 
   return (

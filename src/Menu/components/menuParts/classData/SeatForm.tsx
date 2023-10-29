@@ -1,31 +1,98 @@
-import { useState, type FC } from 'react';
-import { useFieldArray, useFormContext } from 'react-hook-form';
+import { useState, type FC, useContext } from 'react';
+import { v4 as uuid } from 'uuid';
+import { MenuCtx } from '@/Menu/App';
 import SendClassData from './SetClassDataButton';
 import AmountManager from './Sheat/AmountManager';
 import Layout from './Sheat/Layout';
-import { type ClassLayout } from '@/Menu/types';
+import { ContextError } from '@/Menu/errors';
+import { type Seat, type ClassLayout } from '@/Menu/types';
+
+export type SeatLayoutData = Array<Seat & { id: string }>;
 
 type Props = {
   defaultColumnCount: number;
+  menuClassLayoutCtxUpdater: (data: Partial<ClassLayout>) => void;
 };
-const SeatForm: FC<Props> = ({ defaultColumnCount }) => {
-  const methods = useFormContext<ClassLayout>();
+const SeatForm: FC<Props> = ({
+  defaultColumnCount,
+  menuClassLayoutCtxUpdater,
+}) => {
+  const menuCtx = useContext(MenuCtx);
+
+  if (menuCtx === null || menuCtx.classLayout === undefined)
+    throw new ContextError('non-context error', { details: 'on EditorsForm' });
+
   const [columnCount, setColumnCount] = useState<number>(defaultColumnCount);
-  const { fields, append, remove } = useFieldArray<ClassLayout>({
-    name: 'seats',
-    shouldUnregister: false,
-    control: methods.control,
-  });
+  const [layout, setLayout] = useState<SeatLayoutData>(
+    menuCtx.classLayout.seats.map((seat) => {
+      return { ...seat, id: uuid() };
+    })
+  );
+  const setLayoutHandler = (data: SeatLayoutData) => {
+    setLayout(data);
+    menuClassLayoutCtxUpdater({
+      seats: data.map((d) => {
+        return {
+          index: d.index,
+          name: d.name,
+          visible: d.visible,
+        };
+      }),
+    });
+  };
+
+  const appendHandler = (newSeats: Seat | Seat[]): void => {
+    const data: Seat[] = Array.isArray(newSeats) ? newSeats : [newSeats];
+
+    setLayoutHandler([
+      ...layout,
+      ...data.map((seat) => {
+        return { ...seat, id: uuid() };
+      }),
+    ]);
+  };
+
+  const removeHandler = (id: string | string[] | number): void => {
+    if (typeof id === 'number') {
+      const count = id;
+      if (count <= 0) return;
+      const temp = [...layout.slice(0, -count)];
+      const newSeats = [...temp];
+      // indexを順番に降りなおす
+      const sorted = [...temp.sort((a, b) => (a.index < b.index ? -1 : 1))];
+      const sortedMap: Record<number, number> = {};
+      sorted.forEach((item, newIndex) => {
+        sortedMap[item.index] = newIndex + 1;
+      });
+      const nextLayout = [
+        ...newSeats.map((seat, _index) => {
+          const target = layout.filter((t) => t.id === seat.id)[0];
+
+          return { ...target, index: sortedMap[target.index] };
+        }),
+      ];
+      setLayoutHandler(nextLayout);
+    } else {
+      const data: string[] = Array.isArray(id) ? id : [id];
+      const newSeats = [...layout.filter((v) => data.includes(v.id))];
+      setLayoutHandler(newSeats);
+    }
+  };
 
   return (
     <form>
       <AmountManager
-        append={append}
-        remove={remove}
-        fieldLength={fields.length}
+        append={appendHandler}
+        remove={removeHandler}
+        fieldLength={layout.length}
         setColumnCount={setColumnCount}
+        menuClassLayoutCtxUpdater={menuClassLayoutCtxUpdater}
       />
-      <Layout fields={fields} columnCount={columnCount} />
+      <Layout
+        layout={layout}
+        columnCount={columnCount}
+        setLayoutHandler={setLayoutHandler}
+      />
       <SendClassData />
     </form>
   );
