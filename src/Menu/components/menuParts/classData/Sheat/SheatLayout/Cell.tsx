@@ -1,5 +1,5 @@
 import { type FC } from 'react';
-import { Box, Tag, Text } from '@chakra-ui/react';
+import { Avatar, Box, Stack, Text } from '@chakra-ui/react';
 import { type Seat } from '@/Menu/types';
 
 const Cell: FC<Seat> = (props) => {
@@ -9,15 +9,25 @@ const Cell: FC<Seat> = (props) => {
     <Box
       border={'1px'}
       borderRadius={'md'}
-      p={2}
+      p={1}
       m={4}
       w={'100px'}
-      h={'100px'}
-      overflow={'scroll'}
+      h={'80px'}
+      bg={visible ? 'blue.100' : ''}
     >
-      <Text>{`index: ${index}`}</Text>
-      <Text>{`name: ${name}`}</Text>
-      <Tag>{`isvisible: ${visible ? 'TRUE' : 'FALSE'}`}</Tag>
+      <Stack overflow={'hidden'}>
+        <Avatar
+          name={`${index}`}
+          getInitials={() => `${index}`}
+          size={'md'}
+          bg={visible ? 'teal.500' : 'blackAlpha.700'}
+          boxSize={'8'}
+        />
+        <Box>
+          {/** TODO: なぜかtrancateされない */}
+          <Text as="b" isTruncated>{`${name}`}</Text>
+        </Box>
+      </Stack>
     </Box>
   );
 };
