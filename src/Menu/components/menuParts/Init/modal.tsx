@@ -38,6 +38,7 @@ const InitModal: FC<ModalProps> = (props) => {
         closeOnOverlayClick={false}
         size={'xl'}
         isCentered
+        allowPinchZoom={true}
       >
         <ModalOverlay />
         <ModalContent>

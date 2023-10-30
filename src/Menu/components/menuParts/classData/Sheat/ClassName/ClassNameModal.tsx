@@ -43,6 +43,7 @@ const ClassNameModal: FC<Props> = ({
       isOpen={isOpen}
       onClose={onClose}
       closeOnOverlayClick={false}
+      allowPinchZoom={true}
     >
       <ModalOverlay />
       <ModalContent>
