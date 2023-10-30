@@ -408,7 +408,6 @@ const initConfig = async (options: InitOptions = {}): Promise<InitResponse> => {
   console.log(`options: ${JSON.stringify(options)}`);
 
   try {
-    // TODO: まずラベル設定シートだけ考える あとでそれぞれのInitSheetに対してPromiseしてPromise.allする予定
     const results = await Promise.all([
       Promise.resolve(initLabelSheet()),
       Promise.resolve(initSeatListSheet()),
