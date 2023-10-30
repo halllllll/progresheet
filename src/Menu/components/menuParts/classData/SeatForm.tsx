@@ -3,6 +3,7 @@ import { v4 as uuid } from 'uuid';
 import { MenuCtx } from '@/Menu/App';
 import SendClassData from './SetClassDataButton';
 import AmountManager from './Sheat/AmountManager';
+import ClassName from './Sheat/ClassName/ClassName';
 import Layout from './Sheat/Layout';
 import { ContextError } from '@/Menu/errors';
 import { type Seat, type ClassLayout } from '@/Menu/types';
@@ -88,6 +89,10 @@ const SeatForm: FC<Props> = ({
         remove={removeHandler}
         fieldLength={layout.length}
         setColumnCount={setColumnCount}
+        menuClassLayoutCtxUpdater={menuClassLayoutCtxUpdater}
+      />
+      <ClassName
+        name={menuCtx.classLayout.name}
         menuClassLayoutCtxUpdater={menuClassLayoutCtxUpdater}
       />
       <Layout

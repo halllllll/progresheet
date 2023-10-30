@@ -5,7 +5,7 @@ import {
   type Dispatch,
   type SetStateAction,
 } from 'react';
-import { Box, HStack, Stack, Text } from '@chakra-ui/react';
+import { Box, HStack, Stack } from '@chakra-ui/react';
 import { MenuCtx } from '@/Menu/App';
 import AmountRoller from './AmountRoller';
 import { ContextError } from '@/Menu/errors';
@@ -90,31 +90,25 @@ const AmountManager: FC<Props> = ({
   };
 
   return (
-    <Box>
-      <Box>
-        <Stack>
-          <HStack gap={10}>
-            <HStack>
-              <AmountRoller
-                defaultValue={height}
-                label="Height"
-                setValue={heightHandler}
-              />
-            </HStack>
-            <HStack>
-              <AmountRoller
-                defaultValue={width}
-                label="Width"
-                setValue={widthHandler}
-              />
-            </HStack>
+    <Box mb={6}>
+      <Stack>
+        <HStack gap={10}>
+          <HStack>
+            <AmountRoller
+              defaultValue={height}
+              label="Height"
+              setValue={heightHandler}
+            />
           </HStack>
-          <Text>
-            {/** TODO: あとでちゃんとやる */}
-            H:{height} W: {width}
-          </Text>
-        </Stack>
-      </Box>
+          <HStack>
+            <AmountRoller
+              defaultValue={width}
+              label="Width"
+              setValue={widthHandler}
+            />
+          </HStack>
+        </HStack>
+      </Stack>
     </Box>
   );
 };

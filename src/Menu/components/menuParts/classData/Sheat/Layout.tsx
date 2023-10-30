@@ -42,13 +42,17 @@ const Layout: FC<Props> = ({ layout, columnCount, setLayoutHandler }) => {
     [layout, setLayoutHandler]
   );
 
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const {
+    isOpen: isCellModalOpen,
+    onOpen: onCellModalOpen,
+    onClose: onCellModalClose,
+  } = useDisclosure();
   const initialRef = useRef(null);
   const finalRef = useRef(null);
   const [targetSeat, setTargetSeat] = useState<Seat | null>(null);
-  const onCellModalOpen = (selectedSeat: Seat): void => {
+  const openCellModal = (selectedSeat: Seat): void => {
     setTargetSeat(selectedSeat);
-    onOpen();
+    onCellModalOpen();
   };
 
   // sensorの定義。
@@ -70,11 +74,11 @@ const Layout: FC<Props> = ({ layout, columnCount, setLayoutHandler }) => {
 
   return (
     <Box>
-      {isOpen /** TODO: isOpenを判定に使うの卑怯 useStateのデフォルトがNullである・でないときのフィルタリングをちゃんとしたい、あるいは現在の設計がイケてない */ && (
+      {isCellModalOpen /** TODO: isOpenを判定に使うの卑怯 useStateのデフォルトがNullである・でないときのフィルタリングをちゃんとしたい、あるいは現在の設計がイケてない */ && (
         <CellModal
-          onOpen={onOpen}
-          isOpen={isOpen}
-          onClose={onClose}
+          onOpen={onCellModalOpen}
+          isOpen={isCellModalOpen}
+          onClose={onCellModalClose}
           seat={targetSeat}
           initialRef={initialRef}
           finalRef={finalRef}
@@ -98,7 +102,7 @@ const Layout: FC<Props> = ({ layout, columnCount, setLayoutHandler }) => {
                               name: seat.name,
                               visible: seat.visible,
                             };
-                            onCellModalOpen(curSeat);
+                            openCellModal(curSeat);
                           }}
                         >
                           <Cell
