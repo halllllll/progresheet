@@ -1,4 +1,4 @@
-import { useRef, type FC } from 'react';
+import { useRef, type FC, useState, type ChangeEvent } from 'react';
 import { useDisclosure } from '@chakra-ui/react';
 import ClassNameBtn from './ClassNameBtn';
 import ClassNameModal from './ClassNameModal';
@@ -8,7 +8,6 @@ type Props = {
   name: string;
   menuClassLayoutCtxUpdater: (data: Partial<ClassLayout>) => void;
 };
-// TODO: nameのバケツリレーがダルい
 const ClassName: FC<Props> = ({ name }) => {
   const {
     isOpen: isClassNameModalOpen,
@@ -17,6 +16,11 @@ const ClassName: FC<Props> = ({ name }) => {
   } = useDisclosure();
   const initialRef = useRef(null);
   const finalRef = useRef(null);
+  const [className, setClassName] = useState<string>(name);
+  const setNameHandler = (e: ChangeEvent<HTMLInputElement>) => {
+    setClassName(e.target.value);
+    console.warn(className);
+  };
 
   return (
     <>
@@ -27,10 +31,11 @@ const ClassName: FC<Props> = ({ name }) => {
           onClose={onClassNameModalClose}
           initialRef={initialRef}
           finalRef={finalRef}
+          setNameHandler={setNameHandler}
         />
       )}
       <ClassNameBtn
-        name={name}
+        name={className}
         onOpen={onClassNameModalOpen}
         isOpen={isClassNameModalOpen}
       />

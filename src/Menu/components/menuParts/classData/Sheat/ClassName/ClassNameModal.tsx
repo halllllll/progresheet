@@ -22,6 +22,7 @@ type Props = {
   onClose: () => void;
   initialRef: MutableRefObject<null>;
   finalRef: MutableRefObject<null>;
+  setNameHandler: (e: any) => void;
 };
 
 const ClassNameModal: FC<Props> = ({
@@ -29,6 +30,7 @@ const ClassNameModal: FC<Props> = ({
   onClose,
   initialRef,
   finalRef,
+  setNameHandler,
 }) => {
   return (
     <Modal
@@ -49,7 +51,11 @@ const ClassNameModal: FC<Props> = ({
               <FormControl>
                 <FormLabel>{'シート名'}</FormLabel>
                 <InputGroup size={'lg'}>
-                  <Input ref={initialRef} placeholder={`あひ〜ん`} />
+                  <Input
+                    ref={initialRef}
+                    placeholder={`あひ〜ん`}
+                    onChange={setNameHandler}
+                  />
                 </InputGroup>
               </FormControl>
             </VStack>
