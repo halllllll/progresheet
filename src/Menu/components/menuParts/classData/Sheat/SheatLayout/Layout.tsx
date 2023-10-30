@@ -14,7 +14,7 @@ import {
   arraySwap,
 } from '@dnd-kit/sortable';
 
-import { type SeatLayoutData } from '../SeatForm';
+import { type SeatLayoutData } from '../../SeatForm';
 import Cell from './Cell';
 import CellModal from './CellModal';
 import Sortable from './Sortable';

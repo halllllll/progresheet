@@ -31,6 +31,7 @@ const ClassName: FC<Props> = ({ name }) => {
           onClose={onClassNameModalClose}
           initialRef={initialRef}
           finalRef={finalRef}
+          name={className}
           setNameHandler={setNameHandler}
         />
       )}

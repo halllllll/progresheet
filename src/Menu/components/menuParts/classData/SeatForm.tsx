@@ -2,9 +2,9 @@ import { useState, type FC, useContext } from 'react';
 import { v4 as uuid } from 'uuid';
 import { MenuCtx } from '@/Menu/App';
 import SendClassData from './SetClassDataButton';
-import AmountManager from './Sheat/AmountManager';
+import AmountManager from './Sheat/Amount/AmountManager';
 import ClassName from './Sheat/ClassName/ClassName';
-import Layout from './Sheat/Layout';
+import Layout from './Sheat/SheatLayout/Layout';
 import { ContextError } from '@/Menu/errors';
 import { type Seat, type ClassLayout } from '@/Menu/types';
 

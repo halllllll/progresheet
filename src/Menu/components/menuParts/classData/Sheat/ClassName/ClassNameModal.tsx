@@ -13,6 +13,7 @@ import {
   Button,
   HStack,
   VStack,
+  Text,
   InputGroup,
 } from '@chakra-ui/react';
 
@@ -22,6 +23,7 @@ type Props = {
   onClose: () => void;
   initialRef: MutableRefObject<null>;
   finalRef: MutableRefObject<null>;
+  name: string;
   setNameHandler: (e: any) => void;
 };
 
@@ -30,6 +32,7 @@ const ClassNameModal: FC<Props> = ({
   onClose,
   initialRef,
   finalRef,
+  name,
   setNameHandler,
 }) => {
   return (
@@ -47,13 +50,19 @@ const ClassNameModal: FC<Props> = ({
         <ModalCloseButton />
         <ModalBody pb={6}>
           <HStack alignItems={'baseline'} justifyContent={'center'}>
-            <VStack>
+            <VStack spacing={'5'}>
+              <Text as="b">
+                {'(既存のシート名と重複している場合は保存されません）'}
+              </Text>
+
               <FormControl>
-                <FormLabel>{'シート名'}</FormLabel>
+                <FormLabel>
+                  {'シート名（ex: 学年・クラスや授業名など）'}
+                </FormLabel>
                 <InputGroup size={'lg'}>
                   <Input
                     ref={initialRef}
-                    placeholder={`あひ〜ん`}
+                    placeholder={name}
                     onChange={setNameHandler}
                   />
                 </InputGroup>
