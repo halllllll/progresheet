@@ -50,9 +50,7 @@ const InitModal: FC<ModalProps> = (props) => {
                   <FormControl id="desc">
                     <HStack alignContent={'center'}>
                       <FormLabel htmlFor="desc" my={'auto'}>
-                        {
-                          '初期化後に編集権限アカウントを「設定」シートに反映する'
-                        }
+                        {'初期化後も編集権限アカウントを引き継ぐ'}
                       </FormLabel>
                       <Switch
                         colorScheme="purple"
