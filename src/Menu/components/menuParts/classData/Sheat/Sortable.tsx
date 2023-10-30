@@ -17,6 +17,7 @@ export const Sortable: FC<Props> = ({ children, id }) => {
   const style = {
     transform: CSS.Translate.toString(transform),
     transition,
+    touchAction: 'none', // TODO: unknown behavior
   };
 
   return (

@@ -1,5 +1,5 @@
-import { type FC, useCallback } from 'react';
-import { Box, SimpleGrid } from '@chakra-ui/react';
+import { type FC, useCallback, useRef, useState } from 'react';
+import { Box, SimpleGrid, useDisclosure } from '@chakra-ui/react';
 import {
   DndContext,
   MouseSensor,
@@ -16,7 +16,9 @@ import {
 
 import { type SeatLayoutData } from '../SeatForm';
 import Cell from './Cell';
+import CellModal from './CellModal';
 import Sortable from './Sortable';
+import { type Seat } from '@/Menu/types';
 
 type Props = {
   layout: SeatLayoutData;
@@ -40,6 +42,15 @@ const Layout: FC<Props> = ({ layout, columnCount, setLayoutHandler }) => {
     [layout, setLayoutHandler]
   );
 
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const initialRef = useRef(null);
+  const finalRef = useRef(null);
+  const [targetSeat, setTargetSeat] = useState<Seat | null>(null);
+  const onCellModalOpen = (selectedSeat: Seat): void => {
+    setTargetSeat(selectedSeat);
+    onOpen();
+  };
+
   // sensorの定義。
   const sensors = useSensors(
     useSensor(MouseSensor, {
@@ -58,9 +69,20 @@ const Layout: FC<Props> = ({ layout, columnCount, setLayoutHandler }) => {
   );
 
   return (
-    <Box maxH={'md'} maxW={'md'} overflow={'scroll'}>
-      <Box w="max-content">
-        <Box>
+    <Box>
+      {isOpen /** TODO: isOpenを判定に使うの卑怯 useStateのデフォルトがNullである・でないときのフィルタリングをちゃんとしたい、あるいは現在の設計がイケてない */ && (
+        <CellModal
+          onOpen={onOpen}
+          isOpen={isOpen}
+          onClose={onClose}
+          seat={targetSeat}
+          initialRef={initialRef}
+          finalRef={finalRef}
+        />
+      )}
+
+      <Box maxH={'md'} maxW={'lg'} overflow={'scroll'} border={'1px'}>
+        <Box w="max-content">
           <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
             <SortableContext items={layout} strategy={rectSwappingStrategy}>
               <SimpleGrid spacing={'4px'} columns={columnCount}>
@@ -68,11 +90,23 @@ const Layout: FC<Props> = ({ layout, columnCount, setLayoutHandler }) => {
                   return (
                     <Box key={seat.id}>
                       <Sortable id={seat.id}>
-                        <Cell
-                          index={seat.index}
-                          name={seat.name}
-                          visible={seat.visible}
-                        />
+                        <Box
+                          onClick={() => {
+                            // なんかこれがだめらしい
+                            const curSeat: Seat = {
+                              index: seat.index,
+                              name: seat.name,
+                              visible: seat.visible,
+                            };
+                            onCellModalOpen(curSeat);
+                          }}
+                        >
+                          <Cell
+                            index={seat.index}
+                            name={seat.name}
+                            visible={seat.visible}
+                          />
+                        </Box>
                       </Sortable>
                     </Box>
                   );

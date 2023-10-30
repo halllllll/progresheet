@@ -37,52 +37,15 @@ const getClassRoomSeatAPI = async (): Promise<Seat[]> => {
     return await new Promise<Seat[]>((resolve) => {
       setTimeout(() => {
         resolve([
-          {
-            index: 1,
-            name: 'a',
-            visible: false,
-          },
-          {
-            index: 2,
-            name: 'a',
-            visible: false,
-          },
-          {
-            index: 3,
-            name: 'a',
-            visible: false,
-          },
-          {
-            index: 4,
-            name: 'a',
-            visible: false,
-          },
-          {
-            index: 5,
-            name: 'a',
-            visible: false,
-          },
-          {
-            index: 6,
-            name: 'a',
-            visible: false,
-          },
-          {
-            index: 7,
-            name: 'a',
-            visible: false,
-          },
-          {
-            index: 8,
-            name: 'a',
-            visible: false,
-          },
-
-          {
-            index: 9,
-            name: 'a',
-            visible: false,
-          },
+          { index: 1, name: 'さとう', visible: true },
+          { index: 2, name: 'すずき', visible: false },
+          { index: 3, name: 'たかはし', visible: true },
+          { index: 4, name: 'Smith', visible: false },
+          { index: 5, name: 'Johnson', visible: true },
+          { index: 6, name: 'たなか', visible: false },
+          { index: 7, name: 'Williams', visible: true },
+          { index: 8, name: 'なかむら', visible: false },
+          { index: 9, name: 'Brown', visible: true },
         ]);
       }, 1000);
     });
