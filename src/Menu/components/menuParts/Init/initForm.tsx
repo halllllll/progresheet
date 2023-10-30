@@ -3,7 +3,7 @@ import { Button, Center, useDisclosure } from '@chakra-ui/react';
 import { type SubmitHandler, useFormContext } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { PropagateLoader } from 'react-spinners';
-import InitModal from './modal';
+import InitModal from './initModal';
 import initAPI from '@/Menu/API/initAPI';
 import { type InitOptions } from '@/Menu/AppsScript/service';
 import Full from '@/Menu/components/loader';

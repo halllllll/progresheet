@@ -70,7 +70,7 @@ const InitModal: FC<ModalProps> = (props) => {
                     visibility={editorsSwitch ?? false ? 'hidden' : 'visible'}
                   >
                     <Text color="chocolate">
-                      {'＊初期化後は編集者アカウントを別途設定してね！'}
+                      {'＊初期化後はあなたが編集者アカウントを別途設定してね！'}
                     </Text>
                   </Box>
                   <HStack mt="4" gap="10" justifyContent="space-around">
@@ -92,7 +92,7 @@ const InitModal: FC<ModalProps> = (props) => {
                       spinnerPlacement="start"
                       colorScheme="red"
                     >
-                      Yes
+                      {'Yes'}
                     </Button>
                   </HStack>
                 </VStack>
