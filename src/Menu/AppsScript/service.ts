@@ -677,7 +677,13 @@ const getClassRoomConfig = (): ClassRoomResponse => {
     const height = Utils.getPropertyByName('CLASSROOM_HEIGHT');
     const name = Utils.getPropertyByName('CLASSROOM_CLASSNAME');
 
-    if (width === null || height === null || name === null) {
+    if (
+      width === null ||
+      height === null ||
+      name === null ||
+      Number.isNaN(parseInt(width)) ||
+      Number.isNaN(parseInt(height))
+    ) {
       Logger.log(`name: ${name ?? 'omg'}`);
       Logger.log(`height: ${height ?? 'omg'}`);
       Logger.log(`width: ${width ?? 'omg'}`);
@@ -696,8 +702,8 @@ const getClassRoomConfig = (): ClassRoomResponse => {
     return {
       success: true,
       body: {
-        column: height,
-        row: width,
+        column: parseInt(height),
+        row: parseInt(width),
         name,
       },
     };

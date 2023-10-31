@@ -69,7 +69,11 @@ const CellModal: FC<Props> = ({
                 <FormLabel>{'シート名'}</FormLabel>
                 <InputGroup size={'lg'}>
                   <InputLeftAddon>{seat.index}_</InputLeftAddon>
-                  <Input ref={initialRef} placeholder={`${seat.name}`} />
+                  <Input
+                    ref={initialRef}
+                    // placeholder={`${seat.name}`}
+                    defaultValue={seat.name}
+                  />
                 </InputGroup>
               </FormControl>
             </VStack>

@@ -35,8 +35,8 @@ export type EditorRequest = {
 };
 
 // 教室
-export type HeightValue = string | number;
-export type WidthValue = string | number;
+export type HeightValue = number;
+export type WidthValue = number;
 
 export type ClassRoom = {
   column: HeightValue;

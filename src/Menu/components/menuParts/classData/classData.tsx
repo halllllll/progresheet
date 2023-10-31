@@ -1,10 +1,12 @@
 import { type FC, useContext } from 'react';
 import { Box, HStack, Heading, Text, Tooltip } from '@chakra-ui/react';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { useForm, FormProvider } from 'react-hook-form';
 import { RiInformationFill } from 'react-icons/ri';
 import { MenuCtx, SetMenuCtx } from '@/Menu/App';
 import GetClassData from './GetClassDataButton';
 import SeatForm from './SeatForm';
+import { ClassLayoutSchema } from './Sheat/SheatLayout/schema';
 import { ContextError } from '@/Menu/errors';
 import { type ClassLayout } from '@/Menu/types';
 
@@ -39,6 +41,7 @@ const ClassData: FC = () => {
       name: menuCtx.classLayout?.name,
       seats: menuCtx.classLayout?.seats,
     },
+    resolver: yupResolver(ClassLayoutSchema),
   });
 
   return (
