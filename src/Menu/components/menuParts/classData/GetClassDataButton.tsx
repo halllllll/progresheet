@@ -1,5 +1,5 @@
 import { type FC, useState, useContext } from 'react';
-import { Box, Button } from '@chakra-ui/react';
+import { Box, Button, Spacer } from '@chakra-ui/react';
 import { useFormContext } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { SetMenuCtx, MenuCtx } from '@/Menu/App';
@@ -56,10 +56,12 @@ const GetClassData: FC = () => {
 
   return (
     <>
-      <Box>
+      <Box display={'flex'}>
+        <Spacer />
         <Button isLoading={loading} onClick={getSeats}>
           {'編集する'}
         </Button>
+        <Spacer />
       </Box>
     </>
   );

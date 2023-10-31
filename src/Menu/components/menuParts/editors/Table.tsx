@@ -8,6 +8,7 @@ import {
   Box,
   Button,
   HStack,
+  Spacer,
   Switch,
   Table,
   Tag,
@@ -90,18 +91,22 @@ const EditorTable: FC<EditorTableProps> = (props) => {
           })}
         </Tbody>
       </Table>
-      <Button
-        type="submit"
-        onClick={() => {
-          onSubmit(editors);
-        }}
-        isDisabled={isLoading}
-        isLoading={isLoading}
-        loadingText="送信中..."
-        spinnerPlacement="start"
-      >
-        送信
-      </Button>
+      <Box my={5} display={'flex'}>
+        <Spacer />
+        <Button
+          type="submit"
+          onClick={() => {
+            onSubmit(editors);
+          }}
+          isDisabled={isLoading}
+          isLoading={isLoading}
+          loadingText="送信中..."
+          spinnerPlacement="start"
+        >
+          送信
+        </Button>
+        <Spacer />
+      </Box>
     </Box>
   );
 };
