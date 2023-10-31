@@ -1,7 +1,7 @@
 import { ss } from '@/Const/GAS';
 import { ENV_LABEL } from '@/Const/Label';
 import { ENV_SEAT } from '@/Const/Seat';
-import { CONFIG_SHEET_NAMES } from '@/Const/SheetEnv';
+import { type CONFIG_SHEET, CONFIG_SHEET_NAMES } from '@/Const/SheetEnv';
 
 import { type LabelData } from '../components/menuParts/labels/labels';
 import {
@@ -90,12 +90,12 @@ export type ConfigProtectData =
  * `CONFIG_SHEET` protection data (editable-user, editable-permission)
  * @returns {ConfigProtectData}
  */
-const getConfigProtectData = (): ConfigProtectData => {
+const getConfigProtectData = (configSheet: CONFIG_SHEET): ConfigProtectData => {
   try {
-    // TODO: config_sheetは配列なのであとでちゃんとやる とりあえず従来の設定シートのみ
     /* exist check for CONFIG_SHEET */
-    const configSheet = getTargetSheet(CONFIG_SHEET_NAMES[0]);
-    if (configSheet === null) {
+    // TODO: 引数configSheetsに対してのPromise.all
+    const targetConfigSheet = getTargetSheet(configSheet);
+    if (targetConfigSheet === null) {
       return {
         success: false,
         error: {
@@ -107,7 +107,7 @@ const getConfigProtectData = (): ConfigProtectData => {
     const spreadSheetEditors = ss.getEditors().map((user) => user.getEmail());
     console.log(`spreadsheet editors: ${spreadSheetEditors.join(', ')}`);
 
-    const protect = configSheet.protect();
+    const protect = targetConfigSheet.protect();
     if (!protect.canEdit()) {
       return {
         success: false,
@@ -148,27 +148,12 @@ const getConfigProtectData = (): ConfigProtectData => {
 };
 
 /**
- * update `CONFIG_SHEET` protection from user data.
+ * update all `CONFIG_SHEET` protections from user data.
  * @param {string} data - interpretated as `Editor[]`
  * @returns {ConfigProtectData} - just call `getConfigProtectData`
  */
-const setConfigProtection = (data: string): ConfigProtectData => {
+const setAllConfigProtections = (data: string): ConfigProtectData => {
   try {
-    // TODO CONFIG_SHEETは複数の設定シート全部 とりあえず今は最初だけやる
-    const configSheet = getTargetSheet(CONFIG_SHEET_NAMES[0]);
-    if (configSheet === null) {
-      return {
-        success: false,
-        error: {
-          code: 'Config',
-          message: `${CONFIG_SHEET_NAMES[0]} not found`,
-        },
-      };
-    }
-
-    // update config protection
-    // 編集権限かつ送信されたユーザーに対して
-
     /**
      * しゃーなしで as Editor[]
      */
@@ -176,6 +161,13 @@ const setConfigProtection = (data: string): ConfigProtectData => {
     console.log(`data from front:`);
     console.log(`row string: ${data}`);
     console.log(d);
+    const { configSheets, error } = Utils.getConfigSheets();
+    if (error !== null) {
+      return {
+        success: false,
+        error,
+      };
+    }
 
     const spreadSheetEditors = new Set(
       ss.getEditors().map((user) => user.getEmail())
@@ -191,16 +183,19 @@ const setConfigProtection = (data: string): ConfigProtectData => {
       spreadSheetEditors.has(editor)
     );
 
-    const prot = configSheet.protect();
-    prot.setDescription('設定シート');
-    prot.removeEditors(prot.getEditors());
-    prot.addEditor(getId()); // 自身は例外とする（一応）
-    console.log(
-      `add editors to protected sheet -> ${updateEditors.join(', ')}`
-    );
-    prot.addEditors(updateEditors);
+    for (const configSheet of configSheets) {
+      const prot = configSheet.protect();
+      prot.setDescription('設定シート');
+      prot.removeEditors(prot.getEditors());
+      prot.addEditor(getId()); // 自身は例外とする（一応）
+      console.log(
+        `add editors to protected sheet -> ${updateEditors.join(', ')}`
+      );
+      prot.addEditors(updateEditors);
+    }
 
-    return getConfigProtectData();
+    // TODO: 適当に一つだけ返してるのを直したいがうまい取り回しがわからない
+    return getConfigProtectData('ラベル設定');
   } catch (e: unknown) {
     const err = e as Error;
     console.log(e);
@@ -852,5 +847,5 @@ export {
   setLabelConfig,
   _isAllowedConfigSheet, // TODO: 未使用
   getConfigProtectData,
-  setConfigProtection,
+  setAllConfigProtections,
 };

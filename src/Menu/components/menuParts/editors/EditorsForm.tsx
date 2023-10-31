@@ -22,7 +22,7 @@ const EditorsForm: FC = () => {
 
   const getEditors = async (): Promise<void> => {
     setIsLoading(true);
-    await getConfigProtectionAPI()
+    await getConfigProtectionAPI('ラベル設定')
       .then((res) => {
         setMenuCtx({
           ...menuCtx,

@@ -1,4 +1,5 @@
 import { PROPERTY_DEFAULT, ss } from '@/Const/GAS';
+import { CONFIG_SHEET_NAMES } from '@/Const/SheetEnv';
 import { type GASError } from '../errors';
 import { initConfig } from './service';
 
@@ -145,11 +146,42 @@ const getSheetValues = (
   };
 };
 
+type ConfigSeets = {
+  configSheets: GoogleAppsScript.Spreadsheet.Sheet[];
+  error: GASError | null;
+};
+/**
+ *
+ * @returns {ConfigSeets}
+ */
+const getConfigSheets = (): ConfigSeets => {
+  let configSheets: GoogleAppsScript.Spreadsheet.Sheet[] = [];
+  for (const sheetName of CONFIG_SHEET_NAMES) {
+    const targetSheet = getTargetSheet(sheetName);
+    if (targetSheet === null) {
+      return {
+        configSheets: [],
+        error: {
+          code: 'Config',
+          message: `${sheetName} not found`,
+        },
+      };
+    }
+    configSheets = [...configSheets, targetSheet];
+  }
+
+  return {
+    configSheets,
+    error: null,
+  };
+};
+
 export {
   customMenu,
   initMenu,
   isSameRow,
   rowAt,
+  getConfigSheets,
   getPropertyByName,
   getSheetValues,
   getTargetSheet,

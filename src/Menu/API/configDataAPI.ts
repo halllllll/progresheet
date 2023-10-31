@@ -1,3 +1,4 @@
+import { type CONFIG_SHEET } from '@/Const/SheetEnv';
 import { type LabelData } from '../components/menuParts/labels/labels';
 import { errorMapper } from '../errors';
 import { type Labels, type Editor, type EditorRequest } from '../types';
@@ -73,9 +74,11 @@ const setLabelDataAPI = async (data: LabelData): Promise<Labels> => {
  * (when Local Server, return pseudo data)
  * @returns {Promise<Editor[]>}
  */
-const getConfigProtectionAPI = async (): Promise<Editor[]> => {
+const getConfigProtectionAPI = async (
+  configSeat: CONFIG_SHEET
+): Promise<Editor[]> => {
   if (isGASEnvironment()) {
-    const ret = await serverFunctions.getConfigProtection();
+    const ret = await serverFunctions.getConfigProtection(configSeat);
     if (ret.success) {
       return ret.editors;
     } else {
@@ -112,7 +115,9 @@ const setConfigProtectionAPI = async (data: Editor[]): Promise<Editor[]> => {
     const req: EditorRequest = {
       editors: [...data],
     };
-    const ret = await serverFunctions.setConfigProtection(JSON.stringify(req));
+    const ret = await serverFunctions.setAllConfigProtections(
+      JSON.stringify(req)
+    );
     if (ret.success) {
       return ret.editors;
     } else {
