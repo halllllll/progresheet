@@ -52,11 +52,13 @@ const EditorTable: FC<EditorTableProps> = (props) => {
             return (
               <Tr key={editor.useId} my="xl">
                 <Td>
-                  <Text>
+                  <Box>
                     <HStack>
                       <>
                         <Text>{editors[idx].useId}</Text>
-                        <VisuallyHiddenInput value={editors[idx].useId} />
+                        <VisuallyHiddenInput
+                          defaultValue={editors[idx].useId}
+                        />
                         {editors[idx].useId === myId && (
                           <Tag
                             variant={'solid'}
@@ -69,7 +71,7 @@ const EditorTable: FC<EditorTableProps> = (props) => {
                         )}
                       </>
                     </HStack>
-                  </Text>
+                  </Box>
                 </Td>
                 <Td>
                   <HStack justifyContent={'space-evenly'}>
