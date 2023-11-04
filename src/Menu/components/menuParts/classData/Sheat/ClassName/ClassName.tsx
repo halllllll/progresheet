@@ -1,4 +1,4 @@
-import { useRef, type FC, useState, type ChangeEvent } from 'react';
+import { useRef, type FC } from 'react';
 import { useDisclosure } from '@chakra-ui/react';
 import ClassNameBtn from './ClassNameBtn';
 import ClassNameModal from './ClassNameModal';
@@ -16,11 +16,11 @@ const ClassName: FC<Props> = ({ name }) => {
   } = useDisclosure();
   const initialRef = useRef(null);
   const finalRef = useRef(null);
-  const [className, setClassName] = useState<string>(name);
-  const setNameHandler = (e: ChangeEvent<HTMLInputElement>) => {
-    setClassName(e.target.value);
-    console.warn(className);
-  };
+  // const [className, setClassName] = useState<string>(name);
+  // const setNameHandler = (e: ChangeEvent<HTMLInputElement>) => {
+  //   setClassName(e.target.value);
+  //   console.warn(className);
+  // };
 
   return (
     <>
@@ -31,12 +31,12 @@ const ClassName: FC<Props> = ({ name }) => {
           onClose={onClassNameModalClose}
           initialRef={initialRef}
           finalRef={finalRef}
-          name={className}
-          setNameHandler={setNameHandler}
+          name={name}
+          // setNameHandler={setNameHandler}
         />
       )}
       <ClassNameBtn
-        name={className}
+        name={name}
         onOpen={onClassNameModalOpen}
         isOpen={isClassNameModalOpen}
       />

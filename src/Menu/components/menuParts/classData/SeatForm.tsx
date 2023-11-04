@@ -21,7 +21,7 @@ const SeatForm: FC<Props> = ({
   const menuCtx = useContext(MenuCtx);
 
   if (menuCtx === null || menuCtx.classLayout === undefined)
-    throw new ContextError('non-context error', { details: 'on EditorsForm' });
+    throw new ContextError('non-context error', { details: 'on SeatForm' });
 
   const [columnCount, setColumnCount] = useState<number>(defaultColumnCount);
   const [layout, setLayout] = useState<SeatLayoutData>(
