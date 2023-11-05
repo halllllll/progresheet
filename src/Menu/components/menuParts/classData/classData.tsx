@@ -35,6 +35,7 @@ const ClassData: FC = () => {
   const methods = useForm<ClassLayout>({
     mode: 'all',
     criteriaMode: 'all',
+    shouldFocusError: true,
     defaultValues: {
       column: menuCtx.classLayout?.column,
       row: menuCtx.classLayout?.row,

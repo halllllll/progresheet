@@ -1,5 +1,6 @@
 import { type MutableRefObject, type FC } from 'react';
 import {
+  Box,
   Modal,
   ModalOverlay,
   ModalContent,
@@ -14,10 +15,9 @@ import {
   HStack,
   VStack,
   Text,
-  InputGroup,
   FormErrorMessage,
 } from '@chakra-ui/react';
-import { useFormContext } from 'react-hook-form';
+import { useFormContext, Controller } from 'react-hook-form';
 import { type ClassLayout } from '@/Menu/types';
 
 type Props = {
@@ -26,8 +26,6 @@ type Props = {
   onClose: () => void;
   initialRef: MutableRefObject<null>;
   finalRef: MutableRefObject<null>;
-  name: string;
-  setNameHandler?: (e: any) => void;
 };
 
 const ClassNameModal: FC<Props> = ({
@@ -35,8 +33,6 @@ const ClassNameModal: FC<Props> = ({
   onClose,
   initialRef,
   finalRef,
-  name,
-  setNameHandler,
 }) => {
   const methods = useFormContext<ClassLayout>();
 
@@ -54,56 +50,56 @@ const ClassNameModal: FC<Props> = ({
       <ModalContent>
         <ModalHeader>{'座席表シート名の編集'}</ModalHeader>
         <ModalCloseButton />
-        {/* <form
-          onSubmit={methods.handleSubmit((v) => {
-            console.warn('wa~');
-            console.warn(v);
-          })}
-        > */}
-        <FormControl isInvalid={methods.formState.errors.name !== undefined}>
-          {methods.formState.errors.name?.type}
-          <ModalBody pb={6}>
-            <HStack alignItems={'baseline'} justifyContent={'center'}>
+        <ModalBody pb={6}>
+          <FormControl isInvalid={methods.formState.errors.name !== undefined}>
+            <HStack alignItems={'baseline'} justifyContent={'start'}>
               <VStack spacing={'5'}>
                 <Text as="b">
                   {'(既存のシート名と重複している場合は保存されません）'}
                 </Text>
 
-                <FormLabel>
-                  {'シート名（ex: 学年・クラスや授業名など）'}
-                </FormLabel>
-                <InputGroup size={'lg'}>
-                  <Input
-                    placeholder={name}
-                    // onChange={setNameHandler}
-                    {...(methods.register('name'),
-                    {
-                      ref: initialRef,
-                      onChange: setNameHandler,
-                    })}
+                <Box>
+                  <Controller
+                    name="name"
+                    control={methods.control}
+                    render={({ field }) => (
+                      <>
+                        <FormLabel>
+                          {'シート名（ex: 学年・クラスや授業名など）'}
+                        </FormLabel>
+                        <Input
+                          size={'lg'}
+                          placeholder={methods.getValues('name')}
+                          {...(methods.register('name'),
+                          {
+                            ...field,
+                            ref: initialRef,
+                          })}
+                        />
+                        {methods.formState.errors.name && (
+                          <FormErrorMessage>
+                            {methods.formState.errors.name.message}
+                          </FormErrorMessage>
+                        )}
+                      </>
+                    )}
                   />
-                </InputGroup>
-                {methods.formState.errors.name && (
-                  <FormErrorMessage>
-                    エラーだよ {methods.formState.errors.name.message}
-                  </FormErrorMessage>
-                )}
+                </Box>
               </VStack>
             </HStack>
-          </ModalBody>
+          </FormControl>
+        </ModalBody>
 
-          <ModalFooter>
-            <Button
-              type="submit"
-              colorScheme="blue"
-              mr={3}
-              isDisabled={!!methods.formState.errors.name}
-            >
-              Save
-            </Button>
-          </ModalFooter>
-        </FormControl>
-        {/* </form> */}
+        <ModalFooter>
+          <Button
+            type="submit"
+            colorScheme="blue"
+            mr={3}
+            isDisabled={!!methods.formState.errors.name}
+          >
+            {'Check & Save'}
+          </Button>
+        </ModalFooter>
       </ModalContent>
     </Modal>
   );

@@ -1,17 +1,28 @@
 import * as yup from 'yup';
 
+const REQUIED_SIMPLE_NOTATION = '入力必須です';
+
 const seatSchema = yup.object().shape({
-  index: yup.number().integer().positive().required(''),
-  name: yup.string().required(''),
-  visible: yup.boolean().required(),
+  index: yup.number().integer().positive().required(REQUIED_SIMPLE_NOTATION),
+  name: yup.string().required(REQUIED_SIMPLE_NOTATION),
+  visible: yup.boolean().required(REQUIED_SIMPLE_NOTATION),
 });
 
 // yup用スキーマ
 // TODO: required message!!!!!
 const schema = yup.object().shape({
-  name: yup.string().min(3, '3文字以上必要です').required('3文字以上必要です'),
-  column: yup.number().integer().positive().required(''),
-  row: yup.number().integer().positive().required(''),
+  name: yup
+    .string()
+    .trim()
+    .matches(
+      /^(?:(?![*:\\/?\\[\]"'`;|]).)*$/,
+      '使用できない文字が含まれています'
+    )
+    .min(3, '3文字以上必要です')
+    .max(30, '30文字以内です')
+    .required(REQUIED_SIMPLE_NOTATION),
+  column: yup.number().integer().positive().required(REQUIED_SIMPLE_NOTATION),
+  row: yup.number().integer().positive().required(REQUIED_SIMPLE_NOTATION),
   seats: yup
     .array()
     .of(seatSchema)
@@ -19,7 +30,7 @@ const schema = yup.object().shape({
     .test('unique', 'each indicies must be unique. ', (val) => {
       return !val || val.length === new Set(val.map((v) => v.index)).size;
     })
-    .required(''),
+    .required(REQUIED_SIMPLE_NOTATION),
 });
 
 export { schema as ClassLayoutSchema };

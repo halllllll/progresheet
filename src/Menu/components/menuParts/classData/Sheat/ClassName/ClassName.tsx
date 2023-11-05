@@ -16,11 +16,6 @@ const ClassName: FC<Props> = ({ name }) => {
   } = useDisclosure();
   const initialRef = useRef(null);
   const finalRef = useRef(null);
-  // const [className, setClassName] = useState<string>(name);
-  // const setNameHandler = (e: ChangeEvent<HTMLInputElement>) => {
-  //   setClassName(e.target.value);
-  //   console.warn(className);
-  // };
 
   return (
     <>
@@ -31,8 +26,6 @@ const ClassName: FC<Props> = ({ name }) => {
           onClose={onClassNameModalClose}
           initialRef={initialRef}
           finalRef={finalRef}
-          name={name}
-          // setNameHandler={setNameHandler}
         />
       )}
       <ClassNameBtn
