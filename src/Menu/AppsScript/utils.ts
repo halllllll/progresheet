@@ -69,9 +69,9 @@ type RowAt = {
 };
 /**
  * find index the target of row
- * @param target
- * @param row
- * @returns
+ * @param {string} target
+ * @param {Array<string>} row
+ * @returns {RowAt}
  */
 const rowAt = (target: string, row: string[]): RowAt => {
   /**

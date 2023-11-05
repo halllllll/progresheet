@@ -1,3 +1,4 @@
+import { errorMapper } from '../errors';
 import { serverFunctions, isGASEnvironment } from './serverFunctions';
 
 const getAccessedUserInfoAPI = async (): Promise<string> => {
@@ -28,4 +29,25 @@ const getSpreadSheetInfoAPI = async (): Promise<string> => {
   }
 };
 
-export { getAccessedUserInfoAPI, getSpreadSheetInfoAPI };
+const checkUniqueSheetNameAPI = async (sheetName: string): Promise<boolean> => {
+  if (isGASEnvironment()) {
+    const ret = await serverFunctions.isUniqueSheet(sheetName);
+    if (ret.success) {
+      return ret.isUnique;
+    } else {
+      throw errorMapper(ret.error);
+    }
+  } else {
+    return await new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(Math.random() < 0.5);
+      }, 300);
+    });
+  }
+};
+
+export {
+  getAccessedUserInfoAPI,
+  getSpreadSheetInfoAPI,
+  checkUniqueSheetNameAPI,
+};

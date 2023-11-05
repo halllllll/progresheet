@@ -9,7 +9,6 @@ const seatSchema = yup.object().shape({
 });
 
 // yup用スキーマ
-// TODO: required message!!!!!
 const schema = yup.object().shape({
   name: yup
     .string()

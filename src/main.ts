@@ -16,6 +16,7 @@ const getClassRoomConfig = Service.getClassRoomConfig;
 const getClassRoomSeat = Service.getClassRoomSeatData;
 const getConfigProtection = Service.getConfigProtectData;
 const setAllConfigProtections = Service.setAllConfigProtections;
+const isUniqueSheet = Service.isUniqueSheetNameOnSeets;
 
 // Exposed to GAS global function
 global.onOpen = onOpen;
@@ -30,16 +31,18 @@ global.getClassRoomConfig = getClassRoomConfig;
 global.getClassRoomSeat = getClassRoomSeat;
 global.getConfigProtection = getConfigProtection;
 global.setAllConfigProtections = setAllConfigProtections;
+global.isUniqueSheet = isUniqueSheet;
 
 // Exposed to Frontend API
 export {
-  getUserInfo,
-  getSpreadSheetName,
-  initConfig,
-  getLabelConfig,
-  setLabelConfig,
   getClassRoomConfig,
   getClassRoomSeat,
   getConfigProtection,
+  getLabelConfig,
+  getSpreadSheetName,
+  getUserInfo,
+  initConfig,
+  isUniqueSheet,
   setAllConfigProtections,
+  setLabelConfig,
 };

@@ -5,10 +5,9 @@ import ClassNameModal from './ClassNameModal';
 import { type ClassLayout } from '@/Menu/types';
 
 type Props = {
-  name: string;
   menuClassLayoutCtxUpdater: (data: Partial<ClassLayout>) => void;
 };
-const ClassName: FC<Props> = ({ name }) => {
+const ClassName: FC<Props> = ({ menuClassLayoutCtxUpdater }) => {
   const {
     isOpen: isClassNameModalOpen,
     onOpen: onClassNameModalOpen,
@@ -26,10 +25,10 @@ const ClassName: FC<Props> = ({ name }) => {
           onClose={onClassNameModalClose}
           initialRef={initialRef}
           finalRef={finalRef}
+          menuClassLayoutCtxUpdater={menuClassLayoutCtxUpdater}
         />
       )}
       <ClassNameBtn
-        name={name}
         onOpen={onClassNameModalOpen}
         isOpen={isClassNameModalOpen}
       />

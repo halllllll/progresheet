@@ -1,4 +1,4 @@
-import { type MutableRefObject, type FC } from 'react';
+import { type MutableRefObject, type FC, useState } from 'react';
 import {
   Box,
   Modal,
@@ -18,6 +18,9 @@ import {
   FormErrorMessage,
 } from '@chakra-ui/react';
 import { useFormContext, Controller } from 'react-hook-form';
+import toast from 'react-hot-toast';
+import { checkUniqueSheetNameAPI } from '@/Menu/API/userAndSheetAPI';
+import { UndefinedServerError } from '@/Menu/errors';
 import { type ClassLayout } from '@/Menu/types';
 
 type Props = {
@@ -26,6 +29,7 @@ type Props = {
   onClose: () => void;
   initialRef: MutableRefObject<null>;
   finalRef: MutableRefObject<null>;
+  menuClassLayoutCtxUpdater: (data: Partial<ClassLayout>) => void;
 };
 
 const ClassNameModal: FC<Props> = ({
@@ -33,8 +37,43 @@ const ClassNameModal: FC<Props> = ({
   onClose,
   initialRef,
   finalRef,
+  menuClassLayoutCtxUpdater,
 }) => {
   const methods = useFormContext<ClassLayout>();
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [existMessage, setExistMessage] = useState<string>('');
+
+  const submitHandler = async (name: string) => {
+    setIsSubmitting(true);
+    await checkUniqueSheetNameAPI(name)
+      .then((ret) => {
+        if (ret) {
+          toast.success(`シート名「${name}」を保存しました`);
+          setExistMessage('');
+          menuClassLayoutCtxUpdater({
+            name,
+          });
+        } else {
+          setExistMessage(
+            `「${name}」シートは既に存在しています。別の名前を設定してください。`
+          );
+        }
+      })
+      .catch((err: unknown) => {
+        if (err instanceof UndefinedServerError) {
+          toast.error(`${err.name} \n ${err.message}`);
+        } else {
+          const e = err as Error;
+          toast.error(`謎のエラー！\n${e.name}\n${e.message}`, {
+            duration: 5000,
+          });
+          setExistMessage(e.name);
+        }
+      })
+      .finally(() => {
+        setIsSubmitting(false);
+      });
+  };
 
   return (
     <Modal
@@ -81,6 +120,9 @@ const ClassNameModal: FC<Props> = ({
                             {methods.formState.errors.name.message}
                           </FormErrorMessage>
                         )}
+                        {existMessage && (
+                          <Text color="tomato">{existMessage}</Text>
+                        )}
                       </>
                     )}
                   />
@@ -95,7 +137,11 @@ const ClassNameModal: FC<Props> = ({
             type="submit"
             colorScheme="blue"
             mr={3}
-            isDisabled={!!methods.formState.errors.name}
+            isDisabled={!!methods.formState.errors.name || isSubmitting}
+            isLoading={isSubmitting}
+            onClick={() => {
+              void submitHandler(methods.getValues('name'));
+            }}
           >
             {'Check & Save'}
           </Button>

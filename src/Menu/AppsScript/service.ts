@@ -842,16 +842,50 @@ const getClassRoomSeatData = (): SeatSheetRespone => {
   }
 };
 
+type ExistSheetResponse =
+  | { success: true; isUnique: boolean }
+  | { success: false; error: GASError };
+
+/**
+ * only check exist sheet
+ * @param {string} sheetName
+ * @returns {boolean}
+ */
+const isUniqueSheetNameOnSeets = (sheetName: string): ExistSheetResponse => {
+  Logger.log(`sheet name: ${sheetName}`);
+  try {
+    return {
+      success: true,
+      isUnique: Utils.getTargetSheet(sheetName) === null,
+    };
+  } catch (e: unknown) {
+    Logger.log(e);
+    const err = e as UndefinedServerError;
+
+    return {
+      success: false,
+      error: {
+        code: 'Undefined',
+        message: `[${err.name}] - ${err.message}`,
+        options: {
+          details: `during picking to ${sheetName} sheet`,
+        },
+      },
+    };
+  }
+};
+
 export {
-  getId,
-  getUserInfo,
-  getSpreadSheetName,
+  _isAllowedConfigSheet, // TODO: 未使用
   getClassRoomConfig,
   getClassRoomSeatData,
-  initConfig,
-  getLabelConfig,
-  setLabelConfig,
-  _isAllowedConfigSheet, // TODO: 未使用
   getConfigProtectData,
+  getId,
+  getLabelConfig,
+  getSpreadSheetName,
+  getUserInfo,
+  initConfig,
+  isUniqueSheetNameOnSeets,
   setAllConfigProtections,
+  setLabelConfig,
 };

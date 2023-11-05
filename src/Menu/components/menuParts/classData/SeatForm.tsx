@@ -29,6 +29,7 @@ const SeatForm: FC<Props> = ({
       return { ...seat, id: uuid() };
     })
   );
+  // シート用（idを剥いでるだけ）
   const setLayoutHandler = (data: SeatLayoutData) => {
     setLayout(data);
     menuClassLayoutCtxUpdater({
@@ -91,10 +92,7 @@ const SeatForm: FC<Props> = ({
         setColumnCount={setColumnCount}
         menuClassLayoutCtxUpdater={menuClassLayoutCtxUpdater}
       />
-      <ClassName
-        name={menuCtx.classLayout.name}
-        menuClassLayoutCtxUpdater={menuClassLayoutCtxUpdater}
-      />
+      <ClassName menuClassLayoutCtxUpdater={menuClassLayoutCtxUpdater} />
       <Layout
         layout={layout}
         columnCount={columnCount}

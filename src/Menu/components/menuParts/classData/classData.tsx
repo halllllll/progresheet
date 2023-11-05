@@ -19,7 +19,8 @@ const ClassData: FC = () => {
 
   // updater
   const menuClassLayoutCtxUpdater = (data: Partial<ClassLayout>) => {
-    if (!menuCtx.classLayout) throw new ContextError('non-context error');
+    if (!menuCtx.classLayout)
+      throw new ContextError('non-context "ClassLayout" error');
     const newClassLayout: ClassLayout = {
       name: data.name ?? menuCtx.classLayout.name,
       row: data.row ?? menuCtx.classLayout.row,
