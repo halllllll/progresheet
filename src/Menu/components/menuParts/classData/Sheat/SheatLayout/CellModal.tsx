@@ -20,14 +20,14 @@ import {
 } from '@chakra-ui/react';
 import { useFormContext, Controller } from 'react-hook-form';
 import { PickSeatError } from '@/Menu/errors';
-import { type ClassLayout, type Seat } from '@/Menu/types';
+import { type SeatDTO, type ClassLayout } from '@/Menu/types';
 
 type Props = {
   onOpen: () => void;
   isOpen: boolean;
   onClose: () => void;
-  seatData: { seat: Seat; orderIndex: number } | null;
-  updater: (index: number, data: Seat) => void;
+  seatData: { seat: SeatDTO; orderIndex: number } | null;
+  updater: (index: number, data: SeatDTO) => void;
   initialRef: MutableRefObject<null>;
   finalRef: MutableRefObject<null>;
 };
@@ -104,7 +104,7 @@ const CellModal: FC<Props> = ({
                       <InputGroup size={'lg'}>
                         <InputLeftAddon>{seatData.seat.index}_</InputLeftAddon>
                         <Input
-                          placeholder={`${seatData.seat.name}`}
+                          placeholder={`${seatData.seat.name ?? ''}`}
                           {...(methods.register(
                             `seats.${seatData.orderIndex}.name`
                           ),

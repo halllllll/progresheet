@@ -12,13 +12,13 @@ import { useDndSensors } from '../hooks/hook';
 import Cell from './Cell';
 import CellModal from './CellModal';
 import Sortable from './Sortable';
-import { type Seat } from '@/Menu/types';
+import { type SeatDTO } from '@/Menu/types';
 
 type Props = {
   layout: SeatLayoutData;
   columnCount: number;
   updateLayoutHandler?: (data: SeatLayoutData) => void;
-  editHandler: (index: number, data: Seat) => void;
+  editHandler: (index: number, data: SeatDTO) => void;
   hookFormSwap: (indexA: number, indexB: number) => void;
 };
 
@@ -55,10 +55,10 @@ const Layout: FC<Props> = ({
   const initialRef = useRef(null);
   const finalRef = useRef(null);
   const [targetSeat, setTargetSeat] = useState<{
-    seat: Seat;
+    seat: SeatDTO;
     orderIndex: number;
   } | null>(null);
-  const openCellModal = (selectedSeat: Seat, orderIndex: number): void => {
+  const openCellModal = (selectedSeat: SeatDTO, orderIndex: number): void => {
     setTargetSeat({ seat: selectedSeat, orderIndex });
     onCellModalOpen();
   };
@@ -94,7 +94,7 @@ const Layout: FC<Props> = ({
                         <Box
                           onClick={() => {
                             // なんかこれがだめらしい
-                            const curSeat: Seat = {
+                            const curSeat: SeatDTO = {
                               index: seat.index,
                               name: seat.name,
                               visible: seat.visible,

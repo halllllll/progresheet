@@ -11,8 +11,8 @@ const seatSchema = yup.object().shape({
       /^(?:(?![*:\\/?\\[\]"'`;|]).)*$/,
       '使用できない文字が含まれています'
     )
-    .max(30, '30文字以内です')
-    .required(REQUIED_SIMPLE_NOTATION),
+    .max(30, '30文字以内です'),
+  // .required(REQUIED_SIMPLE_NOTATION),
   visible: yup.boolean().required(REQUIED_SIMPLE_NOTATION),
 });
 

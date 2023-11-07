@@ -7,9 +7,9 @@ import Layout from './Sheat/SheatLayout/Layout';
 import { UseLayout, UseSeatFieldArray } from './Sheat/hooks/hook';
 import { useAppMenuCtx } from '@/Menu/contexts/hook';
 import { ContextError } from '@/Menu/errors';
-import { type Seat, type ClassLayout } from '@/Menu/types';
+import { type ClassLayout, type SeatDTO } from '@/Menu/types';
 
-export type SeatLayoutData = Array<Seat & { id: string }>;
+export type SeatLayoutData = Array<SeatDTO & { id: string }>;
 
 type Props = {
   defaultColumnCount: number;
@@ -41,8 +41,8 @@ const SeatForm: FC<Props> = ({
     });
   };
 
-  const appendHandler = (newSeats: Seat | Seat[]): void => {
-    const data: Seat[] = Array.isArray(newSeats) ? newSeats : [newSeats];
+  const appendHandler = (newSeats: SeatDTO | SeatDTO[]): void => {
+    const data: SeatDTO[] = Array.isArray(newSeats) ? newSeats : [newSeats];
 
     updateLayoutHandler([
       ...layout,
@@ -87,7 +87,7 @@ const SeatForm: FC<Props> = ({
     }
   };
 
-  const editHandler = (idx: number, data: Seat) => {
+  const editHandler = (idx: number, data: SeatDTO) => {
     layout[idx] = { id: layout[idx].id, ...data };
     updateLayoutHandler(layout);
   };

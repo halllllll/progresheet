@@ -1,8 +1,8 @@
 import { type FC } from 'react';
 import { Avatar, Box, Stack, Text } from '@chakra-ui/react';
-import { type Seat } from '@/Menu/types';
+import { type SeatDTO } from '@/Menu/types';
 
-const Cell: FC<Seat> = (props) => {
+const Cell: FC<SeatDTO> = (props) => {
   const { index, name, visible } = props;
 
   return (
@@ -25,7 +25,9 @@ const Cell: FC<Seat> = (props) => {
         />
         <Box>
           {/** TODO: なぜかtrancateされない */}
-          <Text as="b" isTruncated>{`${name}`}</Text>
+          <Text as="b" isTruncated>{`${
+            name?.trim() === '' || name === undefined ? `${index}` : name
+          }`}</Text>
         </Box>
       </Stack>
     </Box>

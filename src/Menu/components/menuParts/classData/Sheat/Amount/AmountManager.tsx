@@ -3,11 +3,11 @@ import { Box, HStack, Stack } from '@chakra-ui/react';
 import AmountRoller from './AmountRoller';
 import { useAppMenuCtx } from '@/Menu/contexts/hook';
 import { ContextError } from '@/Menu/errors';
-import { type ClassLayout, type Seat } from '@/Menu/types';
+import { type SeatDTO, type ClassLayout } from '@/Menu/types';
 
 type Props = {
   fieldLength: number;
-  append: (seats: Seat | Seat[]) => void;
+  append: (seats: SeatDTO | SeatDTO[]) => void;
   remove: (id: string | string[] | number) => void;
   setColumnCount: Dispatch<SetStateAction<number>>;
   menuClassLayoutCtxUpdater: (data: Partial<ClassLayout>) => void;
@@ -42,7 +42,7 @@ const AmountManager: FC<Props> = ({
     append([
       ...Array.from({ length: count }, (_, i) => ({
         index: fieldLength + i + 1,
-        name: '', // TODO: 名前は設定されてなくてもよいものとしたい（index_name）
+        // name: '', // TODO: 名前は設定されてなくてもよいものとしたい（index_name）
         visible: true,
       })),
     ]);
