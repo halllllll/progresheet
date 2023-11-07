@@ -1,23 +1,16 @@
-import { type FC, useState, useContext } from 'react';
+import { type FC, useState } from 'react';
 import { Box, Button, Spacer } from '@chakra-ui/react';
 import { useFormContext } from 'react-hook-form';
 import toast from 'react-hot-toast';
-import { SetMenuCtx, MenuCtx } from '@/Menu/App';
 import {
   getClassRoomInfoAPI,
   getClassRoomSeatAPI,
 } from '@/Menu/API/classRoomAPI';
-import { ContextError } from '@/Menu/errors';
+import { useAppMenuCtx } from '@/Menu/contexts/hook';
 import { type ClassLayout } from '@/Menu/types';
 
 const GetClassData: FC = () => {
-  const setMenuCtx = useContext(SetMenuCtx);
-  const menuCtx = useContext(MenuCtx);
-
-  if (menuCtx === null)
-    throw new ContextError('non-context error', {
-      details: 'on ClassDataButton',
-    });
+  const { menuCtx, setMenuCtx } = useAppMenuCtx('on ClassDataButton');
 
   const methods = useFormContext<ClassLayout>();
   const [loading, setLoading] = useState<boolean>(false);

@@ -1,21 +1,18 @@
-import { useState, type FC, useContext } from 'react';
+import { useState, type FC } from 'react';
 import { Box, Button, Center, Skeleton } from '@chakra-ui/react';
 import toast from 'react-hot-toast';
-import { SetMenuCtx, MenuCtx } from '@/Menu/App';
+
 import EditorTable from './Table';
 import {
   getConfigProtectionAPI,
   setConfigProtectionAPI,
 } from '@/Menu/API/configDataAPI';
-import { ConfigError, ContextError } from '@/Menu/errors';
+import { useAppMenuCtx } from '@/Menu/contexts/hook';
+import { ConfigError } from '@/Menu/errors';
 import { type Editor } from '@/Menu/types';
 
 const EditorsForm: FC = () => {
-  const setMenuCtx = useContext(SetMenuCtx);
-  const menuCtx = useContext(MenuCtx);
-
-  if (menuCtx === null)
-    throw new ContextError('non-context error', { details: 'on EditorsForm' });
+  const { menuCtx, setMenuCtx } = useAppMenuCtx('on EditorsForm');
 
   const [editors, setEditors] = useState<Editor[]>(menuCtx.editors ?? []);
   const [isLoading, setIsLoading] = useState<boolean>(false);

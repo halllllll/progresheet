@@ -1,11 +1,11 @@
-import { useState, type FC, useContext } from 'react';
+import { useState, type FC } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import { v4 as uuid } from 'uuid';
-import { MenuCtx } from '@/Menu/App';
 import SendClassData from './SetClassDataButton';
 import AmountManager from './Sheat/Amount/AmountManager';
 import ClassName from './Sheat/ClassName/ClassName';
 import Layout from './Sheat/SheatLayout/Layout';
+import { useAppMenuCtx } from '@/Menu/contexts/hook';
 import { ContextError } from '@/Menu/errors';
 import { type Seat, type ClassLayout } from '@/Menu/types';
 
@@ -19,9 +19,8 @@ const SeatForm: FC<Props> = ({
   defaultColumnCount,
   menuClassLayoutCtxUpdater,
 }) => {
-  const menuCtx = useContext(MenuCtx);
-
-  if (menuCtx === null || menuCtx.classLayout === undefined)
+  const { menuCtx } = useAppMenuCtx('on SeatForm');
+  if (menuCtx.classLayout === undefined)
     throw new ContextError('non-context error', { details: 'on SeatForm' });
 
   const [columnCount, setColumnCount] = useState<number>(defaultColumnCount);
@@ -30,7 +29,7 @@ const SeatForm: FC<Props> = ({
       return { ...seat, id: uuid() };
     })
   );
-  // TODO: ok
+
   const methods = useFormContext<ClassLayout>();
   const {
     swap: hookFormSwap,
@@ -101,12 +100,7 @@ const SeatForm: FC<Props> = ({
   };
 
   const editHandler = (idx: number, data: Seat) => {
-    // TODO: more cool way
-    console.warn('pre edit: ');
-    console.table(layout);
     layout[idx] = { id: layout[idx].id, ...data };
-    console.warn('edited:');
-    console.table(layout);
     updateLayoutHandler(layout);
   };
 

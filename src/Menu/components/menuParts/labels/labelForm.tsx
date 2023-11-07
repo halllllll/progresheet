@@ -1,4 +1,4 @@
-import { type FC, useContext } from 'react';
+import { type FC } from 'react';
 import { Box, Center } from '@chakra-ui/react';
 import {
   useFormContext,
@@ -7,22 +7,17 @@ import {
 } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { PropagateLoader } from 'react-spinners';
-import { MenuCtx, SetMenuCtx } from '@/Menu/App';
 import AddButton from './Parts/AddButton';
 import LabelArea from './Parts/LabelArea';
 import SendButton from './Parts/SendButton';
 import { type LabelData } from './labels';
 import { setLabelDataAPI } from '@/Menu/API/configDataAPI';
 import Full from '@/Menu/components/loader';
-import { ContextError } from '@/Menu/errors';
+import { useAppMenuCtx } from '@/Menu/contexts/hook';
 
 const LabelForm: FC = () => {
   const methods = useFormContext<LabelData>();
-  const setMenuCtx = useContext(SetMenuCtx);
-  const menuCtx = useContext(MenuCtx);
-
-  if (menuCtx === null)
-    throw new ContextError('non-context error', { details: 'on labelForm' });
+  const { menuCtx, setMenuCtx } = useAppMenuCtx();
 
   // FieldArrayとやらをやってみる
 

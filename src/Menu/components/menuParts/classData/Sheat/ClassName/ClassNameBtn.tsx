@@ -1,6 +1,6 @@
-import { useContext, type FC } from 'react';
+import { type FC } from 'react';
 import { Box, Button, HStack, Text } from '@chakra-ui/react';
-import { MenuCtx } from '@/Menu/App';
+import { useAppMenuCtx } from '@/Menu/contexts/hook';
 import { ContextError } from '@/Menu/errors';
 
 type Props = {
@@ -8,9 +8,9 @@ type Props = {
   isOpen: boolean;
 };
 const ClassNameBtn: FC<Props> = ({ onOpen, isOpen }) => {
-  const menuCtx = useContext(MenuCtx);
+  const { menuCtx } = useAppMenuCtx();
 
-  if (menuCtx === null || menuCtx.classLayout === undefined)
+  if (menuCtx.classLayout === undefined)
     throw new ContextError('non-context error', { details: 'on SeatForm' });
 
   return (

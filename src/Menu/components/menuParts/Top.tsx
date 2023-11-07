@@ -1,15 +1,15 @@
-import { type FC, useContext } from 'react';
+import { type FC } from 'react';
 import { Box, Text } from '@chakra-ui/react';
-import { MenuCtx } from '../../App';
+import { useAppMenuCtx } from '@/Menu/contexts/hook';
 
 const Top: FC = () => {
-  const user = useContext(MenuCtx);
+  const { menuCtx } = useAppMenuCtx('on Top');
 
   return (
     <Box>
       <Box my={5}>
-        <Text>こんにちは、 {user?.userID} さん。</Text>
-        <Text>sheetname: {user?.sheetName} !!!!!</Text>
+        <Text>こんにちは、 {menuCtx.userID} さん。</Text>
+        <Text>sheetname: {menuCtx.sheetName} !!!!!</Text>
       </Box>
     </Box>
   );

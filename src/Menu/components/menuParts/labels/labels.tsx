@@ -1,10 +1,10 @@
-import { useContext, type FC } from 'react';
+import { type FC } from 'react';
 import { Box, Heading, Text } from '@chakra-ui/react';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useForm, FormProvider } from 'react-hook-form';
-import { MenuCtx } from '@/Menu/App';
 import LabelForm from './labelForm';
 import { LabelSchema } from './schema';
+import { useAppMenuCtx } from '@/Menu/contexts/hook';
 
 export type LabelData = {
   labels: Array<{
@@ -14,14 +14,14 @@ export type LabelData = {
 };
 
 const Labels: FC = () => {
-  const ctx = useContext(MenuCtx);
+  const { menuCtx } = useAppMenuCtx('on Labels');
 
   const defaultValues =
-    ctx?.labels !== undefined && ctx.labels.colors.length > 0
-      ? ctx.labels.colors.map((_, idx) => {
+    !!menuCtx.labels && menuCtx.labels.colors.length > 0
+      ? menuCtx.labels.colors.map((_, idx) => {
           return {
-            value: ctx.labels?.labels[idx] ?? 'empty',
-            color: ctx.labels?.colors[idx] ?? '#eeeeee',
+            value: menuCtx.labels?.labels[idx] ?? 'empty',
+            color: menuCtx.labels?.colors[idx] ?? '#eeeeee',
           };
         })
       : [

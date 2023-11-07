@@ -1,13 +1,6 @@
 import { type FC, useCallback, useRef, useState } from 'react';
 import { Box, SimpleGrid, useDisclosure } from '@chakra-ui/react';
-import {
-  DndContext,
-  MouseSensor,
-  TouchSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from '@dnd-kit/core';
+import { DndContext, type DragEndEvent } from '@dnd-kit/core';
 import {
   SortableContext,
   rectSwappingStrategy,
@@ -15,6 +8,7 @@ import {
 } from '@dnd-kit/sortable';
 
 import { type SeatLayoutData } from '../../SeatForm';
+import { useDndSensors } from '../hooks/hook';
 import Cell from './Cell';
 import CellModal from './CellModal';
 import Sortable from './Sortable';
@@ -47,8 +41,6 @@ const Layout: FC<Props> = ({
       if (updateLayoutHandler !== undefined) {
         hookFormSwap(oldIndex, newIndex);
         updateLayoutHandler(newStates);
-        console.warn('done?');
-        console.table(layout);
       }
     },
 
@@ -72,21 +64,7 @@ const Layout: FC<Props> = ({
   };
 
   // sensorの定義。
-  const sensors = useSensors(
-    useSensor(MouseSensor, {
-      // マウスの場合は10px動いたらドラッグと判断
-      activationConstraint: {
-        distance: 10,
-      },
-    }),
-    useSensor(TouchSensor, {
-      // タッチの場合は200ミリ秒押下かつ5px動いたらドラッグと判断
-      activationConstraint: {
-        delay: 200,
-        tolerance: 5,
-      },
-    })
-  );
+  const sensors = useDndSensors();
 
   return (
     <Box>

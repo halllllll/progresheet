@@ -45,10 +45,6 @@ const CellModal: FC<Props> = ({
   const trigger = methods.trigger;
   useEffect(() => {
     void trigger();
-
-    return () => {
-      console.warn('ゆんっ');
-    };
   }, [trigger]);
 
   return (
@@ -68,7 +64,6 @@ const CellModal: FC<Props> = ({
         <ModalBody pb={6}>
           <HStack alignItems={'baseline'} justifyContent={'center'}>
             <VStack>
-              {/** TODO: Controller (for register) */}
               <Controller
                 name={`seats.${seatData.orderIndex}.visible`}
                 control={methods.control}
@@ -137,19 +132,12 @@ const CellModal: FC<Props> = ({
             </VStack>
           </HStack>
         </ModalBody>
-
         <ModalFooter>
           <Button
             isDisabled={!!methods.formState.errors.seats?.[seatData.orderIndex]}
             colorScheme="blue"
             mr={3}
             onClick={() => {
-              console.warn('all:');
-              console.table(methods.getValues('seats'));
-              console.warn(`orderIndex: ${seatData.orderIndex}`);
-              console.warn('target:');
-              console.warn(`value?`);
-              console.table(methods.getValues('seats')[seatData.orderIndex]);
               updater(
                 seatData.orderIndex,
                 methods.getValues('seats')[seatData.orderIndex]

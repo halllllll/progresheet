@@ -1,13 +1,7 @@
-import {
-  type FC,
-  useState,
-  useContext,
-  type Dispatch,
-  type SetStateAction,
-} from 'react';
+import { type FC, useState, type Dispatch, type SetStateAction } from 'react';
 import { Box, HStack, Stack } from '@chakra-ui/react';
-import { MenuCtx } from '@/Menu/App';
 import AmountRoller from './AmountRoller';
+import { useAppMenuCtx } from '@/Menu/contexts/hook';
 import { ContextError } from '@/Menu/errors';
 import { type ClassLayout, type Seat } from '@/Menu/types';
 
@@ -26,9 +20,8 @@ const AmountManager: FC<Props> = ({
   setColumnCount,
   menuClassLayoutCtxUpdater,
 }) => {
-  const menuCtx = useContext(MenuCtx);
-
-  if (menuCtx === null || !menuCtx.classLayout)
+  const { menuCtx } = useAppMenuCtx('on AmountManager');
+  if (!menuCtx.classLayout)
     throw new ContextError('non-context error', { details: 'on EditorsForm' });
 
   const [height, setHeight] = useState<number>(
