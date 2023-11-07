@@ -18,10 +18,6 @@ const ClassData: FC = () => {
     if (!menuCtx.classLayout)
       throw new ContextError('non-context "ClassLayout" error');
     const newClassLayout: ClassLayout = {
-      // name: data.name ?? menuCtx.classLayout.name,
-      // row: data.row ?? menuCtx.classLayout.row,
-      // column: data.column ?? menuCtx.classLayout.column,
-      // seats: data.seats ?? menuCtx.classLayout.seats,
       ...menuCtx.classLayout,
       ...data,
     };
@@ -69,8 +65,7 @@ const ClassData: FC = () => {
       </Box>
       <Box py={5}>
         <FormProvider {...methods}>
-          {menuCtx.classLayout === undefined ||
-          menuCtx.classLayout.seats.length === 0 ? (
+          {!menuCtx.classLayout || menuCtx.classLayout.seats.length === 0 ? (
             <>
               <GetClassData />
             </>

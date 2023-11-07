@@ -1,10 +1,10 @@
-import { useState, type FC } from 'react';
-import { useFieldArray, useFormContext } from 'react-hook-form';
+import { type FC } from 'react';
 import { v4 as uuid } from 'uuid';
 import SendClassData from './SetClassDataButton';
 import AmountManager from './Sheat/Amount/AmountManager';
 import ClassName from './Sheat/ClassName/ClassName';
 import Layout from './Sheat/SheatLayout/Layout';
+import { UseLayout, UseSeatFieldArray } from './Sheat/hooks/hook';
 import { useAppMenuCtx } from '@/Menu/contexts/hook';
 import { ContextError } from '@/Menu/errors';
 import { type Seat, type ClassLayout } from '@/Menu/types';
@@ -23,22 +23,10 @@ const SeatForm: FC<Props> = ({
   if (menuCtx.classLayout === undefined)
     throw new ContextError('non-context error', { details: 'on SeatForm' });
 
-  const [columnCount, setColumnCount] = useState<number>(defaultColumnCount);
-  const [layout, setLayout] = useState<SeatLayoutData>(
-    menuCtx.classLayout.seats.map((seat) => {
-      return { ...seat, id: uuid() };
-    })
-  );
+  const { columnCount, setColumnCount, layout, setLayout } =
+    UseLayout(defaultColumnCount);
 
-  const methods = useFormContext<ClassLayout>();
-  const {
-    swap: hookFormSwap,
-    // update: hookFormUpdate,
-    replace: hookFormReplace,
-  } = useFieldArray<ClassLayout>({
-    control: methods.control,
-    name: 'seats',
-  });
+  const { hookFormSwap, hookFormReplace } = UseSeatFieldArray();
 
   // シート用兼useFieldArray用
   const updateLayoutHandler = (data: SeatLayoutData) => {

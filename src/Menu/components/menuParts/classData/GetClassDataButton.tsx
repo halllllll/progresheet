@@ -23,6 +23,7 @@ const GetClassData: FC = () => {
             '座席数が0です。異常値なので初期化したほうがいいかもしれません。'
           );
         }
+        // Set Default Value for Your App
         methods.setValue('column', data.column);
         methods.setValue('row', data.row);
         methods.setValue('name', data.name);
