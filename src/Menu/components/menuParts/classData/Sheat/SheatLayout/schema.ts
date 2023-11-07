@@ -4,7 +4,15 @@ const REQUIED_SIMPLE_NOTATION = '入力必須です';
 
 const seatSchema = yup.object().shape({
   index: yup.number().integer().positive().required(REQUIED_SIMPLE_NOTATION),
-  name: yup.string().required(REQUIED_SIMPLE_NOTATION),
+  name: yup
+    .string()
+    .trim()
+    .matches(
+      /^(?:(?![*:\\/?\\[\]"'`;|]).)*$/,
+      '使用できない文字が含まれています'
+    )
+    .max(30, '30文字以内です')
+    .required(REQUIED_SIMPLE_NOTATION),
   visible: yup.boolean().required(REQUIED_SIMPLE_NOTATION),
 });
 

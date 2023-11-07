@@ -22,10 +22,12 @@ const ClassData: FC = () => {
     if (!menuCtx.classLayout)
       throw new ContextError('non-context "ClassLayout" error');
     const newClassLayout: ClassLayout = {
-      name: data.name ?? menuCtx.classLayout.name,
-      row: data.row ?? menuCtx.classLayout.row,
-      column: data.column ?? menuCtx.classLayout.column,
-      seats: data.seats ?? menuCtx.classLayout.seats,
+      // name: data.name ?? menuCtx.classLayout.name,
+      // row: data.row ?? menuCtx.classLayout.row,
+      // column: data.column ?? menuCtx.classLayout.column,
+      // seats: data.seats ?? menuCtx.classLayout.seats,
+      ...menuCtx.classLayout,
+      ...data,
     };
     setMenuCtx({
       ...menuCtx,

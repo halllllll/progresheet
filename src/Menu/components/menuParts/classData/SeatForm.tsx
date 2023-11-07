@@ -1,4 +1,5 @@
 import { useState, type FC, useContext } from 'react';
+import { useFieldArray, useFormContext } from 'react-hook-form';
 import { v4 as uuid } from 'uuid';
 import { MenuCtx } from '@/Menu/App';
 import SendClassData from './SetClassDataButton';
@@ -29,23 +30,34 @@ const SeatForm: FC<Props> = ({
       return { ...seat, id: uuid() };
     })
   );
-  // シート用（idを剥いでるだけ）
-  const setLayoutHandler = (data: SeatLayoutData) => {
+  // TODO: ok
+  const methods = useFormContext<ClassLayout>();
+  const {
+    swap: hookFormSwap,
+    // update: hookFormUpdate,
+    replace: hookFormReplace,
+  } = useFieldArray<ClassLayout>({
+    control: methods.control,
+    name: 'seats',
+  });
+
+  // シート用兼useFieldArray用
+  const updateLayoutHandler = (data: SeatLayoutData) => {
     setLayout(data);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const newLayout = data.map(({ id, ...rest }) => {
+      return { ...rest };
+    });
+    hookFormReplace(newLayout);
     menuClassLayoutCtxUpdater({
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      seats: data.map(({ id, ...rest }) => {
-        return {
-          ...rest,
-        };
-      }),
+      seats: newLayout,
     });
   };
 
   const appendHandler = (newSeats: Seat | Seat[]): void => {
     const data: Seat[] = Array.isArray(newSeats) ? newSeats : [newSeats];
 
-    setLayoutHandler([
+    updateLayoutHandler([
       ...layout,
       ...data.map((seat) => {
         return { ...seat, id: uuid() };
@@ -53,9 +65,14 @@ const SeatForm: FC<Props> = ({
     ]);
   };
 
+  /**
+   * delete applied count (if id is number) from backward, or specified id (if id is string)
+   * @param id
+   * @returns
+   */
   const removeHandler = (id: string | string[] | number): void => {
     if (typeof id === 'number') {
-      const count = id;
+      const count = id; // 後ろからcount分は無視し、残った配列のインデックス番号を順番通りに再構成する
       if (count <= 0) return;
       const temp = [...layout.slice(0, -count)];
       const newSeats = [...temp];
@@ -75,12 +92,22 @@ const SeatForm: FC<Props> = ({
           return { ...target, index: sortedMap[target.index] };
         }),
       ];
-      setLayoutHandler(nextLayout);
+      updateLayoutHandler(nextLayout);
     } else {
       const data: string[] = Array.isArray(id) ? id : [id];
       const newSeats = [...layout.filter((v) => data.includes(v.id))];
-      setLayoutHandler(newSeats);
+      updateLayoutHandler(newSeats);
     }
+  };
+
+  const editHandler = (idx: number, data: Seat) => {
+    // TODO: more cool way
+    console.warn('pre edit: ');
+    console.table(layout);
+    layout[idx] = { id: layout[idx].id, ...data };
+    console.warn('edited:');
+    console.table(layout);
+    updateLayoutHandler(layout);
   };
 
   return (
@@ -96,7 +123,9 @@ const SeatForm: FC<Props> = ({
       <Layout
         layout={layout}
         columnCount={columnCount}
-        setLayoutHandler={setLayoutHandler}
+        updateLayoutHandler={updateLayoutHandler}
+        editHandler={editHandler}
+        hookFormSwap={hookFormSwap}
       />
       <SendClassData />
     </form>

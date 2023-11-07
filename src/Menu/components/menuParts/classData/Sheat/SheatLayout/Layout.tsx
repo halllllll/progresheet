@@ -23,23 +23,36 @@ import { type Seat } from '@/Menu/types';
 type Props = {
   layout: SeatLayoutData;
   columnCount: number;
-  setLayoutHandler?: (data: SeatLayoutData) => void;
+  updateLayoutHandler?: (data: SeatLayoutData) => void;
+  editHandler: (index: number, data: Seat) => void;
+  hookFormSwap: (indexA: number, indexB: number) => void;
 };
 
-const Layout: FC<Props> = ({ layout, columnCount, setLayoutHandler }) => {
+const Layout: FC<Props> = ({
+  layout,
+  columnCount,
+  updateLayoutHandler,
+  editHandler,
+  hookFormSwap,
+}) => {
   //  drag 終了時に発火するハンドラ
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
       const { active, over } = event;
-      if (over === null) return;
-      if (active.id !== over.id) {
-        const oldIndex = layout.findIndex((field) => field.id === active.id);
-        const newIndex = layout.findIndex((field) => field.id === over.id);
-        const newStates = arraySwap(layout, oldIndex, newIndex);
-        if (setLayoutHandler !== undefined) setLayoutHandler(newStates);
+      if (over === null || active.id === over.id) return;
+
+      const oldIndex = layout.findIndex((field) => field.id === active.id);
+      const newIndex = layout.findIndex((field) => field.id === over.id);
+      const newStates = arraySwap(layout, oldIndex, newIndex);
+      if (updateLayoutHandler !== undefined) {
+        hookFormSwap(oldIndex, newIndex);
+        updateLayoutHandler(newStates);
+        console.warn('done?');
+        console.table(layout);
       }
     },
-    [layout, setLayoutHandler]
+
+    [hookFormSwap, layout, updateLayoutHandler]
   );
 
   const {
@@ -49,9 +62,12 @@ const Layout: FC<Props> = ({ layout, columnCount, setLayoutHandler }) => {
   } = useDisclosure();
   const initialRef = useRef(null);
   const finalRef = useRef(null);
-  const [targetSeat, setTargetSeat] = useState<Seat | null>(null);
-  const openCellModal = (selectedSeat: Seat): void => {
-    setTargetSeat(selectedSeat);
+  const [targetSeat, setTargetSeat] = useState<{
+    seat: Seat;
+    orderIndex: number;
+  } | null>(null);
+  const openCellModal = (selectedSeat: Seat, orderIndex: number): void => {
+    setTargetSeat({ seat: selectedSeat, orderIndex });
     onCellModalOpen();
   };
 
@@ -79,7 +95,8 @@ const Layout: FC<Props> = ({ layout, columnCount, setLayoutHandler }) => {
           onOpen={onCellModalOpen}
           isOpen={isCellModalOpen}
           onClose={onCellModalClose}
-          seat={targetSeat}
+          seatData={targetSeat}
+          updater={editHandler}
           initialRef={initialRef}
           finalRef={finalRef}
         />
@@ -90,9 +107,11 @@ const Layout: FC<Props> = ({ layout, columnCount, setLayoutHandler }) => {
           <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
             <SortableContext items={layout} strategy={rectSwappingStrategy}>
               <SimpleGrid spacing={'4px'} columns={columnCount}>
-                {layout.map((seat) => {
+                {layout.map((seat, orderIdx) => {
                   return (
+                    // ** uuid
                     <Box key={seat.id}>
+                      {/** ** uuid */}
                       <Sortable id={seat.id}>
                         <Box
                           onClick={() => {
@@ -102,7 +121,7 @@ const Layout: FC<Props> = ({ layout, columnCount, setLayoutHandler }) => {
                               name: seat.name,
                               visible: seat.visible,
                             };
-                            openCellModal(curSeat);
+                            openCellModal(curSeat, orderIdx);
                           }}
                         >
                           <Cell

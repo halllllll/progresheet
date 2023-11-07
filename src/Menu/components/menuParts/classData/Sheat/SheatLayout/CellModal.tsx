@@ -1,4 +1,4 @@
-import { type MutableRefObject, type FC } from 'react';
+import { type MutableRefObject, type FC, useEffect } from 'react';
 import {
   Modal,
   ModalOverlay,
@@ -16,15 +16,18 @@ import {
   VStack,
   InputLeftAddon,
   InputGroup,
+  FormErrorMessage,
 } from '@chakra-ui/react';
+import { useFormContext, Controller } from 'react-hook-form';
 import { PickSeatError } from '@/Menu/errors';
-import { type Seat } from '@/Menu/types';
+import { type ClassLayout, type Seat } from '@/Menu/types';
 
 type Props = {
   onOpen: () => void;
   isOpen: boolean;
   onClose: () => void;
-  seat: Seat | null;
+  seatData: { seat: Seat; orderIndex: number } | null;
+  updater: (index: number, data: Seat) => void;
   initialRef: MutableRefObject<null>;
   finalRef: MutableRefObject<null>;
 };
@@ -34,9 +37,19 @@ const CellModal: FC<Props> = ({
   onClose,
   initialRef,
   finalRef,
-  seat,
+  seatData,
+  updater,
 }) => {
-  if (seat === null) throw new PickSeatError("Can't Get Seat Info");
+  if (seatData === null) throw new PickSeatError("Can't Get Seat Info");
+  const methods = useFormContext<ClassLayout>();
+  const trigger = methods.trigger;
+  useEffect(() => {
+    void trigger();
+
+    return () => {
+      console.warn('ゆんっ');
+    };
+  }, [trigger]);
 
   return (
     <Modal
@@ -55,34 +68,96 @@ const CellModal: FC<Props> = ({
         <ModalBody pb={6}>
           <HStack alignItems={'baseline'} justifyContent={'center'}>
             <VStack>
-              <FormControl>
-                <FormLabel>{'シート表示'}</FormLabel>
-                <Switch
-                  colorScheme="teal"
-                  size="lg"
-                  defaultChecked={seat.visible}
-                />
-              </FormControl>
+              {/** TODO: Controller (for register) */}
+              <Controller
+                name={`seats.${seatData.orderIndex}.visible`}
+                control={methods.control}
+                render={({ field }) => (
+                  <FormControl>
+                    <FormLabel>{'シート表示'}</FormLabel>
+                    <Switch
+                      colorScheme="teal"
+                      size="lg"
+                      {...(methods.register(
+                        `seats.${seatData.orderIndex}.visible`
+                      ),
+                      {
+                        defaultChecked: seatData.seat.visible,
+                        ref: field.ref,
+                        isChecked: field.value,
+                        onBlur: field.onBlur,
+                        onChange: field.onChange,
+                      })}
+                    />
+                  </FormControl>
+                )}
+              />
             </VStack>
             <VStack>
-              <FormControl>
-                <FormLabel>{'シート名'}</FormLabel>
-                <InputGroup size={'lg'}>
-                  <InputLeftAddon>{seat.index}_</InputLeftAddon>
-                  <Input
-                    ref={initialRef}
-                    // placeholder={`${seat.name}`}
-                    defaultValue={seat.name}
-                  />
-                </InputGroup>
-              </FormControl>
+              <Controller
+                name={`seats.${seatData.orderIndex}.name`}
+                control={methods.control}
+                render={({ field }) => (
+                  <>
+                    <FormControl
+                      isInvalid={
+                        methods.formState.errors.seats?.[seatData.orderIndex] &&
+                        true
+                      }
+                    >
+                      <FormLabel>{'シート名'}</FormLabel>
+                      <InputGroup size={'lg'}>
+                        <InputLeftAddon>{seatData.seat.index}_</InputLeftAddon>
+                        <Input
+                          placeholder={`${seatData.seat.name}`}
+                          {...(methods.register(
+                            `seats.${seatData.orderIndex}.name`
+                          ),
+                          {
+                            onBlur: field.onBlur,
+                            onChange: field.onChange,
+                            defaultValue: seatData.seat.name,
+                            ref: initialRef,
+                          })}
+                        />
+                      </InputGroup>
+                      {methods.formState.errors.seats?.[seatData.orderIndex]
+                        ?.name && (
+                        <FormErrorMessage>
+                          {
+                            methods.formState.errors.seats[seatData.orderIndex]
+                              ?.name?.message
+                          }
+                        </FormErrorMessage>
+                      )}
+                    </FormControl>
+                  </>
+                )}
+              />
             </VStack>
           </HStack>
         </ModalBody>
 
         <ModalFooter>
-          <Button colorScheme="blue" mr={3}>
-            Save
+          <Button
+            isDisabled={!!methods.formState.errors.seats?.[seatData.orderIndex]}
+            colorScheme="blue"
+            mr={3}
+            onClick={() => {
+              console.warn('all:');
+              console.table(methods.getValues('seats'));
+              console.warn(`orderIndex: ${seatData.orderIndex}`);
+              console.warn('target:');
+              console.warn(`value?`);
+              console.table(methods.getValues('seats')[seatData.orderIndex]);
+              updater(
+                seatData.orderIndex,
+                methods.getValues('seats')[seatData.orderIndex]
+              );
+              onClose();
+            }}
+          >
+            {'Save'}
           </Button>
         </ModalFooter>
       </ModalContent>
