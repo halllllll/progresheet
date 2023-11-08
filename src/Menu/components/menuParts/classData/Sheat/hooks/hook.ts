@@ -59,11 +59,7 @@ export const UseSeatFieldArray = (): {
   return { hookFormSwap, hookFormReplace };
 };
 
-export const UseLayout = (
-  defaultColumnCount: number
-): {
-  columnCount: number;
-  setColumnCount: Dispatch<SetStateAction<number>>;
+export const UseLayout = (): {
   layout: SeatLayoutData;
   setLayout: Dispatch<SetStateAction<SeatLayoutData>>;
 } => {
@@ -71,75 +67,11 @@ export const UseLayout = (
   if (!menuCtx.classLayout)
     throw new ContextError('non-context "ClassLayout" error');
 
-  const [columnCount, setColumnCount] = useState<number>(defaultColumnCount);
   const [layout, setLayout] = useState<SeatLayoutData>(
     menuCtx.classLayout.seats.map((seat) => {
       return { ...seat, id: uuid() };
     })
   );
 
-  return { columnCount, setColumnCount, layout, setLayout };
+  return { layout, setLayout };
 };
-
-// TODO:? updateLayoutHandlerをなんとかする
-
-// export const appendHandler = (
-//   layout: SeatLayoutData,
-//   newSeats: Seat | Seat[]
-// ): void => {
-//   const data: Seat[] = Array.isArray(newSeats) ? newSeats : [newSeats];
-
-//   UpdateLayoutHandler([
-//     ...layout,
-//     ...data.map((seat) => {
-//       return { ...seat, id: uuid() };
-//     }),
-//   ]);
-// };
-
-/**
- * delete applied count (if id is number) from backward, or specified id (if id is string)
- * @param id
- * @returns
- */
-// export const removeHandler = (
-//   layout: SeatLayoutData,
-//   id: string | string[] | number
-// ): void => {
-//   if (typeof id === 'number') {
-//     const count = id; // 後ろからcount分は無視し、残った配列のインデックス番号を順番通りに再構成する
-//     if (count <= 0) return;
-//     const temp = [...layout.slice(0, -count)];
-//     const newSeats = [...temp];
-//     // indexを順番に降りなおす
-//     const sortedMap: Record<number, number> = [
-//       ...temp.sort((a, b) => a.index - b.index),
-//     ].reduce(
-//       (acc, { index }, newIndex) => ({ ...acc, [index]: newIndex + 1 }),
-//       {}
-//     );
-
-//     const nextLayout = [
-//       ...newSeats.map((seat) => {
-//         // TODO: なんかもっといい方法（ヒットしなかった場合のエラーハンドリングがめんどくさいので確実な方法）
-//         const target = layout.filter((t) => t.id === seat.id)[0];
-
-//         return { ...target, index: sortedMap[target.index] };
-//       }),
-//     ];
-//     updateLayoutHandler(nextLayout);
-//   } else {
-//     const data: string[] = Array.isArray(id) ? id : [id];
-//     const newSeats = [...layout.filter((v) => data.includes(v.id))];
-//     updateLayoutHandler(newSeats);
-//   }
-// };
-
-// export const editHandler = (
-//   layout: SeatLayoutData,
-//   idx: number,
-//   data: Seat
-// ): void => {
-//   layout[idx] = { id: layout[idx].id, ...data };
-//   updateLayoutHandler(layout);
-// };

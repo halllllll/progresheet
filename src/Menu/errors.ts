@@ -10,6 +10,7 @@ export type ErrorCode =
   | 'Property'
   | 'Permission'
   | 'UpdateLabel'
+  | 'GenClass'
   | 'UpdateProtection';
 
 export type GASError = {
@@ -49,6 +50,8 @@ export const errorMapper = (gasError: GASError): Error => {
       return new InvalidValueError(gasError.message, gasError.options);
     case 'PickSeat':
       return new PickSeatError(gasError.message, gasError.options);
+    case 'GenClass':
+      return new GenClassError(gasError.message, gasError.options);
     default:
       return new Error('undefined code');
   }
@@ -151,5 +154,12 @@ export class PickSeatError extends Error {
   constructor(message?: string, options?: ErrorOptions) {
     super(message, options);
     this.name = 'PickSeatError';
+  }
+}
+
+export class GenClassError extends Error {
+  constructor(message?: string, options?: ErrorOptions) {
+    super(message, options);
+    this.name = 'GenClass';
   }
 }

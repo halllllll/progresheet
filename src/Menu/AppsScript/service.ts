@@ -16,6 +16,7 @@ import {
   type Labels,
   type EditorRequest,
   type Seat,
+  type ClassLayout,
 } from '../types';
 import * as Utils from './utils';
 import { getTargetSheet } from './utils';
@@ -875,6 +876,39 @@ const isUniqueSheetNameOnSeets = (sheetName: string): ExistSheetResponse => {
   }
 };
 
+type GenSeatSheetReponse =
+  | {
+      success: true;
+    }
+  | {
+      success: false;
+      error: GASError;
+    };
+
+// いったん結果を受け取れているかチェックするだけ
+const genSeatSheets = (data: string): GenSeatSheetReponse => {
+  try {
+    const d = JSON.parse(data) as ClassLayout;
+    console.log(data);
+    console.log(d);
+
+    return { success: true };
+  } catch (e: unknown) {
+    const err = e as Error;
+
+    return {
+      success: false,
+      error: {
+        code: 'GenClass',
+        message: `[${err.name}] - ${err.message}`,
+        options: {
+          details: `on generating seat`,
+        },
+      },
+    };
+  }
+};
+
 export {
   _isAllowedConfigSheet, // TODO: 未使用
   getClassRoomConfig,
@@ -882,6 +916,7 @@ export {
   getConfigProtectData,
   getId,
   getLabelConfig,
+  genSeatSheets,
   getSpreadSheetName,
   getUserInfo,
   initConfig,

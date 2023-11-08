@@ -1,10 +1,13 @@
-import { type FC } from 'react';
+import { useState, type FC } from 'react';
+import { useFormContext, type SubmitHandler } from 'react-hook-form';
+import toast from 'react-hot-toast';
 import { v4 as uuid } from 'uuid';
 import SendClassData from './SetClassDataButton';
 import AmountManager from './Sheat/Amount/AmountManager';
 import ClassName from './Sheat/ClassName/ClassName';
 import Layout from './Sheat/SheatLayout/Layout';
 import { UseLayout, UseSeatFieldArray } from './Sheat/hooks/hook';
+import { genSeatSheetsAPI } from '@/Menu/API/classRoomAPI';
 import { useAppMenuCtx } from '@/Menu/contexts/hook';
 import { ContextError } from '@/Menu/errors';
 import { type ClassLayout, type SeatDTO } from '@/Menu/types';
@@ -23,8 +26,8 @@ const SeatForm: FC<Props> = ({
   if (menuCtx.classLayout === undefined)
     throw new ContextError('non-context error', { details: 'on SeatForm' });
 
-  const { columnCount, setColumnCount, layout, setLayout } =
-    UseLayout(defaultColumnCount);
+  const [columnCount, setColumnCount] = useState<number>(defaultColumnCount);
+  const { layout, setLayout } = UseLayout();
 
   const { hookFormSwap, hookFormReplace } = UseSeatFieldArray();
 
@@ -92,8 +95,23 @@ const SeatForm: FC<Props> = ({
     updateLayoutHandler(layout);
   };
 
+  const methods = useFormContext<ClassLayout>();
+  const onPost: SubmitHandler<ClassLayout> = async (data) => {
+    await genSeatSheetsAPI(data)
+      .then(() => {
+        toast.success('シートを作成しました！さあ、授業を始めましょう！');
+      })
+      .catch((e: unknown) => {
+        const err = e as Error;
+        toast.error(`エラー！\n${err.name}\n${err.message}`, {
+          duration: 5000,
+        });
+      });
+    console.warn('yes');
+  };
+
   return (
-    <form>
+    <form onSubmit={methods.handleSubmit(onPost)}>
       <AmountManager
         append={appendHandler}
         remove={removeHandler}

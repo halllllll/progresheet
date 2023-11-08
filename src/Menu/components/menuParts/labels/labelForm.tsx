@@ -19,23 +19,10 @@ const LabelForm: FC = () => {
   const methods = useFormContext<LabelData>();
   const { menuCtx, setMenuCtx } = useAppMenuCtx();
 
-  // FieldArrayとやらをやってみる
-
   const { fields, append, remove } = useFieldArray<LabelData>({
     name: 'labels',
     control: methods.control, // 不要？
     shouldUnregister: false,
-    // なぜかルールが効かない
-    rules: {
-      minLength: {
-        value: 2,
-        message: '2つ以上必要です',
-      },
-      required: true,
-      validate: (values) => {
-        return values.length > 0;
-      },
-    },
   });
 
   const onSubmit: SubmitHandler<LabelData> = async (data) => {

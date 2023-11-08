@@ -1,5 +1,5 @@
 import { errorMapper } from '../errors';
-import { type Seat, type ClassRoom } from '../types';
+import { type Seat, type ClassRoom, type ClassLayout } from '../types';
 import { isGASEnvironment, serverFunctions } from './serverFunctions';
 
 const getClassRoomInfoAPI = async (): Promise<ClassRoom> => {
@@ -52,4 +52,17 @@ const getClassRoomSeatAPI = async (): Promise<Seat[]> => {
   }
 };
 
-export { getClassRoomInfoAPI, getClassRoomSeatAPI };
+const genSeatSheetsAPI = async (data: ClassLayout): Promise<void> => {
+  if (isGASEnvironment()) {
+    const ret = await serverFunctions.genSeatSheets(JSON.stringify(data));
+    if (!ret.success) throw errorMapper(ret.error);
+  } else {
+    await new Promise<void>(() => {
+      setTimeout(() => {
+        console.log('o');
+      }, 1000);
+    });
+  }
+};
+
+export { getClassRoomInfoAPI, getClassRoomSeatAPI, genSeatSheetsAPI };
