@@ -13,7 +13,7 @@ const getLabelDataAPI = async (): Promise<Labels> => {
   if (isGASEnvironment()) {
     const ret = await serverFunctions.getLabelConfig();
     if (ret.success) {
-      return ret.body;
+      return ret.data;
     } else {
       const err = errorMapper(ret.error);
 
@@ -43,7 +43,7 @@ const setLabelDataAPI = async (data: LabelData): Promise<Labels> => {
     console.warn(JSON.stringify(data));
     const ret = await serverFunctions.setLabelConfig(JSON.stringify(data));
     if (ret.success) {
-      return ret.body;
+      return ret.data;
     } else {
       const err = errorMapper(ret.error);
       throw err;
@@ -80,7 +80,7 @@ const getConfigProtectionAPI = async (
   if (isGASEnvironment()) {
     const ret = await serverFunctions.getConfigProtection(configSeat);
     if (ret.success) {
-      return ret.editors;
+      return ret.data;
     } else {
       const err = errorMapper(ret.error);
       throw err;
@@ -119,7 +119,7 @@ const setConfigProtectionAPI = async (data: Editor[]): Promise<Editor[]> => {
       JSON.stringify(req)
     );
     if (ret.success) {
-      return ret.editors;
+      return ret.data;
     } else {
       const err = errorMapper(ret.error);
       throw err;

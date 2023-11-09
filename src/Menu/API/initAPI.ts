@@ -15,7 +15,7 @@ const initAPI = async (data: InitOptions): Promise<InitResponse> => {
   } else {
     return await new Promise<InitResponse>((resolve) => {
       setTimeout(() => {
-        resolve({ success: true });
+        resolve({ success: true, data: undefined });
       }, 1000);
     });
   }

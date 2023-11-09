@@ -4,12 +4,7 @@ import { ENV_SEAT } from '@/Const/Seat';
 import { type CONFIG_SHEET, CONFIG_SHEET_NAMES } from '@/Const/SheetEnv';
 
 import { type LabelData } from '../components/menuParts/labels/labels';
-import {
-  ConfigError,
-  UndefinedServerError,
-  type GASError,
-  InitError,
-} from '../errors';
+import { ConfigError, UndefinedServerError, InitError } from '../errors';
 import {
   type Editor,
   type ClassRoom,
@@ -18,6 +13,7 @@ import {
   type Seat,
   type ClassLayout,
 } from '../types';
+import { type OperationResult } from './types';
 import * as Utils from './utils';
 import { getTargetSheet } from './utils';
 
@@ -78,15 +74,7 @@ const _isAllowedConfigSheet = (id: string): boolean => {
 /**
  * 設定シートの保護データ情報
  */
-export type ConfigProtectData =
-  | {
-      success: true;
-      editors: Editor[];
-    }
-  | {
-      success: false;
-      error: GASError;
-    };
+type ConfigProtectData = OperationResult<Editor[]>;
 /**
  * `CONFIG_SHEET` protection data (editable-user, editable-permission)
  * @returns {ConfigProtectData}
@@ -132,7 +120,7 @@ const getConfigProtectData = (configSheet: CONFIG_SHEET): ConfigProtectData => {
 
     return {
       success: true,
-      editors,
+      data: editors,
     };
   } catch (e: unknown) {
     const err = e as Error;
@@ -217,14 +205,7 @@ const setAllConfigProtections = (data: string): ConfigProtectData => {
  * B列 背景色（16進数）
  */
 
-export type InitResponse =
-  | {
-      success: true;
-    }
-  | {
-      success: false;
-      error: GASError;
-    };
+export type InitResponse = OperationResult<void>;
 
 /**
  * colorize cells. should be 16-based rgb expression in 'range'
@@ -252,19 +233,15 @@ const setBG = (range: GoogleAppsScript.Spreadsheet.Range): void => {
   range.setBackgrounds(bgs);
 };
 
+type initLabelSheetReponse =
+  OperationResult<GoogleAppsScript.Spreadsheet.Sheet>;
+
 /**
  * init LabelSheet, if not exist, create with default value. if exist,  clear all value and fill default value.
  *
- * @returns {{error: GASError} | {error: null, sheet: GoogleAppsScript.Spreadsheet.Sheet} }
+ * @returns {initLabelSheetReponse}
  */
-const initLabelSheet = ():
-  | {
-      error: GASError;
-    }
-  | {
-      error: null;
-      sheet: GoogleAppsScript.Spreadsheet.Sheet;
-    } => {
+const initLabelSheet = (): initLabelSheetReponse => {
   const lock = LockService.getScriptLock();
   lock.waitLock(10 * 1000);
   try {
@@ -311,12 +288,13 @@ const initLabelSheet = ():
     console.log('values:\n', colorRange.getValues());
     setBG(colorRange);
 
-    return { sheet: configSheet, error: null };
+    return { success: true, data: configSheet };
   } catch (e: unknown) {
     Logger.log(e);
     const err = e as Error;
 
     return {
+      success: false,
       error: {
         code: 'Undefined',
         message: `[${err.name}] - ${err.message}`,
@@ -331,14 +309,10 @@ const initLabelSheet = ():
   }
 };
 
-const initSeatListSheet = ():
-  | {
-      error: GASError;
-    }
-  | {
-      error: null;
-      sheet: GoogleAppsScript.Spreadsheet.Sheet;
-    } => {
+type initSeatListSheetResponse =
+  OperationResult<GoogleAppsScript.Spreadsheet.Sheet>;
+
+const initSeatListSheet = (): initSeatListSheetResponse => {
   const lock = LockService.getScriptLock();
   lock.waitLock(10 * 1000);
   try {
@@ -373,12 +347,13 @@ const initSeatListSheet = ():
       ...ENV_SEAT.DEFAULT_VALUES.map((v) => [v.index, v.name, v.visible]),
     ]);
 
-    return { sheet: configSheet, error: null };
+    return { success: true, data: configSheet };
   } catch (e: unknown) {
     Logger.log(e);
     const err = e as Error;
 
     return {
+      success: false,
       error: {
         code: 'Undefined',
         message: `[${err.name}] - ${err.message}`,
@@ -414,13 +389,13 @@ const initConfig = async (options: InitOptions = {}): Promise<InitResponse> => {
 
     const configSheets: GoogleAppsScript.Spreadsheet.Sheet[] = [];
     for (const result of results) {
-      if (result.error !== null) {
+      if (!result.success) {
         return {
           success: false,
           error: result.error,
         };
       }
-      configSheets.push(result.sheet);
+      configSheets.push(result.data);
     }
     /**
      * （取得した時点での）設定シート[以外]全部削除
@@ -456,7 +431,7 @@ const initConfig = async (options: InitOptions = {}): Promise<InitResponse> => {
      */
     Utils.setDefaultProperty();
 
-    return { success: true };
+    return { success: true, data: undefined };
   } catch (e: unknown) {
     Logger.log(e);
     const err = e as Error;
@@ -478,15 +453,7 @@ const initConfig = async (options: InitOptions = {}): Promise<InitResponse> => {
  * *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
  */
 
-type LabelInfo =
-  | {
-      error: GASError;
-    }
-  | {
-      error: null;
-      labelIdx: number;
-      colorIdx: number;
-    };
+type LabelInfo = OperationResult<{ labelIdx: number; colorIdx: number }>;
 /**
  * めんどくさいので処理をまとめたが、逆にわかりにくい可能性ある
  *
@@ -501,6 +468,7 @@ const labelInfo = (header: string[]): LabelInfo => {
     Logger.log('invalid header config sheet');
 
     return {
+      success: false,
       error: {
         code: 'SheetHeader',
         message: `invalid header config sheet.\n
@@ -517,23 +485,23 @@ const labelInfo = (header: string[]): LabelInfo => {
 
   const labelRes = Utils.rowAt(ENV_LABEL.HEADER.get(0) as string, header);
   if (labelRes.error !== null) {
-    return { error: labelRes.error };
+    return { success: false, error: labelRes.error };
   }
   const colorRes = Utils.rowAt(ENV_LABEL.HEADER.get(1) as string, header);
   if (colorRes.error !== null) {
-    return { error: colorRes.error };
+    return { success: false, error: colorRes.error };
   }
 
   return {
-    error: null,
-    colorIdx: colorRes.index,
-    labelIdx: labelRes.index,
+    success: true,
+    data: {
+      colorIdx: colorRes.index,
+      labelIdx: labelRes.index,
+    },
   };
 };
 
-export type LabelResponse =
-  | { success: true; body: Labels }
-  | { success: false; error: GASError };
+type LabelResponse = OperationResult<Labels>;
 /**
  * return label values
  * @returns {LabelResponse}
@@ -552,7 +520,7 @@ const getLabelConfig = (): LabelResponse => {
 
     // いろいろ混ぜたやつ
     const labelInfoValue = labelInfo(sheetValue.values[0]);
-    if (labelInfoValue.error !== null) {
+    if (!labelInfoValue.success) {
       return {
         success: false,
         error: labelInfoValue.error,
@@ -561,12 +529,12 @@ const getLabelConfig = (): LabelResponse => {
 
     return {
       success: true,
-      body: {
+      data: {
         labels: sheetValue.values
-          .map((d) => d[labelInfoValue.labelIdx])
+          .map((d) => d[labelInfoValue.data.labelIdx])
           .slice(1),
         colors: sheetValue.values
-          .map((d) => d[labelInfoValue.colorIdx])
+          .map((d) => d[labelInfoValue.data.colorIdx])
           .slice(1),
       },
     };
@@ -584,15 +552,7 @@ const getLabelConfig = (): LabelResponse => {
   }
 };
 
-export type SetLabelResponse =
-  | {
-      success: true;
-      body: Labels;
-    }
-  | {
-      success: false;
-      error: GASError;
-    };
+type SetLabelResponse = OperationResult<Labels>;
 /**
  *
  * @param {string} data - comming as stringified object data, by "JSON.stringify"
@@ -638,7 +598,7 @@ const setLabelConfig = (data: string): SetLabelResponse => {
     // 新たに取得したものを返す
     const labelData = getLabelConfig();
     if (labelData.success) {
-      return { success: true, body: labelData.body };
+      return { success: true, data: labelData.data };
     } else {
       return labelData; // エラー時のレスポンスデータの構造が同じなので
     }
@@ -662,10 +622,7 @@ const setLabelConfig = (data: string): SetLabelResponse => {
 /**
  * 教室データ width, height
  */
-export type ClassRoomResponse =
-  | { success: true; body: ClassRoom }
-  | { success: false; error: GASError };
-
+type ClassRoomResponse = OperationResult<ClassRoom>;
 /**
  * Class room data, include `ClassRoom`
  * When something error occured during taking ClassRoom data,
@@ -702,7 +659,7 @@ const getClassRoomConfig = (): ClassRoomResponse => {
 
     return {
       success: true,
-      body: {
+      data: {
         column: parseInt(height),
         row: parseInt(width),
         name,
@@ -722,9 +679,7 @@ const getClassRoomConfig = (): ClassRoomResponse => {
   }
 };
 
-type SeatSheetRespone =
-  | { success: true; body: Seat[] }
-  | { success: false; error: GASError };
+type SeatSheetRespone = OperationResult<Seat[]>;
 
 const getClassRoomSeatData = (): SeatSheetRespone => {
   try {
@@ -745,7 +700,7 @@ const getClassRoomSeatData = (): SeatSheetRespone => {
         error: sheetValues.error,
       };
     }
-
+    // TODO: 使いまわしできそう？（ほかのところでは別のコードを書いてるかもしれない）
     // バリデーションチェック 規定ヘッダと設定されてるヘッダーの値の比較
     if (
       sheetValues.values[0].length !== ENV_SEAT.HEADER.size ||
@@ -825,10 +780,8 @@ const getClassRoomSeatData = (): SeatSheetRespone => {
 
     return {
       success: true,
-      body: ret,
+      data: ret,
     };
-
-    // ok
   } catch (e: unknown) {
     Logger.log(e);
     const err = e as UndefinedServerError;
@@ -843,9 +796,7 @@ const getClassRoomSeatData = (): SeatSheetRespone => {
   }
 };
 
-type ExistSheetResponse =
-  | { success: true; isUnique: boolean }
-  | { success: false; error: GASError };
+type ExistSheetResponse = OperationResult<{ isUnique: boolean }>;
 
 /**
  * only check exist sheet
@@ -857,7 +808,7 @@ const isUniqueSheetNameOnSeets = (sheetName: string): ExistSheetResponse => {
   try {
     return {
       success: true,
-      isUnique: Utils.getTargetSheet(sheetName) === null,
+      data: { isUnique: Utils.getTargetSheet(sheetName) === null },
     };
   } catch (e: unknown) {
     Logger.log(e);
@@ -876,14 +827,7 @@ const isUniqueSheetNameOnSeets = (sheetName: string): ExistSheetResponse => {
   }
 };
 
-type GenSeatSheetReponse =
-  | {
-      success: true;
-    }
-  | {
-      success: false;
-      error: GASError;
-    };
+type GenSeatSheetReponse = OperationResult<void>;
 
 // いったん結果を受け取れているかチェックするだけ
 const genSeatSheets = (data: string): GenSeatSheetReponse => {
@@ -892,7 +836,7 @@ const genSeatSheets = (data: string): GenSeatSheetReponse => {
     console.log(data);
     console.log(d);
 
-    return { success: true };
+    return { success: true, data: undefined };
   } catch (e: unknown) {
     const err = e as Error;
 
@@ -908,6 +852,8 @@ const genSeatSheets = (data: string): GenSeatSheetReponse => {
     };
   }
 };
+
+// const updateSeatConfigSheet = (data: Seat[]) => {};
 
 export {
   _isAllowedConfigSheet, // TODO: 未使用

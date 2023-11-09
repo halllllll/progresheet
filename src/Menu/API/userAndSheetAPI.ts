@@ -33,7 +33,7 @@ const checkUniqueSheetNameAPI = async (sheetName: string): Promise<boolean> => {
   if (isGASEnvironment()) {
     const ret = await serverFunctions.isUniqueSheet(sheetName);
     if (ret.success) {
-      return ret.isUnique;
+      return ret.data.isUnique;
     } else {
       throw errorMapper(ret.error);
     }

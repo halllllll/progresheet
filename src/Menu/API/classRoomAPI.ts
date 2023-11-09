@@ -6,7 +6,7 @@ const getClassRoomInfoAPI = async (): Promise<ClassRoom> => {
   if (isGASEnvironment()) {
     const ret = await serverFunctions.getClassRoomConfig();
     if (ret.success) {
-      return ret.body;
+      return ret.data;
     } else {
       const err = errorMapper(ret.error);
       throw err;
@@ -28,7 +28,7 @@ const getClassRoomSeatAPI = async (): Promise<Seat[]> => {
   if (isGASEnvironment()) {
     const ret = await serverFunctions.getClassRoomSeat();
     if (ret.success) {
-      return ret.body;
+      return ret.data;
     } else {
       const err = errorMapper(ret.error);
       throw err;
