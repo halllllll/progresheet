@@ -9,7 +9,11 @@ import {
 import { useAppMenuCtx } from '@/Menu/contexts/hook';
 import { type ClassLayout } from '@/Menu/types';
 
-const GetClassData: FC = () => {
+type Props = {
+  btnText?: string;
+};
+
+const GetClassData: FC<Props> = ({ btnText }) => {
   const { menuCtx, setMenuCtx } = useAppMenuCtx('on ClassDataButton');
 
   const methods = useFormContext<ClassLayout>();
@@ -53,7 +57,7 @@ const GetClassData: FC = () => {
       <Box display={'flex'}>
         <Spacer />
         <Button isLoading={loading} onClick={getSeats}>
-          {'編集する'}
+          {btnText ?? '編集する'}
         </Button>
         <Spacer />
       </Box>

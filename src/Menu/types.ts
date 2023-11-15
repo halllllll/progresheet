@@ -39,8 +39,8 @@ export type HeightValue = number;
 export type WidthValue = number;
 
 export type ClassRoom = {
-  column: HeightValue;
-  row: WidthValue;
+  column: WidthValue;
+  row: HeightValue;
   name: string;
 };
 

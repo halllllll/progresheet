@@ -9,14 +9,22 @@ const ss = SpreadsheetApp.getActive();
  *
  * *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
  */
-const PROPERTY_DEFAULT: Record<string, string> = {
+// TODO: いい名前
+type APP_STATES = 'READY' | 'RUN' | 'PREPARE';
+const APP_STATE_PROPERTY_NAME = 'APP_STATE';
+const PROPERTY_DEFAULT = {
   CLASSROOM_HEIGHT: '5',
   CLASSROOM_WIDTH: '5',
-  // 座席（グリッドにしたときの高さ・幅） Property Store
-  // PROPERTY_WIDTH: 'classroom_width',
-  // PROPERTY_HEIGHT: 'classroom_height',
-
   CLASSROOM_CLASSNAME: '元気いっぱい',
+  APP_STATE: 'READY' as APP_STATES,
 };
 
-export { ss, PROPERTY_DEFAULT };
+type PROPERTY_NAMES = keyof typeof PROPERTY_DEFAULT;
+
+export {
+  ss,
+  PROPERTY_DEFAULT,
+  type APP_STATES,
+  type PROPERTY_NAMES,
+  APP_STATE_PROPERTY_NAME,
+};

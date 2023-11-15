@@ -3,6 +3,7 @@ import { ENV_LABEL } from '@/Const/Label';
 import { ENV_SEAT } from '@/Const/Seat';
 import { type CONFIG_SHEET, CONFIG_SHEET_NAMES } from '@/Const/SheetEnv';
 
+import { ENV_VIEW } from '@/Const/View';
 import { type LabelData } from '../components/menuParts/labels/labels';
 import { ConfigError, UndefinedServerError, InitError } from '../errors';
 import {
@@ -572,6 +573,12 @@ const setLabelConfig = (data: string): SetLabelResponse => {
         },
       };
     }
+    // TODO: モードの判定と処理の振り分け
+    const result = Utils.getAppState();
+    if (!result.success) {
+      return result;
+    }
+    const appState = result.data;
     // しょうがないのでas
     const d = JSON.parse(data) as LabelData;
     console.log(`data from front:`);
@@ -595,6 +602,16 @@ const setLabelConfig = (data: string): SetLabelResponse => {
     const colorRange = range.offset(1, 1, values.length - 1, 1);
     setBG(colorRange);
 
+    // TODO: ここでモード判定？
+    switch (appState) {
+      case 'READY':
+        // ラベルシートだけを更新
+        break;
+      case 'RUN':
+        // ラベルシート、Seats, Viewを更新
+
+        break;
+    }
     // 新たに取得したものを返す
     const labelData = getLabelConfig();
     if (labelData.success) {
@@ -660,8 +677,8 @@ const getClassRoomConfig = (): ClassRoomResponse => {
     return {
       success: true,
       data: {
-        column: parseInt(height),
-        row: parseInt(width),
+        column: parseInt(width),
+        row: parseInt(height),
         name,
       },
     };
@@ -746,25 +763,25 @@ const getClassRoomSeatData = (): SeatSheetRespone => {
           success: false,
           error: {
             code: 'InvalidValue',
-            message: `value ${val[0]} should be Interger`,
+            message: `first header value "Index" should be Interger`,
           },
         };
-      } else if (val[1] === '') {
-        // バリデーションチェック 2つ目の要素`name`は NOT empty
-        return {
-          success: false,
-          error: {
-            code: 'InvalidValue',
-            message: `${val[1]} should be NOT empty`,
-          },
-        };
+        // } else if (val[1] === '') {
+        //   // バリデーションチェック 2つ目の要素`name`は NOT empty
+        //   return {
+        //     success: false,
+        //     error: {
+        //       code: 'InvalidValue',
+        //       message: `second header value "name" should be NOT empty`,
+        //     },
+        //   };
       } else if (val[2] !== 'TRUE' && val[2] !== 'FALSE') {
         // バリデーションチェック 3つ目の要素はTRUE or FALSE(Sheet上では文字列)
         return {
           success: false,
           error: {
             code: 'InvalidValue',
-            message: `${val[2]} should be TRUE' or 'FALSE'`,
+            message: `third header value "visible" should be TRUE' or 'FALSE'`,
           },
         };
       }
@@ -829,12 +846,51 @@ const isUniqueSheetNameOnSeets = (sheetName: string): ExistSheetResponse => {
 
 type GenSeatSheetReponse = OperationResult<void>;
 
-// いったん結果を受け取れているかチェックするだけ
-const genSeatSheets = (data: string): GenSeatSheetReponse => {
+// TODO: いったん結果を受け取れているかチェックするだけ
+const newApp = (data: string): GenSeatSheetReponse => {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10 * 1000);
+
   try {
     const d = JSON.parse(data) as ClassLayout;
+    console.log('on server data:');
     console.log(data);
     console.log(d);
+
+    const appStateResult = Utils.getAppState();
+    if (!appStateResult.success) return appStateResult;
+    const appState = appStateResult.data;
+    switch (appState) {
+      case 'READY': {
+        Logger.log("let's go!");
+        Utils.updateAppState('PREPARE');
+        // delete named ranges
+        Utils.deleteAllNamedRanges();
+        // update ClassRooom Property
+        const classRoomResult = Utils.updateClassRoomProperty({
+          column: d.column,
+          row: d.row,
+          name: d.name,
+        });
+        if (!classRoomResult.success) return classRoomResult;
+        // 座席設定シート更新
+        const seatConfigResult = updateSeatConfigSheet(d);
+        if (!seatConfigResult.success) {
+          Utils.updateAppState('READY');
+
+          return seatConfigResult;
+        }
+        // Viewシート作成
+        updateLayoutSheets(d);
+        // complete
+        Utils.updateAppState('RUN');
+        break;
+      }
+      case 'RUN':
+        // TODO: update processing
+        Logger.log('update!');
+        break;
+    }
 
     return { success: true, data: undefined };
   } catch (e: unknown) {
@@ -850,10 +906,161 @@ const genSeatSheets = (data: string): GenSeatSheetReponse => {
         },
       },
     };
+  } finally {
+    lock.releaseLock();
   }
 };
 
-// const updateSeatConfigSheet = (data: Seat[]) => {};
+// StateをRUNに
+// Layout,Seatsを作成
+// bind
+// Configを非表示に
+
+/*
+const bindLabelAndSheets = () => {
+  // ラベル情報を各シートに反映・更新
+};
+*/
+
+type UpdateSeatListResponse = OperationResult<boolean>;
+const updateSeatConfigSheet = (data: ClassLayout): UpdateSeatListResponse => {
+  // 座席設定シートの存在確認・生成
+  // 座席設定シートの構造（ヘッダーとか）確認
+  // 座席設定シートへデータ反映
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10 * 1000);
+  try {
+    if (data.column * data.row !== data.seats.length) {
+      return {
+        success: false,
+        error: {
+          code: 'InvalidValue',
+          message: `seat data invalid. seat length: ${data.seats.length} should be the product of column:${data.column} and row:${data.row}.`,
+        },
+      };
+    }
+    const targetSheet = getTargetSheet(ENV_SEAT.NAME);
+
+    if (targetSheet === null) {
+      return {
+        success: false,
+        error: {
+          code: 'SheetNotFound',
+          message: `${ENV_SEAT.NAME} not found`,
+        },
+      };
+    }
+    targetSheet.clear().clearNotes();
+    targetSheet.setFrozenRows(1);
+    // 素直に設定
+    const range = targetSheet.getRange(
+      ENV_SEAT.OFFSET_ROW,
+      ENV_SEAT.OFFSET_COL,
+      data.row * data.column + 1, // body + header(1 row)
+      ENV_SEAT.HEADER.size
+    );
+    range.setValues([
+      Array.from(ENV_SEAT.HEADER.values()),
+      ...data.seats.map((v) => [v.index, v.name, v.visible]),
+    ]);
+
+    return { success: true, data: true };
+  } catch (e: unknown) {
+    Logger.log(e);
+    const err = e as Error;
+
+    return {
+      success: false,
+      error: {
+        code: 'Undefined',
+        message: `[${err.name}] - ${err.message}`,
+      },
+    };
+  } finally {
+    lock.releaseLock();
+  }
+};
+
+/*
+const createSeatSheets = (data: Seat[]) => {
+  // 既存の各座席シートを破壊
+  // (各Configシートか、頭に「#」がついたもの以外破壊)
+  // bind-seat
+};
+*/
+
+const updateLayoutSheets = (data: ClassLayout) => {
+  // ビュー用シート更新・生成
+  // 更新の場合は どうしよう
+  // ラベルによる更新
+  // 新規作成による更新
+  // レイアウトによる更新
+  // よくよく考えたら全部別シートの情報から作成する感じになる
+  // (各seatとのbindは別)
+  // ということで部分的更新よりもスクラップアンドビルドがいい？
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10 * 1000);
+  try {
+    const existSheet = getTargetSheet(data.name);
+    if (existSheet !== null) {
+      existSheet.setName(`${Utils.MMddHHmmss()}_${data.name}_old`);
+      existSheet.clearConditionalFormatRules();
+      existSheet.protect();
+      existSheet.setTabColor('#666666');
+    }
+    // TODO: 挿入する場所 確認
+    const viewSheet = ss.insertSheet(data.name, 2);
+
+    // viewシート作成/
+    // TODO: とりあえず配置と装飾のみでbindはしない
+    // (中身は各seatを直接参照しているだけ)
+
+    /*
+    const range = viewSheet.getRange(
+      ENV_VIEW.OFFSET_ROW * 2, // name + state
+      ENV_VIEW.OFFSET_COL,
+      data.row,
+      data.column
+    );
+    */
+    const ranges = Array.from({ length: data.row }, (_, n) => {
+      // const col = `${Utils.colNumtoA1(ENV_VIEW.OFFSET_COL + n)}`;
+      const rowrow = ENV_VIEW.OFFSET_COL + n * 2;
+
+      return Array.from({ length: data.column }, (_, m) => {
+        const colcol = `${Utils.colNumtoA1(ENV_VIEW.OFFSET_COL + m)}`;
+        // const row = ENV_VIEW.OFFSET_ROW + m * 2;
+
+        return `${colcol}${rowrow}:${colcol}${rowrow + 1}`;
+      });
+    }).flat();
+    const rangeList = viewSheet.getRangeList(ranges);
+    rangeList.setBorder(
+      true,
+      true,
+      true,
+      true,
+      null,
+      null,
+      '#000000',
+      SpreadsheetApp.BorderStyle.SOLID_MEDIUM
+    );
+    rangeList.setWrap(true);
+
+    // 高さを確定
+    for (let r = ENV_VIEW.OFFSET_ROW; r <= data.row * 2; r += 2) {
+      viewSheet.setRowHeight(r, ENV_VIEW.CELL_H);
+    }
+    // 横幅を確定
+    for (let c = ENV_VIEW.OFFSET_COL; c < data.column; c++) {
+      viewSheet.setColumnWidth(c, ENV_VIEW.CELL_W);
+    }
+  } catch (e: unknown) {
+    Logger.log(e);
+  } finally {
+    lock.releaseLock();
+  }
+};
 
 export {
   _isAllowedConfigSheet, // TODO: 未使用
@@ -862,7 +1069,7 @@ export {
   getConfigProtectData,
   getId,
   getLabelConfig,
-  genSeatSheets,
+  newApp,
   getSpreadSheetName,
   getUserInfo,
   initConfig,

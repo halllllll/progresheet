@@ -47,6 +47,18 @@ const Layout: FC<Props> = ({
     [hookFormSwap, layout, updateLayoutHandler]
   );
 
+  // edithandlerをラップするハンドラ。名前が空のときにindexをいれる and 空でないときにindex_名前とする
+  const editHandlerModifiedNameHandler = (
+    index: number,
+    data: SeatDTO
+  ): void => {
+    const modifiedData =
+      data.name === undefined || !!data.name
+        ? { name: `${data.index}`, ...data }
+        : { name: `${data.index}_${data.name}`, ...data };
+    editHandler(index, modifiedData);
+  };
+
   const {
     isOpen: isCellModalOpen,
     onOpen: onCellModalOpen,
@@ -74,7 +86,7 @@ const Layout: FC<Props> = ({
           isOpen={isCellModalOpen}
           onClose={onCellModalClose}
           seatData={targetSeat}
-          updater={editHandler}
+          updater={editHandlerModifiedNameHandler}
           initialRef={initialRef}
           finalRef={finalRef}
         />

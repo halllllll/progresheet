@@ -53,14 +53,16 @@ const getClassRoomSeatAPI = async (): Promise<Seat[]> => {
 };
 
 const genSeatSheetsAPI = async (data: ClassLayout): Promise<void> => {
+  console.warn('on api');
+  console.dir(data);
   if (isGASEnvironment()) {
-    const ret = await serverFunctions.genSeatSheets(JSON.stringify(data));
+    const ret = await serverFunctions.genNewApp(JSON.stringify(data));
     if (!ret.success) throw errorMapper(ret.error);
   } else {
-    await new Promise<void>(() => {
+    await new Promise<void>((resolve) => {
       setTimeout(() => {
-        console.log('o');
-      }, 1000);
+        resolve(); // voidなので...
+      }, 1500);
     });
   }
 };

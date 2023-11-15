@@ -1,5 +1,6 @@
 import { type FC, useState, type Dispatch, type SetStateAction } from 'react';
 import { Box, HStack, Stack } from '@chakra-ui/react';
+import { useFormContext } from 'react-hook-form';
 import AmountRoller from './AmountRoller';
 import { useAppMenuCtx } from '@/Menu/contexts/hook';
 import { ContextError } from '@/Menu/errors';
@@ -23,6 +24,7 @@ const AmountManager: FC<Props> = ({
   const { menuCtx } = useAppMenuCtx('on AmountManager');
   if (!menuCtx.classLayout)
     throw new ContextError('non-context error', { details: 'on EditorsForm' });
+  const methods = useFormContext<ClassLayout>();
 
   const [height, setHeight] = useState<number>(
     parseInt(menuCtx.classLayout.row.toString())
@@ -63,7 +65,9 @@ const AmountManager: FC<Props> = ({
     menuClassLayoutCtxUpdater({
       row: nextHeight,
     });
+    methods.setValue('row', nextHeight);
   };
+
   const widthHandler = (val: string) => {
     const nextWidth = parseInt(val);
     if (height === 1 && nextWidth === 1) {
@@ -80,6 +84,7 @@ const AmountManager: FC<Props> = ({
     menuClassLayoutCtxUpdater({
       column: nextWidth,
     });
+    methods.setValue('column', nextWidth);
   };
 
   return (

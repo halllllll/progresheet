@@ -97,9 +97,13 @@ const SeatForm: FC<Props> = ({
 
   const methods = useFormContext<ClassLayout>();
   const onPost: SubmitHandler<ClassLayout> = async (data) => {
+    console.warn('on post data:');
+    console.dir(data);
     await genSeatSheetsAPI(data)
       .then(() => {
-        toast.success('シートを作成しました！さあ、授業を始めましょう！');
+        toast.success('シートを作成しました！さあ、授業を始めましょう！', {
+          duration: 4000,
+        });
       })
       .catch((e: unknown) => {
         const err = e as Error;
@@ -111,24 +115,26 @@ const SeatForm: FC<Props> = ({
   };
 
   return (
-    <form onSubmit={methods.handleSubmit(onPost)}>
-      <AmountManager
-        append={appendHandler}
-        remove={removeHandler}
-        fieldLength={layout.length}
-        setColumnCount={setColumnCount}
-        menuClassLayoutCtxUpdater={menuClassLayoutCtxUpdater}
-      />
-      <ClassName menuClassLayoutCtxUpdater={menuClassLayoutCtxUpdater} />
-      <Layout
-        layout={layout}
-        columnCount={columnCount}
-        updateLayoutHandler={updateLayoutHandler}
-        editHandler={editHandler}
-        hookFormSwap={hookFormSwap}
-      />
-      <SendClassData />
-    </form>
+    <>
+      <form onSubmit={methods.handleSubmit(onPost)}>
+        <AmountManager
+          append={appendHandler}
+          remove={removeHandler}
+          fieldLength={layout.length}
+          setColumnCount={setColumnCount}
+          menuClassLayoutCtxUpdater={menuClassLayoutCtxUpdater}
+        />
+        <ClassName menuClassLayoutCtxUpdater={menuClassLayoutCtxUpdater} />
+        <Layout
+          layout={layout}
+          columnCount={columnCount}
+          updateLayoutHandler={updateLayoutHandler}
+          editHandler={editHandler}
+          hookFormSwap={hookFormSwap}
+        />
+        <SendClassData />
+      </form>
+    </>
   );
 };
 export default SeatForm;

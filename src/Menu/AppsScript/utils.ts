@@ -1,7 +1,15 @@
-import { PROPERTY_DEFAULT, ss } from '@/Const/GAS';
+import {
+  PROPERTY_DEFAULT,
+  ss,
+  type APP_STATES,
+  type PROPERTY_NAMES,
+  APP_STATE_PROPERTY_NAME,
+} from '@/Const/GAS';
 import { CONFIG_SHEET_NAMES } from '@/Const/SheetEnv';
 import { type GASError } from '../errors';
+import { type ClassRoom } from '../types';
 import { initConfig } from './service';
+import { type OperationResult } from './types';
 
 const customMenu = (): void => {
   const html = HtmlService.createHtmlOutputFromFile('menu.html')
@@ -12,13 +20,25 @@ const customMenu = (): void => {
 
 /**
  * return a property by propertyName
- * @param {string} propertyName
+ * @param {PROPERTY_NAMES} propertyName
  * @returns {string | null}
  */
-const getPropertyByName = (propertyName: string): string | null => {
+const getPropertyByName = (propertyName: PROPERTY_NAMES): string | null => {
   const properties = PropertiesService.getScriptProperties();
 
   return properties.getProperty(propertyName);
+};
+
+const setPropertyByName = (
+  propertyName: PROPERTY_NAMES,
+  value: string
+): void => {
+  const properties = PropertiesService.getScriptProperties();
+  properties.setProperty(propertyName, value);
+};
+
+const updateAppState = (state: APP_STATES): void => {
+  setPropertyByName(APP_STATE_PROPERTY_NAME, state);
 };
 
 /**
@@ -96,6 +116,32 @@ const rowAt = (target: string, row: string[]): RowAt => {
   };
 };
 
+type UpdateClassRoomPropertyResult = OperationResult<void>;
+const updateClassRoomProperty = (
+  data: ClassRoom
+): UpdateClassRoomPropertyResult => {
+  try {
+    setPropertyByName('CLASSROOM_CLASSNAME', data.name);
+    setPropertyByName('CLASSROOM_HEIGHT', data.row.toString());
+    setPropertyByName('CLASSROOM_WIDTH', data.column.toString());
+
+    return {
+      success: true,
+      data: undefined,
+    };
+  } catch (e: unknown) {
+    const err = e as Error;
+
+    return {
+      success: false,
+      error: {
+        code: 'Property',
+        message: `${err.name} = ${err.message}`,
+      },
+    };
+  }
+};
+
 /**
  * find a sheet named sheetName
  * @param {string} sheetName
@@ -146,6 +192,34 @@ const getSheetValues = (
   };
 };
 
+type GetAppState = OperationResult<Exclude<APP_STATES, 'PREPARE'>>;
+const getAppState = (): GetAppState => {
+  const appState = getPropertyByName(APP_STATE_PROPERTY_NAME) as APP_STATES;
+  if (appState === null) {
+    return {
+      success: false,
+      error: {
+        code: 'Property',
+        message: `property "${APP_STATE_PROPERTY_NAME}" not found`,
+      },
+    };
+  }
+  if (appState === 'PREPARE') {
+    return {
+      success: false,
+      error: {
+        code: 'RunningApp',
+        message: 'app running now',
+      },
+    };
+  }
+
+  return {
+    success: true,
+    data: appState,
+  };
+};
+
 type ConfigSeets = {
   configSheets: GoogleAppsScript.Spreadsheet.Sheet[];
   error: GASError | null;
@@ -176,14 +250,110 @@ const getConfigSheets = (): ConfigSeets => {
   };
 };
 
+const deleteAllNamedRanges = (): void => {
+  const ranges = ss.getNamedRanges();
+  for (const range of ranges) {
+    range.remove();
+  }
+};
+
+/**
+ * 10進数をA1表記(列)に変換
+ * @param {number}  数値
+ * @return {string} A1表記
+ */
+
+const colNumtoA1 = (d: number): string => {
+  if (!Number.isInteger(d)) {
+    throw new Error(`${d} is not Integer.`);
+  }
+
+  if (d <= 0) {
+    throw new Error(`${d} is invalid. should be more than 1.`);
+  }
+  const alphabets = [
+    `A`,
+    `B`,
+    `C`,
+    `D`,
+    `E`,
+    `F`,
+    `G`,
+    `H`,
+    `I`,
+    `J`,
+    `K`,
+    `L`,
+    `M`,
+    `N`,
+    `O`,
+    `P`,
+    `Q`,
+    `R`,
+    `S`,
+    `T`,
+    `U`,
+    `V`,
+    `W`,
+    `X`,
+    `Y`,
+    `Z`,
+  ];
+  const res = [];
+  for (; d > 0; d = Math.trunc((d - 1) / 26)) {
+    res.push(alphabets[(d - 1) % 26]);
+  }
+
+  return res.reverse().join(``);
+};
+
+/**
+ * A1表記を10進数に変換
+ * @param {string} A1表記
+ * @return {number} 数値
+ */
+const a1toColNum = (strCol: string): number => {
+  const m = strCol.toString().match(/^([a-zA-Z]+?)+/g);
+  if (!m || m.length !== 1) {
+    throw new Error(
+      `${strCol} is invalid, it's not alphabet sequence by head.`
+    );
+  }
+  strCol = m[0];
+  let iNum = 0;
+  let temp = 0;
+
+  strCol = strCol.toUpperCase(); // Asciiコードで計算するので
+  for (let i = strCol.length - 1; i >= 0; i--) {
+    temp = strCol.charCodeAt(i) - 65; // 現在の文字番号;
+    if (i !== strCol.length - 1) {
+      temp = (temp + 1) * Math.pow(26, i + 1);
+    }
+    iNum = iNum + temp;
+  }
+
+  return iNum;
+};
+
+const MMddHHmmss = (): string => {
+  return Utilities.formatDate(new Date(), 'JST', 'MM_dd_HHmmss');
+};
+
 export {
+  a1toColNum,
+  colNumtoA1,
   customMenu,
-  initMenu,
-  isSameRow,
-  rowAt,
+  deleteAllNamedRanges,
+  getAppState,
   getConfigSheets,
   getPropertyByName,
   getSheetValues,
   getTargetSheet,
+  initMenu,
+  isSameRow,
+  rowAt,
   setDefaultProperty,
+  updateAppState,
+  updateClassRoomProperty,
+  MMddHHmmss,
 };
