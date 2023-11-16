@@ -16,6 +16,7 @@ export type ErrorCode =
 
 export type GASError = {
   code: ErrorCode;
+  name?: string;
   message: string;
   options?: ErrorOptions;
 };

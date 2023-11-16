@@ -1,6 +1,7 @@
 import { ss } from '@/Const/GAS';
 import { ENV_LABEL } from '@/Const/Label';
 import { ENV_SEAT } from '@/Const/Seat';
+import { ENV_SEATS_SHEET } from '@/Const/SeatsSheet';
 import { type CONFIG_SHEET, CONFIG_SHEET_NAMES } from '@/Const/SheetEnv';
 
 import { ENV_VIEW } from '@/Const/View';
@@ -131,7 +132,8 @@ const getConfigProtectData = (configSheet: CONFIG_SHEET): ConfigProtectData => {
       success: false,
       error: {
         code: 'Undefined',
-        message: `[${err.name}] - ${err.message}\nundefined error occured at "getConfigProtectData"`,
+        name: err.name,
+        message: `[${err.message}\nundefined error occured at "getConfigProtectData"`,
       },
     };
   }
@@ -194,7 +196,8 @@ const setAllConfigProtections = (data: string): ConfigProtectData => {
       success: false,
       error: {
         code: 'Undefined',
-        message: `[${err.name}] = ${err.message}`,
+        name: err.name,
+        message: err.message,
       },
     };
   }
@@ -298,7 +301,8 @@ const initLabelSheet = (): initLabelSheetReponse => {
       success: false,
       error: {
         code: 'Undefined',
-        message: `[${err.name}] - ${err.message}`,
+        name: err.name,
+        message: err.message,
         options: {
           cause: new InitError(),
           details: 'initLabelSheet',
@@ -317,7 +321,7 @@ const initSeatListSheet = (): initSeatListSheetResponse => {
   const lock = LockService.getScriptLock();
   lock.waitLock(10 * 1000);
   try {
-    const targetSheet = getTargetSheet(ENV_SEAT.NAME);
+    const targetSheet = getTargetSheet(ENV_SEATS_SHEET.NAME);
     let configSheet: GoogleAppsScript.Spreadsheet.Sheet | null = null;
 
     /**
@@ -325,7 +329,7 @@ const initSeatListSheet = (): initSeatListSheetResponse => {
      */
     if (targetSheet === null) {
       configSheet = ss.insertSheet(1); // on second sheet
-      configSheet.setName(ENV_SEAT.NAME);
+      configSheet.setName(ENV_SEATS_SHEET.NAME);
     } else {
       configSheet = targetSheet;
       configSheet.clear().clearNotes();
@@ -337,15 +341,19 @@ const initSeatListSheet = (): initSeatListSheetResponse => {
     configSheet.setFrozenRows(1);
 
     const range = configSheet.getRange(
-      ENV_SEAT.OFFSET_ROW,
-      ENV_SEAT.OFFSET_COL,
-      ENV_SEAT.DEFAULT_VALUES.length + 1,
-      ENV_SEAT.HEADER.size
+      ENV_SEATS_SHEET.OFFSET_ROW,
+      ENV_SEATS_SHEET.OFFSET_COL,
+      ENV_SEATS_SHEET.DEFAULT_VALUES.length + 1,
+      ENV_SEATS_SHEET.HEADER.size
     );
 
     range.setValues([
-      Array.from(ENV_SEAT.HEADER.values()),
-      ...ENV_SEAT.DEFAULT_VALUES.map((v) => [v.index, v.name, v.visible]),
+      Array.from(ENV_SEATS_SHEET.HEADER.values()),
+      ...ENV_SEATS_SHEET.DEFAULT_VALUES.map((v) => [
+        v.index,
+        v.name,
+        v.visible,
+      ]),
     ]);
 
     return { success: true, data: configSheet };
@@ -357,7 +365,8 @@ const initSeatListSheet = (): initSeatListSheetResponse => {
       success: false,
       error: {
         code: 'Undefined',
-        message: `[${err.name}] - ${err.message}`,
+        name: err.name,
+        message: err.message,
         options: {
           cause: new InitError(),
           details: 'initSeatSheet',
@@ -441,7 +450,8 @@ const initConfig = async (options: InitOptions = {}): Promise<InitResponse> => {
       success: false,
       error: {
         code: 'Undefined',
-        message: `[${err.name}] - ${err.message}`,
+        name: err.name,
+        message: err.message,
       },
     };
   }
@@ -547,7 +557,8 @@ const getLabelConfig = (): LabelResponse => {
       success: false,
       error: {
         code: 'Undefined',
-        message: `[${err.name}] - ${err.message}`,
+        name: err.name,
+        message: err.message,
       },
     };
   }
@@ -690,7 +701,8 @@ const getClassRoomConfig = (): ClassRoomResponse => {
       success: false,
       error: {
         code: 'Undefined',
-        message: `[${err.name}] - ${err.message}`,
+        name: err.name,
+        message: err.message,
       },
     };
   }
@@ -700,17 +712,17 @@ type SeatSheetRespone = OperationResult<Seat[]>;
 
 const getClassRoomSeatData = (): SeatSheetRespone => {
   try {
-    const targetSheet = getTargetSheet(ENV_SEAT.NAME);
+    const targetSheet = getTargetSheet(ENV_SEATS_SHEET.NAME);
     if (targetSheet === null) {
       return {
         success: false,
         error: {
           code: 'Config',
-          message: `sheet ${ENV_SEAT.NAME} is not found`,
+          message: `sheet ${ENV_SEATS_SHEET.NAME} is not found`,
         },
       };
     }
-    const sheetValues = Utils.getSheetValues(ss, ENV_SEAT.NAME);
+    const sheetValues = Utils.getSheetValues(ss, ENV_SEATS_SHEET.NAME);
     if (sheetValues.error !== null) {
       return {
         success: false,
@@ -720,14 +732,14 @@ const getClassRoomSeatData = (): SeatSheetRespone => {
     // TODO: 使いまわしできそう？（ほかのところでは別のコードを書いてるかもしれない）
     // バリデーションチェック 規定ヘッダと設定されてるヘッダーの値の比較
     if (
-      sheetValues.values[0].length !== ENV_SEAT.HEADER.size ||
+      sheetValues.values[0].length !== ENV_SEATS_SHEET.HEADER.size ||
       !sheetValues.values[0].every(
-        (v, i) => v === Array.from(ENV_SEAT.HEADER.values())[i]
+        (v, i) => v === Array.from(ENV_SEATS_SHEET.HEADER.values())[i]
       )
     ) {
       Logger.log(
-        `expected ${ENV_SEAT.NAME} header is [${Array.from(
-          ENV_SEAT.HEADER.values()
+        `expected ${ENV_SEATS_SHEET.NAME} header is [${Array.from(
+          ENV_SEATS_SHEET.HEADER.values()
         ).join(',')}], but current value is [${sheetValues.values[0].join(
           ','
         )}]`
@@ -737,8 +749,8 @@ const getClassRoomSeatData = (): SeatSheetRespone => {
         success: false,
         error: {
           code: 'SheetHeader',
-          message: `expected ${ENV_SEAT.NAME} header is [${Array.from(
-            ENV_SEAT.HEADER.values()
+          message: `expected ${ENV_SEATS_SHEET.NAME} header is [${Array.from(
+            ENV_SEATS_SHEET.HEADER.values()
           ).join(',')}], but current value is [${sheetValues.values[0].join(
             ','
           )}]`,
@@ -748,7 +760,7 @@ const getClassRoomSeatData = (): SeatSheetRespone => {
     let ret: Seat[] = [];
 
     for (const val of sheetValues.values.slice(1)) {
-      if (val.length !== ENV_SEAT.HEADER.size) {
+      if (val.length !== ENV_SEATS_SHEET.HEADER.size) {
         // バリデーションチェック 規定ヘッダとrowの長さ・要素の比較
         return {
           success: false,
@@ -807,7 +819,8 @@ const getClassRoomSeatData = (): SeatSheetRespone => {
       success: false,
       error: {
         code: 'Undefined',
-        message: `[${err.name}] - ${err.message}`,
+        name: err.name,
+        message: err.message,
       },
     };
   }
@@ -835,7 +848,8 @@ const isUniqueSheetNameOnSeets = (sheetName: string): ExistSheetResponse => {
       success: false,
       error: {
         code: 'Undefined',
-        message: `[${err.name}] - ${err.message}`,
+        name: err.name,
+        message: err.message,
         options: {
           details: `during picking to ${sheetName} sheet`,
         },
@@ -853,37 +867,59 @@ const newApp = (data: string): GenSeatSheetReponse => {
 
   try {
     const d = JSON.parse(data) as ClassLayout;
-    console.log('on server data:');
-    console.log(data);
-    console.log(d);
 
     const appStateResult = Utils.getAppState();
-    if (!appStateResult.success) return appStateResult;
+    if (!appStateResult.success) {
+      Logger.log(`get appstate error`);
+      Utils.updateAppState('READY');
+
+      return appStateResult;
+    }
     const appState = appStateResult.data;
+    Logger.log("let's go!");
+    Utils.updateAppState('PREPARE');
+    // delete named ranges
+    Utils.deleteAllNamedRanges();
+    // update ClassRooom Property
+    const classRoomResult = Utils.updateClassRoomProperty({
+      column: d.column,
+      row: d.row,
+      name: d.name,
+    });
+    if (!classRoomResult.success) {
+      Logger.log(`update classroom error`);
+      Utils.updateAppState('READY');
+
+      return classRoomResult;
+    }
+    // 座席設定シート更新
+    const seatConfigResult = updateSeatConfigSheet(d);
+    if (!seatConfigResult.success) {
+      Utils.updateAppState('READY');
+
+      return seatConfigResult;
+    }
+    // Viewシート作成（更新）
+    updateLayoutSheets(d);
+
+    // 各シート作成作成
+    // TODO: TEST
+    const updateSeatsResult = updateSeats(d);
+    if (!updateSeatsResult.success) {
+      Utils.updateAppState('READY');
+
+      return updateSeatsResult;
+    }
+
+    // TODO: bind???
+
+    console.log('yes~~');
+    // complete
+    Utils.updateAppState('RUN');
+
+    // TODO: モード切替再考
     switch (appState) {
       case 'READY': {
-        Logger.log("let's go!");
-        Utils.updateAppState('PREPARE');
-        // delete named ranges
-        Utils.deleteAllNamedRanges();
-        // update ClassRooom Property
-        const classRoomResult = Utils.updateClassRoomProperty({
-          column: d.column,
-          row: d.row,
-          name: d.name,
-        });
-        if (!classRoomResult.success) return classRoomResult;
-        // 座席設定シート更新
-        const seatConfigResult = updateSeatConfigSheet(d);
-        if (!seatConfigResult.success) {
-          Utils.updateAppState('READY');
-
-          return seatConfigResult;
-        }
-        // Viewシート作成
-        updateLayoutSheets(d);
-        // complete
-        Utils.updateAppState('RUN');
         break;
       }
       case 'RUN':
@@ -939,14 +975,14 @@ const updateSeatConfigSheet = (data: ClassLayout): UpdateSeatListResponse => {
         },
       };
     }
-    const targetSheet = getTargetSheet(ENV_SEAT.NAME);
+    const targetSheet = getTargetSheet(ENV_SEATS_SHEET.NAME);
 
     if (targetSheet === null) {
       return {
         success: false,
         error: {
           code: 'SheetNotFound',
-          message: `${ENV_SEAT.NAME} not found`,
+          message: `${ENV_SEATS_SHEET.NAME} not found`,
         },
       };
     }
@@ -954,13 +990,13 @@ const updateSeatConfigSheet = (data: ClassLayout): UpdateSeatListResponse => {
     targetSheet.setFrozenRows(1);
     // 素直に設定
     const range = targetSheet.getRange(
-      ENV_SEAT.OFFSET_ROW,
-      ENV_SEAT.OFFSET_COL,
+      ENV_SEATS_SHEET.OFFSET_ROW,
+      ENV_SEATS_SHEET.OFFSET_COL,
       data.row * data.column + 1, // body + header(1 row)
-      ENV_SEAT.HEADER.size
+      ENV_SEATS_SHEET.HEADER.size
     );
     range.setValues([
-      Array.from(ENV_SEAT.HEADER.values()),
+      Array.from(ENV_SEATS_SHEET.HEADER.values()),
       ...data.seats.map((v) => [v.index, v.name, v.visible]),
     ]);
 
@@ -973,7 +1009,8 @@ const updateSeatConfigSheet = (data: ClassLayout): UpdateSeatListResponse => {
       success: false,
       error: {
         code: 'Undefined',
-        message: `[${err.name}] - ${err.message}`,
+        name: err.name,
+        message: err.message,
       },
     };
   } finally {
@@ -981,23 +1018,99 @@ const updateSeatConfigSheet = (data: ClassLayout): UpdateSeatListResponse => {
   }
 };
 
-/*
-const createSeatSheets = (data: Seat[]) => {
-  // 既存の各座席シートを破壊
-  // (各Configシートか、頭に「#」がついたもの以外破壊)
-  // bind-seat
-};
-*/
+type CreateSeasResponse = OperationResult<CreatedSheet[]>;
 
-const updateLayoutSheets = (data: ClassLayout) => {
-  // ビュー用シート更新・生成
-  // 更新の場合は どうしよう
-  // ラベルによる更新
-  // 新規作成による更新
-  // レイアウトによる更新
-  // よくよく考えたら全部別シートの情報から作成する感じになる
-  // (各seatとのbindは別)
-  // ということで部分的更新よりもスクラップアンドビルドがいい？
+const updateSeats = (data: ClassLayout): CreateSeasResponse => {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10 * 1000);
+  try {
+    // TODO: やる
+    // 既存の同名のシートは無視
+    //
+    let result: CreatedSheet[] = [];
+    void (async () => {
+      result = await Promise.all(
+        data.seats.map((seat) => {
+          return setupSeatSheet({ ...seat, name: seat.name ?? '' });
+        })
+      );
+    })();
+
+    return {
+      success: true,
+      data: result,
+    };
+  } catch (e: unknown) {
+    Logger.log(e);
+    const err = e as Error;
+
+    return {
+      success: false,
+      error: {
+        code: 'Undefined',
+        name: err.name,
+        message: err.message,
+      },
+    };
+  } finally {
+    lock.releaseLock();
+  }
+};
+
+// TODO: やりながらきめる
+type CreatedSheet = {
+  index: number;
+  sheet: GoogleAppsScript.Spreadsheet.Sheet;
+  cell: GoogleAppsScript.Spreadsheet.Range;
+};
+// TODO: とりあえず動かす
+// それぞれシート挿入
+// TODO: 名前重複どうしよう(どこでやるべき？)
+const setupSeatSheet = (seat: Seat): CreatedSheet => {
+  try {
+    const createdSheet = ss
+      .insertSheet(
+        seat.name !== '' ? `${seat.index}_${seat.name}` : `${seat.index}`
+      )
+      .setRowHeight(ENV_SEAT.OFFSET_ROW, ENV_SEAT.SEAT_H)
+      .setColumnWidth(ENV_SEAT.OFFSET_COL, ENV_SEAT.SEAT_W);
+    if (!seat.visible) createdSheet.hideSheet();
+    const cell = createdSheet
+      .getRange(ENV_SEAT.OFFSET_ROW, ENV_SEAT.OFFSET_COL, 2)
+      .setBorder(
+        true,
+        true,
+        true,
+        true,
+        null,
+        null,
+        '#3d3d3d',
+        SpreadsheetApp.BorderStyle.SOLID_MEDIUM
+      );
+
+    // const pulldownCell = createdSheet.getRange(
+    //   ENV_SEAT.OFFSET_ROW + 1,
+    //   ENV_SEAT.OFFSET_COL
+    // );
+
+    return {
+      index: seat.index,
+      sheet: createdSheet,
+      cell,
+    };
+  } catch (e: unknown) {
+    const err = e as Error;
+    Logger.log(e);
+    throw err;
+  }
+};
+
+type UpdateLayoutSheet = OperationResult<{
+  ranges: GoogleAppsScript.Spreadsheet.RangeList;
+  sheet: GoogleAppsScript.Spreadsheet.Sheet;
+}>;
+
+const updateLayoutSheets = (data: ClassLayout): UpdateLayoutSheet => {
   const lock = LockService.getScriptLock();
   lock.waitLock(10 * 1000);
   try {
@@ -1008,30 +1121,16 @@ const updateLayoutSheets = (data: ClassLayout) => {
       existSheet.protect();
       existSheet.setTabColor('#666666');
     }
-    // TODO: 挿入する場所 確認
+    // TODO: 挿入する場所 確認 とりあえず2番目にしているだけ
     const viewSheet = ss.insertSheet(data.name, 2);
 
-    // viewシート作成/
-    // TODO: とりあえず配置と装飾のみでbindはしない
-    // (中身は各seatを直接参照しているだけ)
-
-    /*
-    const range = viewSheet.getRange(
-      ENV_VIEW.OFFSET_ROW * 2, // name + state
-      ENV_VIEW.OFFSET_COL,
-      data.row,
-      data.column
-    );
-    */
     const ranges = Array.from({ length: data.row }, (_, n) => {
-      // const col = `${Utils.colNumtoA1(ENV_VIEW.OFFSET_COL + n)}`;
-      const rowrow = ENV_VIEW.OFFSET_COL + n * 2;
+      const row = ENV_VIEW.OFFSET_COL + n * 2;
 
       return Array.from({ length: data.column }, (_, m) => {
-        const colcol = `${Utils.colNumtoA1(ENV_VIEW.OFFSET_COL + m)}`;
-        // const row = ENV_VIEW.OFFSET_ROW + m * 2;
+        const col = `${Utils.colNumtoA1(ENV_VIEW.OFFSET_COL + m)}`;
 
-        return `${colcol}${rowrow}:${colcol}${rowrow + 1}`;
+        return `${col}${row}:${col}${row + 1}`;
       });
     }).flat();
     const rangeList = viewSheet.getRangeList(ranges);
@@ -1051,12 +1150,34 @@ const updateLayoutSheets = (data: ClassLayout) => {
     for (let r = ENV_VIEW.OFFSET_ROW; r <= data.row * 2; r += 2) {
       viewSheet.setRowHeight(r, ENV_VIEW.CELL_H);
     }
-    // 横幅を確定
-    for (let c = ENV_VIEW.OFFSET_COL; c < data.column; c++) {
+    // 幅を確定
+    for (
+      let c = ENV_VIEW.OFFSET_COL;
+      c <= ENV_VIEW.OFFSET_COL + data.column;
+      c++
+    ) {
       viewSheet.setColumnWidth(c, ENV_VIEW.CELL_W);
     }
+
+    return {
+      success: true,
+      data: {
+        ranges: rangeList,
+        sheet: viewSheet,
+      },
+    };
   } catch (e: unknown) {
-    Logger.log(e);
+    const err = e as Error;
+    Logger.log(err);
+
+    return {
+      success: false,
+      error: {
+        code: 'Undefined',
+        name: err.name,
+        message: err.message,
+      },
+    };
   } finally {
     lock.releaseLock();
   }
