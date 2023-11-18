@@ -29,6 +29,12 @@ const getPropertyByName = (propertyName: PROPERTY_NAMES): string | null => {
   return properties.getProperty(propertyName);
 };
 
+/**
+ *
+ * @param {PROPERTY_NAMES} propertyName
+ * @param {string} value
+ * @returns {void}
+ */
 const setPropertyByName = (
   propertyName: PROPERTY_NAMES,
   value: string
@@ -37,12 +43,17 @@ const setPropertyByName = (
   properties.setProperty(propertyName, value);
 };
 
+/**
+ * @param {APP_STATES} state
+ * @returns {void}
+ */
 const updateAppState = (state: APP_STATES): void => {
   setPropertyByName(APP_STATE_PROPERTY_NAME, state);
 };
 
 /**
  * reset and init Properties values
+ * @returns {void}
  */
 const setDefaultProperty = (): void => {
   const properties = PropertiesService.getScriptProperties();
@@ -50,7 +61,10 @@ const setDefaultProperty = (): void => {
   properties.setProperties(PROPERTY_DEFAULT);
 };
 
-// メニューにつけるやつ、Promiseでも大丈夫なんか？エラーは起きてないけど
+/**
+ *
+ * @returns {Promise<void>}
+ */
 const initMenu = async (): Promise<void> => {
   const ui = SpreadsheetApp.getUi();
   let btn = ui.alert('初期化します', ui.ButtonSet.OK_CANCEL);
@@ -117,6 +131,11 @@ const rowAt = (target: string, row: string[]): RowAt => {
 };
 
 type UpdateClassRoomPropertyResult = OperationResult<void>;
+
+/**
+ * @param {ClassRoom} data
+ * @returns {UpdateClassRoomPropertyResult}
+ */
 const updateClassRoomProperty = (
   data: ClassRoom
 ): UpdateClassRoomPropertyResult => {
@@ -147,7 +166,6 @@ const updateClassRoomProperty = (
  * @param {string} sheetName
  * @returns {GoogleAppsScript.Spreadsheet.Sheet}
  */
-
 const getTargetSheet = (
   sheetName: string
 ): GoogleAppsScript.Spreadsheet.Sheet | null => {
@@ -157,42 +175,86 @@ const getTargetSheet = (
   return targets.length === 0 ? null : targets[0];
 };
 
-type ConfigSheetData = {
-  values: string[][];
-  error: GASError | null;
-};
+type SheetValues = OperationResult<string[][]>;
 /**
  * return the all values at sheet
  * if not found, return error
  * @param sheetName
  * @returns
  */
-const getSheetValues = (
-  ss: GoogleAppsScript.Spreadsheet.Spreadsheet,
-  sheetName: string
-): ConfigSheetData => {
+const getSheetValues = (sheetName: string): SheetValues => {
   // check valid sheet name
   const targetSheet = getTargetSheet(sheetName);
   if (targetSheet === null) {
     Logger.log(`sheet "${sheetName}" not found`);
 
     return {
+      success: false,
       error: {
         code: 'SheetNotFound',
         message: `sheet "${sheetName}" not found`,
       },
-      values: [],
     };
   }
   const values = targetSheet.getDataRange().getDisplayValues();
 
   return {
-    error: null,
-    values,
+    success: true,
+    data: values,
+  };
+};
+
+type SheetRangeList = OperationResult<GoogleAppsScript.Spreadsheet.RangeList>;
+const getSheetRangeListEveryCells = (
+  sheetName: string,
+  ...col: number[] // 1 order
+): SheetRangeList => {
+  const targetSheet = getTargetSheet(sheetName);
+  if (targetSheet === null) {
+    Logger.log(`sheet "${sheetName}" not found`);
+
+    return {
+      success: false,
+      error: {
+        code: 'SheetNotFound',
+        message: `sheet "${sheetName}" not found`,
+      },
+    };
+  }
+  const dataRanges = targetSheet.getDataRange();
+  const [height, width] = [dataRanges.getNumRows(), dataRanges.getNumColumns()];
+  const ranges = Array.from({ length: width }, (_, j) => {
+    return Array.from({ length: height }, (_, i) => {
+      return `${colNumtoA1(j + 1)}${i + 1}`;
+    });
+  });
+
+  console.log('range list');
+  Logger.log(ranges);
+  if (col.length === 0) {
+    return {
+      success: true,
+      data: targetSheet.getRangeList(ranges.flat()),
+    };
+  }
+
+  return {
+    success: true,
+    data: targetSheet.getRangeList(
+      ranges
+        .filter((_, idx) => {
+          // eslint-disable-next-line @typescript-eslint/prefer-includes
+          return col.filter((v) => v >= 1).indexOf(idx + 1) !== -1; // zero order
+        })
+        .flat()
+    ),
   };
 };
 
 type GetAppState = OperationResult<Exclude<APP_STATES, 'PREPARE'>>;
+/**
+ * @returns {GetAppState}
+ */
 const getAppState = (): GetAppState => {
   const appState = getPropertyByName(APP_STATE_PROPERTY_NAME) as APP_STATES;
   if (appState === null) {
@@ -220,10 +282,7 @@ const getAppState = (): GetAppState => {
   };
 };
 
-type ConfigSeets = {
-  configSheets: GoogleAppsScript.Spreadsheet.Sheet[];
-  error: GASError | null;
-};
+type ConfigSeets = OperationResult<GoogleAppsScript.Spreadsheet.Sheet[]>;
 /**
  *
  * @returns {ConfigSeets}
@@ -234,7 +293,7 @@ const getConfigSheets = (): ConfigSeets => {
     const targetSheet = getTargetSheet(sheetName);
     if (targetSheet === null) {
       return {
-        configSheets: [],
+        success: false,
         error: {
           code: 'Config',
           message: `${sheetName} not found`,
@@ -245,11 +304,14 @@ const getConfigSheets = (): ConfigSeets => {
   }
 
   return {
-    configSheets,
-    error: null,
+    success: true,
+    data: configSheets,
   };
 };
 
+/**
+ * @returns {void}
+ */
 const deleteAllNamedRanges = (): void => {
   const ranges = ss.getNamedRanges();
   for (const range of ranges) {
@@ -262,7 +324,6 @@ const deleteAllNamedRanges = (): void => {
  * @param {number}  数値
  * @return {string} A1表記
  */
-
 const colNumtoA1 = (d: number): string => {
   if (!Number.isInteger(d)) {
     throw new Error(`${d} is not Integer.`);
@@ -335,6 +396,9 @@ const a1toColNum = (strCol: string): number => {
   return iNum;
 };
 
+/**
+ * @returns {string}
+ */
 const MMddHHmmss = (): string => {
   return Utilities.formatDate(new Date(), 'JST', 'MM_dd_HHmmss');
 };
@@ -347,13 +411,14 @@ export {
   getAppState,
   getConfigSheets,
   getPropertyByName,
+  getSheetRangeListEveryCells,
   getSheetValues,
   getTargetSheet,
   initMenu,
   isSameRow,
+  MMddHHmmss,
   rowAt,
   setDefaultProperty,
   updateAppState,
   updateClassRoomProperty,
-  MMddHHmmss,
 };

@@ -153,11 +153,11 @@ const setAllConfigProtections = (data: string): ConfigProtectData => {
     console.log(`data from front:`);
     console.log(`row string: ${data}`);
     console.log(d);
-    const { configSheets, error } = Utils.getConfigSheets();
-    if (error !== null) {
+    const result = Utils.getConfigSheets();
+    if (!result.success) {
       return {
         success: false,
-        error,
+        error: result.error,
       };
     }
 
@@ -175,7 +175,7 @@ const setAllConfigProtections = (data: string): ConfigProtectData => {
       spreadSheetEditors.has(editor)
     );
 
-    for (const configSheet of configSheets) {
+    for (const configSheet of result.data) {
       const prot = configSheet.protect();
       prot.setDescription('設定シート');
       prot.removeEditors(prot.getEditors());
@@ -520,9 +520,9 @@ type LabelResponse = OperationResult<Labels>;
 const getLabelConfig = (): LabelResponse => {
   try {
     // sheet check and get values
-    const sheetValue = Utils.getSheetValues(ss, ENV_LABEL.NAME);
+    const sheetValue = Utils.getSheetValues(ENV_LABEL.NAME);
 
-    if (sheetValue.error !== null) {
+    if (!sheetValue.success) {
       return {
         success: false,
         error: sheetValue.error,
@@ -530,7 +530,8 @@ const getLabelConfig = (): LabelResponse => {
     }
 
     // いろいろ混ぜたやつ
-    const labelInfoValue = labelInfo(sheetValue.values[0]);
+    const values = sheetValue.data;
+    const labelInfoValue = labelInfo(values[0]);
     if (!labelInfoValue.success) {
       return {
         success: false,
@@ -541,12 +542,8 @@ const getLabelConfig = (): LabelResponse => {
     return {
       success: true,
       data: {
-        labels: sheetValue.values
-          .map((d) => d[labelInfoValue.data.labelIdx])
-          .slice(1),
-        colors: sheetValue.values
-          .map((d) => d[labelInfoValue.data.colorIdx])
-          .slice(1),
+        labels: values.map((d) => d[labelInfoValue.data.labelIdx]).slice(1),
+        colors: values.map((d) => d[labelInfoValue.data.colorIdx]).slice(1),
       },
     };
   } catch (e: unknown) {
@@ -722,8 +719,8 @@ const getClassRoomSeatData = (): SeatSheetRespone => {
         },
       };
     }
-    const sheetValues = Utils.getSheetValues(ss, ENV_SEATS_SHEET.NAME);
-    if (sheetValues.error !== null) {
+    const sheetValues = Utils.getSheetValues(ENV_SEATS_SHEET.NAME);
+    if (!sheetValues.success) {
       return {
         success: false,
         error: sheetValues.error,
@@ -731,18 +728,17 @@ const getClassRoomSeatData = (): SeatSheetRespone => {
     }
     // TODO: 使いまわしできそう？（ほかのところでは別のコードを書いてるかもしれない）
     // バリデーションチェック 規定ヘッダと設定されてるヘッダーの値の比較
+    const values = sheetValues.data;
     if (
-      sheetValues.values[0].length !== ENV_SEATS_SHEET.HEADER.size ||
-      !sheetValues.values[0].every(
+      values[0].length !== ENV_SEATS_SHEET.HEADER.size ||
+      !values[0].every(
         (v, i) => v === Array.from(ENV_SEATS_SHEET.HEADER.values())[i]
       )
     ) {
       Logger.log(
         `expected ${ENV_SEATS_SHEET.NAME} header is [${Array.from(
           ENV_SEATS_SHEET.HEADER.values()
-        ).join(',')}], but current value is [${sheetValues.values[0].join(
-          ','
-        )}]`
+        ).join(',')}], but current value is [${values[0].join(',')}]`
       );
 
       return {
@@ -751,15 +747,13 @@ const getClassRoomSeatData = (): SeatSheetRespone => {
           code: 'SheetHeader',
           message: `expected ${ENV_SEATS_SHEET.NAME} header is [${Array.from(
             ENV_SEATS_SHEET.HEADER.values()
-          ).join(',')}], but current value is [${sheetValues.values[0].join(
-            ','
-          )}]`,
+          ).join(',')}], but current value is [${values[0].join(',')}]`,
         },
       };
     }
     let ret: Seat[] = [];
 
-    for (const val of sheetValues.values.slice(1)) {
+    for (const val of values.slice(1)) {
       if (val.length !== ENV_SEATS_SHEET.HEADER.size) {
         // バリデーションチェック 規定ヘッダとrowの長さ・要素の比較
         return {
@@ -861,12 +855,12 @@ const isUniqueSheetNameOnSeets = (sheetName: string): ExistSheetResponse => {
 type GenSeatSheetReponse = OperationResult<void>;
 
 // TODO: いったん結果を受け取れているかチェックするだけ
-const newApp = (data: string): GenSeatSheetReponse => {
+const newApp = async (data: string): Promise<GenSeatSheetReponse> => {
   const lock = LockService.getScriptLock();
   lock.waitLock(10 * 1000);
 
   try {
-    const d = JSON.parse(data) as ClassLayout;
+    const classLayoutData = JSON.parse(data) as ClassLayout;
 
     const appStateResult = Utils.getAppState();
     if (!appStateResult.success) {
@@ -882,9 +876,9 @@ const newApp = (data: string): GenSeatSheetReponse => {
     Utils.deleteAllNamedRanges();
     // update ClassRooom Property
     const classRoomResult = Utils.updateClassRoomProperty({
-      column: d.column,
-      row: d.row,
-      name: d.name,
+      column: classLayoutData.column,
+      row: classLayoutData.row,
+      name: classLayoutData.name,
     });
     if (!classRoomResult.success) {
       Logger.log(`update classroom error`);
@@ -893,18 +887,23 @@ const newApp = (data: string): GenSeatSheetReponse => {
       return classRoomResult;
     }
     // 座席設定シート更新
-    const seatConfigResult = updateSeatConfigSheet(d);
+
+    const [seatConfigResult, updateLayoutResult, updateSeatsResult] =
+      await Promise.all([
+        updateSeatConfigSheet(classLayoutData),
+        updateLayoutSheets(classLayoutData),
+        updateSeats(classLayoutData),
+      ]);
     if (!seatConfigResult.success) {
       Utils.updateAppState('READY');
 
       return seatConfigResult;
     }
-    // Viewシート作成（更新）
-    updateLayoutSheets(d);
+    if (!updateLayoutResult.success) {
+      Utils.updateAppState('READY');
 
-    // 各シート作成作成
-    // TODO: TEST
-    const updateSeatsResult = updateSeats(d);
+      return updateLayoutResult;
+    }
     if (!updateSeatsResult.success) {
       Utils.updateAppState('READY');
 
@@ -912,8 +911,59 @@ const newApp = (data: string): GenSeatSheetReponse => {
     }
 
     // TODO: bind???
+    const labels = getLabelConfig();
+    if (!labels.success) {
+      Utils.updateAppState('READY');
 
-    console.log('yes~~');
+      return labels;
+    }
+
+    // bind each seat Conditinal and Dropdown Validation Rules with Labels and Colors
+    // chipにできないのとドロップダウンに色をつけられないので条件付き書式
+    const tempRangeList = Utils.getSheetRangeListEveryCells(ENV_LABEL.NAME, 1);
+    if (!tempRangeList.success) {
+      Utils.updateAppState('READY');
+
+      return tempRangeList;
+    }
+    const tempRange = tempRangeList.data.getRanges().slice(1); // ignore header
+    const validationRule = SpreadsheetApp.newDataValidation()
+      .requireValueInList(labels.data.labels, true)
+      .setAllowInvalid(false)
+      .build();
+
+    updateSeatsResult.data.forEach((createdSheetData) => {
+      const pulldownCell = createdSheetData.cell
+        .offset(1, 0, 1, 1)
+        .setDataValidation(validationRule);
+      const nameCell = createdSheetData.cell.offset(0, 0, 1, 1);
+      const nowRules = labels.data.colors
+        .map((color, idx) => {
+          const pulldownRule = SpreadsheetApp.newConditionalFormatRule()
+            .whenTextEqualTo(labels.data.labels[idx])
+            .setBackground(color)
+            .setRanges([pulldownCell])
+            .build();
+
+          const nameruletest = SpreadsheetApp.newConditionalFormatRule()
+            .whenFormulaSatisfied(
+              `=$${pulldownCell.getA1Notation()}=INDIRECT("'${
+                ENV_LABEL.NAME
+              }'!${tempRange[idx].getA1Notation()}")`
+            )
+            .setBackground(color)
+            .setRanges([nameCell])
+            .build();
+
+          return [pulldownRule, nameruletest];
+        })
+        .flat();
+
+      createdSheetData.sheet.setConditionalFormatRules(nowRules);
+    });
+
+    // TODO
+
     // complete
     Utils.updateAppState('RUN');
 
@@ -958,8 +1008,8 @@ const bindLabelAndSheets = () => {
 };
 */
 
-type UpdateSeatListResponse = OperationResult<boolean>;
-const updateSeatConfigSheet = (data: ClassLayout): UpdateSeatListResponse => {
+type UpdateSeatListResult = OperationResult<boolean>;
+const updateSeatConfigSheet = (data: ClassLayout): UpdateSeatListResult => {
   // 座席設定シートの存在確認・生成
   // 座席設定シートの構造（ヘッダーとか）確認
   // 座席設定シートへデータ反映
@@ -1018,23 +1068,20 @@ const updateSeatConfigSheet = (data: ClassLayout): UpdateSeatListResponse => {
   }
 };
 
-type CreateSeasResponse = OperationResult<CreatedSheet[]>;
+type CreateSeasResult = OperationResult<CreatedSheet[]>;
 
-const updateSeats = (data: ClassLayout): CreateSeasResponse => {
+const updateSeats = async (data: ClassLayout): Promise<CreateSeasResult> => {
   const lock = LockService.getScriptLock();
   lock.waitLock(10 * 1000);
   try {
     // TODO: やる
     // 既存の同名のシートは無視
     //
-    let result: CreatedSheet[] = [];
-    void (async () => {
-      result = await Promise.all(
-        data.seats.map((seat) => {
-          return setupSeatSheet({ ...seat, name: seat.name ?? '' });
-        })
-      );
-    })();
+    const result = await Promise.all(
+      data.seats.map((seat) => {
+        return setupSeatSheet({ ...seat, name: seat.name ?? '' });
+      })
+    );
 
     return {
       success: true,
@@ -1105,12 +1152,12 @@ const setupSeatSheet = (seat: Seat): CreatedSheet => {
   }
 };
 
-type UpdateLayoutSheet = OperationResult<{
+type UpdateLayoutResult = OperationResult<{
   ranges: GoogleAppsScript.Spreadsheet.RangeList;
   sheet: GoogleAppsScript.Spreadsheet.Sheet;
 }>;
 
-const updateLayoutSheets = (data: ClassLayout): UpdateLayoutSheet => {
+const updateLayoutSheets = (data: ClassLayout): UpdateLayoutResult => {
   const lock = LockService.getScriptLock();
   lock.waitLock(10 * 1000);
   try {
