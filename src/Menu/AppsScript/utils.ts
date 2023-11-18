@@ -6,7 +6,6 @@ import {
   APP_STATE_PROPERTY_NAME,
 } from '@/Const/GAS';
 import { CONFIG_SHEET_NAMES } from '@/Const/SheetEnv';
-import { type GASError } from '../errors';
 import { type ClassRoom } from '../types';
 import { initConfig } from './service';
 import { type OperationResult } from './types';
@@ -41,6 +40,29 @@ const setPropertyByName = (
 ): void => {
   const properties = PropertiesService.getScriptProperties();
   properties.setProperty(propertyName, value);
+};
+
+const getSheetsBy = (args?: {
+  includeNames?: string[];
+  excludeNames?: string[];
+}): Array<{
+  sheet: GoogleAppsScript.Spreadsheet.Sheet;
+  name: string;
+}> => {
+  let sheets = ss.getSheets().map((sheet) => {
+    return { sheet, name: sheet.getSheetName() };
+  });
+  if (!args) return sheets;
+
+  const { includeNames, excludeNames } = args;
+  if (!!includeNames && includeNames.length > 0) {
+    sheets = sheets.filter(({ name }) => includeNames.includes(name));
+  }
+  if (!!excludeNames && excludeNames.length > 0) {
+    sheets = sheets.filter(({ name }) => !excludeNames.includes(name));
+  }
+
+  return sheets;
 };
 
 /**
@@ -97,10 +119,11 @@ const isSameRow = (values: string[], expected: string[]): boolean => {
   );
 };
 
-type RowAt = {
-  index: number;
-  error: GASError | null;
-};
+type RowAt = OperationResult<number>;
+//  = {
+//   index: number;
+//   error: GASError | null;
+// };
 /**
  * find index the target of row
  * @param {string} target
@@ -108,15 +131,13 @@ type RowAt = {
  * @returns {RowAt}
  */
 const rowAt = (target: string, row: string[]): RowAt => {
-  /**
-   * Apps Script環境はES6までしか対応してないのでArray.includesが使えない
-   */
   const idx = row.indexOf(target);
+  // const isExist = row.includes(target);
   if (idx === -1) {
     Logger.log(`not found '${target}' on header`);
 
     return {
-      index: idx,
+      success: false,
       error: {
         code: 'SheetHeader',
         message: `not found '${target}' on header`,
@@ -125,8 +146,8 @@ const rowAt = (target: string, row: string[]): RowAt => {
   }
 
   return {
-    index: idx,
-    error: null,
+    success: true,
+    data: row.indexOf(target),
   };
 };
 
@@ -169,10 +190,9 @@ const updateClassRoomProperty = (
 const getTargetSheet = (
   sheetName: string
 ): GoogleAppsScript.Spreadsheet.Sheet | null => {
-  const sheets = ss.getSheets();
-  const targets = sheets.filter((s) => s.getSheetName() === sheetName);
+  const sheets = getSheetsBy({ includeNames: [sheetName] });
 
-  return targets.length === 0 ? null : targets[0];
+  return sheets.length === 0 ? null : sheets[0].sheet;
 };
 
 type SheetValues = OperationResult<string[][]>;
@@ -229,8 +249,6 @@ const getSheetRangeListEveryCells = (
     });
   });
 
-  console.log('range list');
-  Logger.log(ranges);
   if (col.length === 0) {
     return {
       success: true,
@@ -243,8 +261,7 @@ const getSheetRangeListEveryCells = (
     data: targetSheet.getRangeList(
       ranges
         .filter((_, idx) => {
-          // eslint-disable-next-line @typescript-eslint/prefer-includes
-          return col.filter((v) => v >= 1).indexOf(idx + 1) !== -1; // zero order
+          return col.filter((v) => v >= 1 && v <= width).includes(idx + 1); // zero order
         })
         .flat()
     ),
@@ -412,6 +429,7 @@ export {
   getConfigSheets,
   getPropertyByName,
   getSheetRangeListEveryCells,
+  getSheetsBy,
   getSheetValues,
   getTargetSheet,
   initMenu,

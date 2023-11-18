@@ -60,10 +60,7 @@ const _isAllowedConfigSheet = (id: string): boolean => {
     const editors = prot.getEditors();
 
     // Apps ScriptではES6までしか対応してないので、たぶんincludesは使えない気がする
-    // eslint-disable-next-line no-unneeded-ternary, @typescript-eslint/prefer-includes
-    return editors.map((editor) => editor.getEmail()).indexOf(id) !== -1
-      ? true
-      : false;
+    return editors.map((editor) => editor.getEmail()).includes(id);
   } catch (e: unknown) {
     // TODO: error handling
     console.log(`error occured! at isAllowedConfigSheet`);
@@ -115,8 +112,7 @@ const getConfigProtectData = (configSheet: CONFIG_SHEET): ConfigProtectData => {
     const editors = spreadSheetEditors.map((id): Editor => {
       return {
         useId: id,
-        // eslint-disable-next-line no-unneeded-ternary, @typescript-eslint/prefer-includes
-        editable: protectorAccounts.indexOf(id) === -1 ? false : true,
+        editable: !!protectorAccounts.includes(id),
       };
     });
 
@@ -410,15 +406,12 @@ const initConfig = async (options: InitOptions = {}): Promise<InitResponse> => {
     /**
      * （取得した時点での）設定シート[以外]全部削除
      */
-    for (const sheet of ss.getSheets()) {
+    for (const sheetObj of Utils.getSheetsBy()) {
       if (
-        // GASはES6で止まってるのでincludesは使えないきがする
-        // eslint-disable-next-line @typescript-eslint/prefer-includes
-        CONFIG_SHEET_NAMES.map((val) => val as string).indexOf(
-          sheet.getName()
-        ) === -1
+        // TODO: 本当? <- GASはES6で止まってるのでincludesは使えないきがする
+        !CONFIG_SHEET_NAMES.map((val) => val as string).includes(sheetObj.name)
       ) {
-        ss.deleteSheet(sheet);
+        ss.deleteSheet(sheetObj.sheet);
       }
     }
 
@@ -495,19 +488,19 @@ const labelInfo = (header: string[]): LabelInfo => {
   }
 
   const labelRes = Utils.rowAt(ENV_LABEL.HEADER.get(0) as string, header);
-  if (labelRes.error !== null) {
-    return { success: false, error: labelRes.error };
+  if (!labelRes.success) {
+    return labelRes;
   }
   const colorRes = Utils.rowAt(ENV_LABEL.HEADER.get(1) as string, header);
-  if (colorRes.error !== null) {
-    return { success: false, error: colorRes.error };
+  if (!colorRes.success) {
+    return colorRes;
   }
 
   return {
     success: true,
     data: {
-      colorIdx: colorRes.index,
-      labelIdx: labelRes.index,
+      colorIdx: colorRes.data,
+      labelIdx: labelRes.data,
     },
   };
 };
@@ -1077,6 +1070,7 @@ const updateSeats = async (data: ClassLayout): Promise<CreateSeasResult> => {
     // TODO: やる
     // 既存の同名のシートは無視
     //
+
     const result = await Promise.all(
       data.seats.map((seat) => {
         return setupSeatSheet({ ...seat, name: seat.name ?? '' });
@@ -1134,11 +1128,6 @@ const setupSeatSheet = (seat: Seat): CreatedSheet => {
         '#3d3d3d',
         SpreadsheetApp.BorderStyle.SOLID_MEDIUM
       );
-
-    // const pulldownCell = createdSheet.getRange(
-    //   ENV_SEAT.OFFSET_ROW + 1,
-    //   ENV_SEAT.OFFSET_COL
-    // );
 
     return {
       index: seat.index,
