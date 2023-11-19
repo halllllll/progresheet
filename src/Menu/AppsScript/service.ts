@@ -14,6 +14,7 @@ import {
   type EditorRequest,
   type Seat,
   type ClassLayout,
+  type ClassLayoutOnSheet,
 } from '../types';
 import { type OperationResult } from './types';
 import * as Utils from './utils';
@@ -379,6 +380,7 @@ export type InitOptions = {
 };
 /**
  * initialize sheet. set default values for `CONFIG_SHEET`
+ * @param options
  * @returns {InitResponse}
  */
 const initConfig = async (options: InitOptions = {}): Promise<InitResponse> => {
@@ -847,13 +849,20 @@ const isUniqueSheetNameOnSeets = (sheetName: string): ExistSheetResponse => {
 
 type GenSeatSheetReponse = OperationResult<void>;
 
-// TODO: いったん結果を受け取れているかチェックするだけ
 const newApp = async (data: string): Promise<GenSeatSheetReponse> => {
   const lock = LockService.getScriptLock();
   lock.waitLock(10 * 1000);
 
   try {
-    const classLayoutData = JSON.parse(data) as ClassLayout;
+    const _result = JSON.parse(data) as ClassLayout; // as typed just a only temporaly
+    const seatDataOnSheet: Seat[] = _result.seats.map((seat) => {
+      return { ...seat, name: seat.name ?? '' };
+    });
+    const classLayoutData: ClassLayoutOnSheet = {
+      // NOT 'ClassLayout' (required 'name')
+      ..._result,
+      seats: seatDataOnSheet,
+    };
 
     const appStateResult = Utils.getAppState();
     if (!appStateResult.success) {
@@ -869,9 +878,7 @@ const newApp = async (data: string): Promise<GenSeatSheetReponse> => {
     Utils.deleteAllNamedRanges();
     // update ClassRooom Property
     const classRoomResult = Utils.updateClassRoomProperty({
-      column: classLayoutData.column,
-      row: classLayoutData.row,
-      name: classLayoutData.name,
+      ...classLayoutData,
     });
     if (!classRoomResult.success) {
       Logger.log(`update classroom error`);
@@ -884,8 +891,12 @@ const newApp = async (data: string): Promise<GenSeatSheetReponse> => {
     const [seatConfigResult, updateLayoutResult, updateSeatsResult] =
       await Promise.all([
         updateSeatConfigSheet(classLayoutData),
-        updateLayoutSheets(classLayoutData),
-        updateSeats(classLayoutData),
+        updateLayoutSheets({ ...classLayoutData }), // TODO: ClassRoomだけにしたい
+        updateSeats(
+          classLayoutData.seats.map((seat) => {
+            return { ...seat, name: convertNameOfSeatForSheet(seat) };
+          })
+        ),
       ]);
     if (!seatConfigResult.success) {
       Utils.updateAppState('READY');
@@ -911,8 +922,8 @@ const newApp = async (data: string): Promise<GenSeatSheetReponse> => {
       return labels;
     }
 
-    // bind each seat Conditinal and Dropdown Validation Rules with Labels and Colors
-    // chipにできないのとドロップダウンに色をつけられないので条件付き書式
+    // bind each seat Conditinal and pulldown Validation Rules with Labels and Colors
+    // chipにできないのとプルダウンに色をつけられないので条件付き書式
     const tempRangeList = Utils.getSheetRangeListEveryCells(ENV_LABEL.NAME, 1);
     if (!tempRangeList.success) {
       Utils.updateAppState('READY');
@@ -938,7 +949,7 @@ const newApp = async (data: string): Promise<GenSeatSheetReponse> => {
             .setRanges([pulldownCell])
             .build();
 
-          const nameruletest = SpreadsheetApp.newConditionalFormatRule()
+          const nameRule = SpreadsheetApp.newConditionalFormatRule()
             .whenFormulaSatisfied(
               `=$${pulldownCell.getA1Notation()}=INDIRECT("'${
                 ENV_LABEL.NAME
@@ -948,14 +959,33 @@ const newApp = async (data: string): Promise<GenSeatSheetReponse> => {
             .setRanges([nameCell])
             .build();
 
-          return [pulldownRule, nameruletest];
+          return [pulldownRule, nameRule];
         })
         .flat();
 
       createdSheetData.sheet.setConditionalFormatRules(nowRules);
     });
 
-    // TODO
+    // tour
+    for (const [idx, seat] of classLayoutData.seats.entries()) {
+      console.log(seat.name);
+      const query = `=QUERY('${convertNameOfSeatForSheet(
+        seat
+      )}'!${Utils.colNumtoA1(ENV_SEAT.OFFSET_COL)}${
+        ENV_SEAT.OFFSET_ROW
+      }:${Utils.colNumtoA1(ENV_SEAT.OFFSET_COL)}${ENV_SEAT.OFFSET_ROW + 1})`;
+
+      const target = updateLayoutResult.data.sheet.getRange(
+        ENV_VIEW.OFFSET_ROW + Math.floor(idx / classLayoutData.column) * 2,
+        ENV_VIEW.OFFSET_COL + (idx % classLayoutData.column)
+      );
+      if (seat.visible) {
+        target.setFormula(query);
+      } else {
+        target.clear();
+        // target.setBackground('white');
+      }
+    }
 
     // complete
     Utils.updateAppState('RUN');
@@ -1002,7 +1032,9 @@ const bindLabelAndSheets = () => {
 */
 
 type UpdateSeatListResult = OperationResult<boolean>;
-const updateSeatConfigSheet = (data: ClassLayout): UpdateSeatListResult => {
+const updateSeatConfigSheet = (
+  data: ClassLayoutOnSheet
+): UpdateSeatListResult => {
   // 座席設定シートの存在確認・生成
   // 座席設定シートの構造（ヘッダーとか）確認
   // 座席設定シートへデータ反映
@@ -1040,7 +1072,7 @@ const updateSeatConfigSheet = (data: ClassLayout): UpdateSeatListResult => {
     );
     range.setValues([
       Array.from(ENV_SEATS_SHEET.HEADER.values()),
-      ...data.seats.map((v) => [v.index, v.name, v.visible]),
+      ...data.seats.map((v) => [v.index, v.name, v.visible]), // for order
     ]);
 
     return { success: true, data: true };
@@ -1061,20 +1093,31 @@ const updateSeatConfigSheet = (data: ClassLayout): UpdateSeatListResult => {
   }
 };
 
+const convertNameOfSeatForSheet = (seat: Seat) => {
+  return !seat.name || seat.name === ''
+    ? `${seat.index}`
+    : `${seat.index}_${seat.name}`;
+};
+
 type CreateSeasResult = OperationResult<CreatedSheet[]>;
 
-const updateSeats = async (data: ClassLayout): Promise<CreateSeasResult> => {
+const updateSeats = async (seats: Seat[]): Promise<CreateSeasResult> => {
   const lock = LockService.getScriptLock();
   lock.waitLock(10 * 1000);
   try {
     // TODO: やる
     // 既存の同名のシートは無視
     //
+    const existsSheetsNames = Utils.getSheetsBy().map((s) => s.name);
 
     const result = await Promise.all(
-      data.seats.map((seat) => {
-        return setupSeatSheet({ ...seat, name: seat.name ?? '' });
-      })
+      seats
+        .filter((seat) => {
+          return !existsSheetsNames.includes(seat.name);
+        })
+        .map((seat) => {
+          return setupSeatSheet(seat);
+        })
     );
 
     return {
@@ -1100,19 +1143,15 @@ const updateSeats = async (data: ClassLayout): Promise<CreateSeasResult> => {
 
 // TODO: やりながらきめる
 type CreatedSheet = {
-  index: number;
+  // index: number;
   sheet: GoogleAppsScript.Spreadsheet.Sheet;
   cell: GoogleAppsScript.Spreadsheet.Range;
 };
-// TODO: とりあえず動かす
-// それぞれシート挿入
-// TODO: 名前重複どうしよう(どこでやるべき？)
+
 const setupSeatSheet = (seat: Seat): CreatedSheet => {
   try {
     const createdSheet = ss
-      .insertSheet(
-        seat.name !== '' ? `${seat.index}_${seat.name}` : `${seat.index}`
-      )
+      .insertSheet(seat.name)
       .setRowHeight(ENV_SEAT.OFFSET_ROW, ENV_SEAT.SEAT_H)
       .setColumnWidth(ENV_SEAT.OFFSET_COL, ENV_SEAT.SEAT_W);
     if (!seat.visible) createdSheet.hideSheet();
@@ -1127,10 +1166,21 @@ const setupSeatSheet = (seat: Seat): CreatedSheet => {
         null,
         '#3d3d3d',
         SpreadsheetApp.BorderStyle.SOLID_MEDIUM
-      );
+      )
+      .setHorizontalAlignment('center')
+      .setVerticalAlignment('middle')
+      .setFontFamily('BIZ UDPGothic')
+      .setNumberFormat('@');
+
+    // set name value
+    createdSheet
+      .getRange(ENV_SEAT.OFFSET_ROW, ENV_SEAT.OFFSET_COL)
+      .setValue(seat.name)
+      .setFontWeight('bold')
+      .setFontSize(20);
 
     return {
-      index: seat.index,
+      // index: seat.index,
       sheet: createdSheet,
       cell,
     };
@@ -1146,16 +1196,26 @@ type UpdateLayoutResult = OperationResult<{
   sheet: GoogleAppsScript.Spreadsheet.Sheet;
 }>;
 
-const updateLayoutSheets = (data: ClassLayout): UpdateLayoutResult => {
+const updateLayoutSheets = (data: ClassRoom): UpdateLayoutResult => {
   const lock = LockService.getScriptLock();
   lock.waitLock(10 * 1000);
   try {
     const existSheet = getTargetSheet(data.name);
     if (existSheet !== null) {
-      existSheet.setName(`${Utils.MMddHHmmss()}_${data.name}_old`);
-      existSheet.clearConditionalFormatRules();
+      existSheet
+        .setName(`${Utils.MMddHHmmss()}_${data.name}_old`)
+        .clearFormats()
+        .setTabColor('#666666')
+        .clearConditionalFormatRules();
       existSheet.protect();
-      existSheet.setTabColor('#666666');
+
+      // reset formula
+      const range = existSheet.getDataRange().clearDataValidations();
+      const bg = range.getBackgrounds();
+      // const value = range.getValues();
+      // const style = range.getTextStyles();
+      // range.clear().setValues(value).setTextStyles(style);
+      range.setFormula('').setBackgrounds(bg);
     }
     // TODO: 挿入する場所 確認 とりあえず2番目にしているだけ
     const viewSheet = ss.insertSheet(data.name, 2);
@@ -1181,6 +1241,16 @@ const updateLayoutSheets = (data: ClassLayout): UpdateLayoutResult => {
       SpreadsheetApp.BorderStyle.SOLID_MEDIUM
     );
     rangeList.setWrap(true);
+
+    // 名前つける（RangeListから生成する方法がわからないので数値から決定する）
+    const r = viewSheet.getRange(
+      ENV_VIEW.OFFSET_ROW,
+      ENV_VIEW.OFFSET_COL,
+      data.row * 2,
+      data.column
+    );
+
+    ss.setNamedRange(ENV_VIEW.RANGED_NAME, r);
 
     // 高さを確定
     for (let r = ENV_VIEW.OFFSET_ROW; r <= data.row * 2; r += 2) {

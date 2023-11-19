@@ -3,6 +3,7 @@ const ENV_VIEW = {
   OFFSET_ROW: 2, // 2
   CELL_H: 50,
   CELL_W: 140,
-} as const satisfies Record<string, number>;
+  RANGED_NAME: 'view',
+} as const satisfies Record<string, number | string>;
 
 export { ENV_VIEW };

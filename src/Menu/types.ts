@@ -47,3 +47,4 @@ export type ClassRoom = {
 export type SeatDTO = Omit<Seat, 'name'> & Partial<Pick<Seat, 'name'>>;
 
 export type ClassLayout = ClassRoom & { seats: SeatDTO[] };
+export type ClassLayoutOnSheet = ClassRoom & { seats: Seat[] };
