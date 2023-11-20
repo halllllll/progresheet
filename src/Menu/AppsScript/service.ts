@@ -968,7 +968,6 @@ const newApp = async (data: string): Promise<GenSeatSheetReponse> => {
 
     // tour
     for (const [idx, seat] of classLayoutData.seats.entries()) {
-      console.log(seat.name);
       const query = `=QUERY('${convertNameOfSeatForSheet(
         seat
       )}'!${Utils.colNumtoA1(ENV_SEAT.OFFSET_COL)}${
@@ -982,9 +981,41 @@ const newApp = async (data: string): Promise<GenSeatSheetReponse> => {
       if (seat.visible) {
         target.setFormula(query);
       } else {
-        target.clear();
-        // target.setBackground('white');
+        // target.clear();
+        target.clearContent();
+        target.setBackground('#b0b0b0');
       }
+    }
+
+    // 条件付き書式で背景色変える
+    const rules = [];
+    for (const [idx, _seat] of classLayoutData.seats.entries()) {
+      const nameCell = updateLayoutResult.data.sheet.getRange(
+        ENV_VIEW.OFFSET_ROW + Math.floor(idx / classLayoutData.column) * 2,
+        ENV_VIEW.OFFSET_COL + (idx % classLayoutData.column)
+      );
+      const statusCell = nameCell.offset(1, 0);
+
+      const nowRules = labels.data.colors.map((color, colorIdx) => {
+        return SpreadsheetApp.newConditionalFormatRule()
+          .whenFormulaSatisfied(
+            `=$${statusCell.getA1Notation()}=INDIRECT("'${
+              ENV_LABEL.NAME
+            }'!${tempRange[colorIdx].getA1Notation()}")`
+          )
+          .setBackground(color)
+          .setRanges([nameCell])
+          .build();
+      });
+      rules.push(nowRules);
+    }
+
+    updateLayoutResult.data.sheet.setConditionalFormatRules(rules.flat());
+
+    // hide config sheet
+    const hideConfigSheetsResult = Utils.hideAllConfigSheet();
+    if (!hideConfigSheetsResult.success) {
+      return hideConfigSheetsResult;
     }
 
     // complete
@@ -1206,15 +1237,14 @@ const updateLayoutSheets = (data: ClassRoom): UpdateLayoutResult => {
         .setName(`${Utils.MMddHHmmss()}_${data.name}_old`)
         .clearFormats()
         .setTabColor('#666666')
+        .hideSheet()
         .clearConditionalFormatRules();
+
       existSheet.protect();
 
       // reset formula
       const range = existSheet.getDataRange().clearDataValidations();
       const bg = range.getBackgrounds();
-      // const value = range.getValues();
-      // const style = range.getTextStyles();
-      // range.clear().setValues(value).setTextStyles(style);
       range.setFormula('').setBackgrounds(bg);
     }
     // TODO: 挿入する場所 確認 とりあえず2番目にしているだけ

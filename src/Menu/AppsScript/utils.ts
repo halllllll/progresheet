@@ -268,6 +268,40 @@ const getSheetRangeListEveryCells = (
   };
 };
 
+type HideConfigSheetResult = OperationResult<void>;
+const hideAllConfigSheet = (): HideConfigSheetResult => {
+  try {
+    for (const name of CONFIG_SHEET_NAMES) {
+      const sheet = getTargetSheet(name);
+      if (sheet === null) {
+        return {
+          success: false,
+          error: {
+            code: 'SheetNotFound',
+            message: `sheet ${name} is not exist`,
+          },
+        };
+      }
+      sheet.hideSheet();
+    }
+
+    return {
+      success: true,
+      data: undefined,
+    };
+  } catch (e: unknown) {
+    const err = e as Error;
+
+    return {
+      success: false,
+      error: {
+        code: 'Undefined',
+        message: `${err.name} - ${err.message}`,
+      },
+    };
+  }
+};
+
 type GetAppState = OperationResult<Exclude<APP_STATES, 'PREPARE'>>;
 /**
  * @returns {GetAppState}
@@ -425,6 +459,7 @@ export {
   colNumtoA1,
   customMenu,
   deleteAllNamedRanges,
+  hideAllConfigSheet,
   getAppState,
   getConfigSheets,
   getPropertyByName,
