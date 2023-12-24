@@ -6,7 +6,7 @@ import { type CONFIG_SHEET, CONFIG_SHEET_NAMES } from '@/Const/SheetEnv';
 
 import { ENV_VIEW } from '@/Const/View';
 import { type LabelData } from '../components/menuParts/labels/labels';
-import { ConfigError, UndefinedServerError, InitError } from '../errors';
+import { UndefinedServerError, InitError } from '../errors';
 import {
   type Editor,
   type ClassRoom,
@@ -44,31 +44,6 @@ const getSpreadSheetName = (): string => {
   const sheetname = ss.getName();
 
   return sheetname;
-};
-
-// TODO: 不要かも
-/**
- * protection check for `CONFIG_SHEET`
- * @param {string} id - target account id
- * @returns {boolean}
- */
-const _isAllowedConfigSheet = (id: string): boolean => {
-  try {
-    const configSheet = getTargetSheet(ENV_LABEL.NAME);
-    if (configSheet === null)
-      throw new ConfigError(`sheet ${ENV_LABEL.NAME} is not found`);
-    const prot = configSheet.protect();
-    const editors = prot.getEditors();
-
-    // Apps ScriptではES6までしか対応してないので、たぶんincludesは使えない気がする
-    return editors.map((editor) => editor.getEmail()).includes(id);
-  } catch (e: unknown) {
-    // TODO: error handling
-    console.log(`error occured! at isAllowedConfigSheet`);
-    Logger.log(e);
-
-    return false;
-  }
 };
 
 /**
@@ -410,7 +385,6 @@ const initConfig = async (options: InitOptions = {}): Promise<InitResponse> => {
      */
     for (const sheetObj of Utils.getSheetsBy()) {
       if (
-        // TODO: 本当? <- GASはES6で止まってるのでincludesは使えないきがする
         !CONFIG_SHEET_NAMES.map((val) => val as string).includes(sheetObj.name)
       ) {
         ss.deleteSheet(sheetObj.sheet);
@@ -562,7 +536,7 @@ type SetLabelResponse = OperationResult<Labels>;
  * @param {string} data - comming as stringified object data, by "JSON.stringify"
  * @returns
  */
-const setLabelConfig = (data: string): SetLabelResponse => {
+const setLabelConfig = async (data: string): Promise<SetLabelResponse> => {
   const lock = LockService.getScriptLock();
   try {
     lock.waitLock(1 * 3000);
@@ -584,9 +558,6 @@ const setLabelConfig = (data: string): SetLabelResponse => {
     const appState = result.data;
     // しょうがないのでas
     const d = JSON.parse(data) as LabelData;
-    console.log(`data from front:`);
-    console.log(`row string: ${data}`);
-    console.log(d);
     const values = [
       Array.from(ENV_LABEL.HEADER.values()),
       ...d.labels.map((v) => [v.value, v.color]),
@@ -610,10 +581,66 @@ const setLabelConfig = (data: string): SetLabelResponse => {
       case 'READY':
         // ラベルシートだけを更新
         break;
-      case 'RUN':
+      case 'RUN': {
+        console.log('go label update!!!');
+        Utils.updateAppState('PREPARE');
         // ラベルシート、Seats, Viewを更新
+        // TODO:
+        // validation rule
+        const labelRangeList = Utils.getSheetRangeListEveryCells(
+          ENV_LABEL.NAME,
+          1
+        );
+        if (!labelRangeList.success) {
+          Utils.updateAppState('READY');
+
+          return labelRangeList;
+        }
+
+        // const pullDownValidationRule = SpreadsheetApp.newDataValidation()
+        //   .requireValueInList(
+        //     d.labels.map((l) => l.value),
+        //     true
+        //   )
+        //   .setAllowInvalid(false)
+        //   .build();
+
+        // 各SeatはLayoutとPropertyの情報から取得するしかない(命名ルール)
+        const [seatName, classRoomData] = await Promise.all([
+          getClassRoomSeatData(),
+          getClassRoomConfig(),
+        ]);
+
+        if (!seatName.success) {
+          Utils.updateAppState('READY');
+
+          return seatName;
+        }
+        if (!classRoomData.success) {
+          Utils.updateAppState('READY');
+
+          return classRoomData;
+        }
+
+        const seatSheets = seatName.data.map((seat) => {
+          return Utils.getTargetSheet(convertNameOfSeatForSheet(seat));
+        });
+        if (seatSheets === null) {
+          Utils.updateAppState('READY');
+
+          return {
+            success: false,
+            error: {
+              code: 'UpdateLabel',
+              message: 'update failed! invalid seat sheet (null)',
+            },
+          };
+        }
+
+        Utils.updateAppState('RUN');
 
         break;
+      }
     }
     // 新たに取得したものを返す
     const labelData = getLabelConfig();
@@ -859,7 +886,7 @@ const newApp = async (data: string): Promise<GenSeatSheetReponse> => {
       return { ...seat, name: seat.name ?? '' };
     });
     const classLayoutData: ClassLayoutOnSheet = {
-      // NOT 'ClassLayout' (required 'name')
+      // NOT 'ClassLayout' (required 'name' property)
       ..._result,
       seats: seatDataOnSheet,
     };
@@ -891,7 +918,7 @@ const newApp = async (data: string): Promise<GenSeatSheetReponse> => {
     const [seatConfigResult, updateLayoutResult, updateSeatsResult] =
       await Promise.all([
         updateSeatConfigSheet(classLayoutData),
-        updateLayoutSheets({ ...classLayoutData }), // TODO: ClassRoomだけにしたい
+        updateLayoutSheets({ ...classLayoutData }),
         updateSeats(
           classLayoutData.seats.map((seat) => {
             return { ...seat, name: convertNameOfSeatForSheet(seat) };
@@ -914,7 +941,7 @@ const newApp = async (data: string): Promise<GenSeatSheetReponse> => {
       return updateSeatsResult;
     }
 
-    // TODO: bind???
+    // for bind
     const labels = getLabelConfig();
     if (!labels.success) {
       Utils.updateAppState('READY');
@@ -924,13 +951,13 @@ const newApp = async (data: string): Promise<GenSeatSheetReponse> => {
 
     // bind each seat Conditinal and pulldown Validation Rules with Labels and Colors
     // chipにできないのとプルダウンに色をつけられないので条件付き書式
-    const tempRangeList = Utils.getSheetRangeListEveryCells(ENV_LABEL.NAME, 1);
-    if (!tempRangeList.success) {
+    const labelRangeList = Utils.getSheetRangeListEveryCells(ENV_LABEL.NAME, 1);
+    if (!labelRangeList.success) {
       Utils.updateAppState('READY');
 
-      return tempRangeList;
+      return labelRangeList;
     }
-    const tempRange = tempRangeList.data.getRanges().slice(1); // ignore header
+    const labelRange = labelRangeList.data.getRanges().slice(1); // ignore header
     const validationRule = SpreadsheetApp.newDataValidation()
       .requireValueInList(labels.data.labels, true)
       .setAllowInvalid(false)
@@ -953,7 +980,7 @@ const newApp = async (data: string): Promise<GenSeatSheetReponse> => {
             .whenFormulaSatisfied(
               `=$${pulldownCell.getA1Notation()}=INDIRECT("'${
                 ENV_LABEL.NAME
-              }'!${tempRange[idx].getA1Notation()}")`
+              }'!${labelRange[idx].getA1Notation()}")`
             )
             .setBackground(color)
             .setRanges([nameCell])
@@ -1001,7 +1028,7 @@ const newApp = async (data: string): Promise<GenSeatSheetReponse> => {
           .whenFormulaSatisfied(
             `=$${statusCell.getA1Notation()}=INDIRECT("'${
               ENV_LABEL.NAME
-            }'!${tempRange[colorIdx].getA1Notation()}")`
+            }'!${labelRange[colorIdx].getA1Notation()}")`
           )
           .setBackground(color)
           .setRanges([nameCell])
@@ -1051,24 +1078,10 @@ const newApp = async (data: string): Promise<GenSeatSheetReponse> => {
   }
 };
 
-// StateをRUNに
-// Layout,Seatsを作成
-// bind
-// Configを非表示に
-
-/*
-const bindLabelAndSheets = () => {
-  // ラベル情報を各シートに反映・更新
-};
-*/
-
 type UpdateSeatListResult = OperationResult<boolean>;
 const updateSeatConfigSheet = (
   data: ClassLayoutOnSheet
 ): UpdateSeatListResult => {
-  // 座席設定シートの存在確認・生成
-  // 座席設定シートの構造（ヘッダーとか）確認
-  // 座席設定シートへデータ反映
   const lock = LockService.getScriptLock();
   lock.waitLock(10 * 1000);
   try {
@@ -1136,9 +1149,6 @@ const updateSeats = async (seats: Seat[]): Promise<CreateSeasResult> => {
   const lock = LockService.getScriptLock();
   lock.waitLock(10 * 1000);
   try {
-    // TODO: やる
-    // 既存の同名のシートは無視
-    //
     const existsSheetsNames = Utils.getSheetsBy().map((s) => s.name);
 
     const result = await Promise.all(
@@ -1174,7 +1184,6 @@ const updateSeats = async (seats: Seat[]): Promise<CreateSeasResult> => {
 
 // TODO: やりながらきめる
 type CreatedSheet = {
-  // index: number;
   sheet: GoogleAppsScript.Spreadsheet.Sheet;
   cell: GoogleAppsScript.Spreadsheet.Range;
 };
@@ -1211,7 +1220,6 @@ const setupSeatSheet = (seat: Seat): CreatedSheet => {
       .setFontSize(20);
 
     return {
-      // index: seat.index,
       sheet: createdSheet,
       cell,
     };
@@ -1320,7 +1328,6 @@ const updateLayoutSheets = (data: ClassRoom): UpdateLayoutResult => {
 };
 
 export {
-  _isAllowedConfigSheet, // TODO: 未使用
   getClassRoomConfig,
   getClassRoomSeatData,
   getConfigProtectData,
