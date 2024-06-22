@@ -12,7 +12,7 @@ import {
   SheetNotFoundError,
   UndefinedServerError,
 } from '../errors';
-import { type Editor, type Labels } from '../types';
+import { type ClassLayout, type Editor, type Labels } from '../types';
 
 type hasError =
   | {
@@ -29,6 +29,7 @@ export type CtxType = {
   sheetName: string;
   labels?: Labels;
   editors?: Editor[];
+  classLayout?: ClassLayout;
 };
 
 type Props = {
@@ -51,7 +52,6 @@ const CtxProvider: FC<Props> = ({ children }) => {
         getLabelDataAPI(),
       ])
         .then(([userid, sheetname, labels]) => {
-          console.log('label!');
           setRes({
             userID: userid,
             sheetName: sheetname,
@@ -115,7 +115,7 @@ const CtxProvider: FC<Props> = ({ children }) => {
         </Box>
       ) : isError.status === 'failed' ? (
         <Box>
-          <Heading>{`Error occured`}</Heading>
+          <Heading>{'Error occured'}</Heading>
           <Text as="b" fontSize="18px" color={'tomato'}>
             {isError.errName}
           </Text>

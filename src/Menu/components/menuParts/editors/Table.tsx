@@ -8,6 +8,7 @@ import {
   Box,
   Button,
   HStack,
+  Spacer,
   Switch,
   Table,
   Tag,
@@ -51,11 +52,13 @@ const EditorTable: FC<EditorTableProps> = (props) => {
             return (
               <Tr key={editor.useId} my="xl">
                 <Td>
-                  <Text>
+                  <Box>
                     <HStack>
                       <>
                         <Text>{editors[idx].useId}</Text>
-                        <VisuallyHiddenInput value={editors[idx].useId} />
+                        <VisuallyHiddenInput
+                          defaultValue={editors[idx].useId}
+                        />
                         {editors[idx].useId === myId && (
                           <Tag
                             variant={'solid'}
@@ -68,7 +71,7 @@ const EditorTable: FC<EditorTableProps> = (props) => {
                         )}
                       </>
                     </HStack>
-                  </Text>
+                  </Box>
                 </Td>
                 <Td>
                   <HStack justifyContent={'space-evenly'}>
@@ -90,18 +93,22 @@ const EditorTable: FC<EditorTableProps> = (props) => {
           })}
         </Tbody>
       </Table>
-      <Button
-        type="submit"
-        onClick={() => {
-          onSubmit(editors);
-        }}
-        isDisabled={isLoading}
-        isLoading={isLoading}
-        loadingText="送信中..."
-        spinnerPlacement="start"
-      >
-        送信
-      </Button>
+      <Box my={5} display={'flex'}>
+        <Spacer />
+        <Button
+          type="submit"
+          onClick={() => {
+            onSubmit(editors);
+          }}
+          isDisabled={isLoading}
+          isLoading={isLoading}
+          loadingText="送信中..."
+          spinnerPlacement="start"
+        >
+          送信
+        </Button>
+        <Spacer />
+      </Box>
     </Box>
   );
 };

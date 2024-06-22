@@ -1,32 +1,29 @@
-import { useState, type FC, useContext } from 'react';
+import { useState, type FC } from 'react';
 import { Box, Button, Center, Skeleton } from '@chakra-ui/react';
 import toast from 'react-hot-toast';
-import { SetMenuCtx, MenuCtx } from '@/Menu/App';
+
 import EditorTable from './Table';
 import {
   getConfigProtectionAPI,
   setConfigProtectionAPI,
 } from '@/Menu/API/configDataAPI';
-import { ConfigError, ContextError } from '@/Menu/errors';
+import { useAppMenuCtx } from '@/Menu/contexts/hook';
+import { ConfigError } from '@/Menu/errors';
 import { type Editor } from '@/Menu/types';
 
 const EditorsForm: FC = () => {
-  const setMenuCtx = useContext(SetMenuCtx);
-  const menuCtx = useContext(MenuCtx);
-
-  if (menuCtx === null)
-    throw new ContextError('non-context error', { details: 'on EditorsForm' });
+  const { menuCtx, setMenuCtx } = useAppMenuCtx('on EditorsForm');
 
   const [editors, setEditors] = useState<Editor[]>(menuCtx.editors ?? []);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const getEditors = async (): Promise<void> => {
     setIsLoading(true);
-    await getConfigProtectionAPI()
+    await getConfigProtectionAPI('ラベル設定')
       .then((res) => {
         setMenuCtx({
-          editors: res,
           ...menuCtx,
+          editors: res,
         });
         setEditors(res);
         toast.success('編集者情報を取得したよ！', {
@@ -92,7 +89,7 @@ const EditorsForm: FC = () => {
           onClick={getEditors}
           isDisabled={isLoading}
         >
-          {editors.length === 0 ? `取得する` : `更新する`}
+          {editors.length === 0 ? '取得する' : '更新する'}
         </Button>
       </Center>
       <Box my={10}>

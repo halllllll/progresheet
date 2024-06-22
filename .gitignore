@@ -24,3 +24,8 @@ dist-ssr
 *.sln
 *.sw?
 .clasp.json
+bun.lockb
+.env
+
+
+.VSCodeCounter

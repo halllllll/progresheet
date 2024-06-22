@@ -18,8 +18,6 @@ export type Labels = {
 // export declare const seatId: unique symbol;
 // export declare const name: unique symbol;
 export type Seat = {
-  // index: number & { [seatId]: never };
-  // name: string & { [name]: never };
   index: number;
   name: string;
   visible: boolean;
@@ -37,13 +35,16 @@ export type EditorRequest = {
 };
 
 // 教室
-export type HeightValue = string | number;
-export type WidthValue = string | number;
+export type HeightValue = number;
+export type WidthValue = number;
 
 export type ClassRoom = {
-  column: HeightValue;
-  row: WidthValue;
+  column: WidthValue;
+  row: HeightValue;
   name: string;
 };
 
-export type ClassLayout = ClassRoom & { seats: Seat[] };
+export type SeatDTO = Omit<Seat, 'name'> & Partial<Pick<Seat, 'name'>>;
+
+export type ClassLayout = ClassRoom & { seats: SeatDTO[] };
+export type ClassLayoutOnSheet = ClassRoom & { seats: Seat[] };

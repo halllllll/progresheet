@@ -16,7 +16,7 @@ export default defineConfig({
     strip({
       include: ['**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx'],
       exclude: [resolve(root, 'Menu', 'AppScript', '*')],
-      functions: ['console.log', 'console.table', 'console.error'], // console.warnは含めたい気持ち
+      functions: ['console.log', 'console.error'], // console.warnは含めたい気持ち
     }),
     viteSingleFile(),
   ],

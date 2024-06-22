@@ -6,13 +6,17 @@ export type ErrorCode =
   | 'Config'
   | 'Undefined'
   | 'Context'
+  | 'PickSeat'
   | 'Property'
   | 'Permission'
   | 'UpdateLabel'
+  | 'GenClass'
+  | 'RunningApp'
   | 'UpdateProtection';
 
 export type GASError = {
   code: ErrorCode;
+  name?: string;
   message: string;
   options?: ErrorOptions;
 };
@@ -46,7 +50,12 @@ export const errorMapper = (gasError: GASError): Error => {
       return new SheetHeaderError(gasError.message, gasError.options);
     case 'InvalidValue':
       return new InvalidValueError(gasError.message, gasError.options);
-
+    case 'PickSeat':
+      return new PickSeatError(gasError.message, gasError.options);
+    case 'GenClass':
+      return new GenClassError(gasError.message, gasError.options);
+    case 'RunningApp':
+      return new RunningAppError(gasError.message, gasError.options);
     default:
       return new Error('undefined code');
   }
@@ -142,5 +151,26 @@ export class InvalidValueError extends Error {
   constructor(message?: string, options?: ErrorOptions) {
     super(message, options);
     this.name = 'InvalidValueError';
+  }
+}
+
+export class PickSeatError extends Error {
+  constructor(message?: string, options?: ErrorOptions) {
+    super(message, options);
+    this.name = 'PickSeatError';
+  }
+}
+
+export class GenClassError extends Error {
+  constructor(message?: string, options?: ErrorOptions) {
+    super(message, options);
+    this.name = 'GenClass';
+  }
+}
+
+export class RunningAppError extends Error {
+  constructor(message?: string, options?: ErrorOptions) {
+    super(message, options);
+    this.name = 'RunningApp';
   }
 }

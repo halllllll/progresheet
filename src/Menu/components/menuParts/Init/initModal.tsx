@@ -38,6 +38,7 @@ const InitModal: FC<ModalProps> = (props) => {
         closeOnOverlayClick={false}
         size={'xl'}
         isCentered
+        allowPinchZoom={true}
       >
         <ModalOverlay />
         <ModalContent>
@@ -49,9 +50,7 @@ const InitModal: FC<ModalProps> = (props) => {
                   <FormControl id="desc">
                     <HStack alignContent={'center'}>
                       <FormLabel htmlFor="desc" my={'auto'}>
-                        {
-                          '初期化後に編集権限アカウントを「設定」シートに反映する'
-                        }
+                        {'初期化後も編集権限アカウントを引き継ぐ'}
                       </FormLabel>
                       <Switch
                         colorScheme="purple"
@@ -71,7 +70,7 @@ const InitModal: FC<ModalProps> = (props) => {
                     visibility={editorsSwitch ?? false ? 'hidden' : 'visible'}
                   >
                     <Text color="chocolate">
-                      {'＊初期化後は編集者アカウントを別途設定してね！'}
+                      {'＊初期化後はあなたが編集者アカウントを別途設定してね！'}
                     </Text>
                   </Box>
                   <HStack mt="4" gap="10" justifyContent="space-around">
@@ -93,7 +92,7 @@ const InitModal: FC<ModalProps> = (props) => {
                       spinnerPlacement="start"
                       colorScheme="red"
                     >
-                      Yes
+                      {'Yes'}
                     </Button>
                   </HStack>
                 </VStack>

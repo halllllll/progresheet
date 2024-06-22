@@ -1,33 +1,43 @@
-import {
-  type FC,
-  type Dispatch,
-  type SetStateAction,
-  useState,
-  createContext,
-} from 'react';
+import { type FC } from 'react';
 import { Box, HStack, Heading, Text, Tooltip } from '@chakra-ui/react';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { useForm, FormProvider } from 'react-hook-form';
 import { RiInformationFill } from 'react-icons/ri';
 import GetClassData from './GetClassDataButton';
 import SeatForm from './SeatForm';
+import { ClassLayoutSchema } from './Sheat/SheatLayout/schema';
+import { useAppMenuCtx } from '@/Menu/contexts/hook';
+import { ContextError } from '@/Menu/errors';
 import { type ClassLayout } from '@/Menu/types';
 
-export const ClassDataCtx = createContext<ClassLayout | null>(null);
-export const SetClassDataCtx = createContext<
-  Dispatch<SetStateAction<ClassLayout | null>>
->(() => null);
-
 const ClassData: FC = () => {
-  const [classData, setClassData] = useState<ClassLayout | null>(null);
+  const { menuCtx, setMenuCtx } = useAppMenuCtx('on classdata');
+
+  // updater
+  const menuClassLayoutCtxUpdater = (data: Partial<ClassLayout>) => {
+    if (!menuCtx.classLayout)
+      throw new ContextError('non-context "ClassLayout" error');
+    const newClassLayout: ClassLayout = {
+      ...menuCtx.classLayout,
+      ...data,
+    };
+    setMenuCtx({
+      ...menuCtx,
+      classLayout: { ...newClassLayout },
+    });
+  };
+
   const methods = useForm<ClassLayout>({
     mode: 'all',
     criteriaMode: 'all',
+    shouldFocusError: true,
     defaultValues: {
-      column: classData?.column,
-      row: classData?.row,
-      name: classData?.name,
-      seats: classData?.seats,
+      column: menuCtx.classLayout?.column,
+      row: menuCtx.classLayout?.row,
+      name: menuCtx.classLayout?.name,
+      seats: menuCtx.classLayout?.seats,
     },
+    resolver: yupResolver(ClassLayoutSchema),
   });
 
   return (
@@ -55,17 +65,20 @@ const ClassData: FC = () => {
       </Box>
       <Box py={5}>
         <FormProvider {...methods}>
-          {classData === null || classData?.seats?.length === 0 ? (
-            <GetClassData setClassData={setClassData} />
+          {!menuCtx.classLayout || menuCtx.classLayout.seats.length === 0 ? (
+            <>
+              <GetClassData />
+            </>
           ) : (
-            <SetClassDataCtx.Provider value={setClassData}>
-              <ClassDataCtx.Provider value={classData}>
-                <SeatForm
-                  // TODO: 変換が多くて怖い
-                  defaultColumnCount={parseInt(classData.column.toString())}
-                />
-              </ClassDataCtx.Provider>
-            </SetClassDataCtx.Provider>
+            <>
+              <SeatForm
+                // TODO: 変換が多くて怖い
+                defaultColumnCount={parseInt(
+                  menuCtx.classLayout.column.toString()
+                )}
+                menuClassLayoutCtxUpdater={menuClassLayoutCtxUpdater}
+              />
+            </>
           )}
         </FormProvider>
       </Box>

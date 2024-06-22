@@ -10,8 +10,8 @@ import {
   Box,
 } from '@chakra-ui/react';
 import { useFormContext, type UseFieldArrayReturn } from 'react-hook-form';
-import LabelColor from './color';
-import { type LabelData } from './labels';
+import LabelColor from '../color';
+import { type LabelData } from '../labels';
 
 type LabelAreaProps = {
   fields: UseFieldArrayReturn<LabelData>['fields'];
