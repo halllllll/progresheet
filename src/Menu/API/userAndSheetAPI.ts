@@ -1,53 +1,52 @@
-import { errorMapper } from '../errors';
-import { serverFunctions, isGASEnvironment } from './serverFunctions';
+import { errorMapper } from "../errors";
+import { serverFunctions, isGASEnvironment } from "./serverFunctions";
 
 const getAccessedUserInfoAPI = async (): Promise<string> => {
-  if (isGASEnvironment()) {
-    const ret = await serverFunctions.getUserInfo();
+	if (isGASEnvironment()) {
+		const ret = await serverFunctions.getUserInfo();
 
-    return ret;
-  } else {
-    return await new Promise((resolve) => {
-      setTimeout(() => {
-        resolve('dummy id');
-      }, 1200);
-    });
-  }
+		return ret;
+	}
+
+	return await new Promise((resolve) => {
+		setTimeout(() => {
+			resolve("dummy id");
+		}, 1200);
+	});
 };
 
 const getSpreadSheetInfoAPI = async (): Promise<string> => {
-  if (isGASEnvironment()) {
-    const ret = await serverFunctions.getSpreadSheetName();
+	if (isGASEnvironment()) {
+		const ret = await serverFunctions.getSpreadSheetName();
 
-    return ret;
-  } else {
-    return await new Promise((resolve) => {
-      setTimeout(() => {
-        resolve('pseudo sheet name');
-      }, 300);
-    });
-  }
+		return ret;
+	}
+
+	return await new Promise((resolve) => {
+		setTimeout(() => {
+			resolve("pseudo sheet name");
+		}, 300);
+	});
 };
 
 const checkUniqueSheetNameAPI = async (sheetName: string): Promise<boolean> => {
-  if (isGASEnvironment()) {
-    const ret = await serverFunctions.isUniqueSheet(sheetName);
-    if (ret.success) {
-      return ret.data.isUnique;
-    } else {
-      throw errorMapper(ret.error);
-    }
-  } else {
-    return await new Promise((resolve) => {
-      setTimeout(() => {
-        resolve(Math.random() < 0.5);
-      }, 300);
-    });
-  }
+	if (isGASEnvironment()) {
+		const ret = await serverFunctions.isUniqueSheet(sheetName);
+		if (ret.success) {
+			return ret.data.isUnique;
+		}
+		throw errorMapper(ret.error);
+	}
+
+	return await new Promise((resolve) => {
+		setTimeout(() => {
+			resolve(Math.random() < 0.5);
+		}, 300);
+	});
 };
 
 export {
-  getAccessedUserInfoAPI,
-  getSpreadSheetInfoAPI,
-  checkUniqueSheetNameAPI,
+	getAccessedUserInfoAPI,
+	getSpreadSheetInfoAPI,
+	checkUniqueSheetNameAPI,
 };

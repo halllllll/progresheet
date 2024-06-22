@@ -115,7 +115,7 @@ const CtxProvider: FC<Props> = ({ children }) => {
         </Box>
       ) : isError.status === 'failed' ? (
         <Box>
-          <Heading>{`Error occured`}</Heading>
+          <Heading>{'Error occured'}</Heading>
           <Text as="b" fontSize="18px" color={'tomato'}>
             {isError.errName}
           </Text>

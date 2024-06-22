@@ -89,7 +89,7 @@ const EditorsForm: FC = () => {
           onClick={getEditors}
           isDisabled={isLoading}
         >
-          {editors.length === 0 ? `取得する` : `更新する`}
+          {editors.length === 0 ? '取得する' : '更新する'}
         </Button>
       </Center>
       <Box my={10}>
